@@ -2,6 +2,14 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+install Dependencies
+
+```bash
+npm install @supabase/supabase-js @supabase/ssr react-hook-form zod @hookform/resolvers lucide-react zustand leaflet react-leaflet
+
+npm install -D @types/leaflet
+```
+
 First, run the development server:
 
 ```bash
