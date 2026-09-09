@@ -1,21 +1,21 @@
-import { createClient } from "@/utils/supabase/server";
+import { Cta } from "@/components/sections/cta";
+import { Hero } from "@/components/sections/hero";
+import { MapSection } from "@/components/sections/map-section";
+import { Navbar } from "@/components/sections/navbar";
+import { Scoring } from "@/components/sections/scoring";
+import { TopRated } from "@/components/sections/top-rated";
 
-export default async function Home() {
-  const supabase = await createClient();
-  const { data: kos, error } = await supabase
-    .from("kos")
-    .select("id, name, created_at")
-    .order("created_at", { ascending: false });
-
+export default function Home() {
   return (
-    <div style={{ padding: 40, fontFamily: "sans-serif" }}>
-      <h1>Daftar Kos</h1>
-      {error && <p style={{ color: "red" }}>Error: {error.message}</p>}
-      <ul>
-        {kos?.map((item) => (
-          <li key={item.id}>{item.name}</li>
-        ))}
-      </ul>
-    </div>
+    <>
+      <Navbar />
+      <main className="flex-1">
+        <Hero />
+        <Scoring />
+        <MapSection />
+        <TopRated />
+        <Cta />
+      </main>
+    </>
   );
 }
