@@ -1,18 +1,22 @@
 "use client";
 
 import { create } from "zustand";
-import { KOS_LIST, type Kos } from "@/data/kos";
+import type { Kos } from "@/data/kos";
 
 type KosStore = {
-  kos: Kos[];
+  /** Only the kos added during this session, newest first. */
+  added: Kos[];
   addKos: (kos: Kos) => void;
 };
 
 /**
- * Shared between the map and the "kos in view" sidebar so a newly added
- * pin shows up in both without prop-drilling through the server component.
+ * The server-rendered list arrives as props; this store holds *only* what the
+ * user added by clicking the map. The map and the "kos in view" sidebar merge
+ * the two, so a new pin appears in both without prop-drilling between siblings.
+ *
+ * Session-only: a refresh drops anything not persisted to Supabase.
  */
 export const useKosStore = create<KosStore>((set) => ({
-  kos: KOS_LIST,
-  addKos: (kos) => set((state) => ({ kos: [kos, ...state.kos] })),
+  added: [],
+  addKos: (kos) => set((state) => ({ added: [kos, ...state.added] })),
 }));

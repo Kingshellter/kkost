@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ACCENT_BG } from "./accent";
 import { ScoreBadge } from "./score-badge";
 import type { Kos } from "@/data/kos";
@@ -5,7 +6,10 @@ import { formatDistance, formatRupiah } from "@/lib/format";
 
 export function KosCard({ kos }: { kos: Kos }) {
   return (
-    <article className="flex flex-col rounded-[var(--radius-panel)] bg-white p-4 shadow-[var(--shadow-lift)] transition-transform hover:-translate-y-1">
+    <Link
+      href={`/kos/${kos.id}`}
+      className="flex flex-col rounded-[var(--radius-panel)] bg-white p-4 shadow-[var(--shadow-lift)] transition-transform hover:-translate-y-1"
+    >
       <div
         className={`flex h-[190px] items-center justify-center rounded-[22px] text-[11px] font-extrabold tracking-[0.18em] ${ACCENT_BG[kos.photoAccent]} ${
           kos.photoAccent === "amber" || kos.photoAccent === "sky"
@@ -23,8 +27,13 @@ export function KosCard({ kos }: { kos: Kos }) {
               {kos.name}
             </h3>
             <p className="mt-1 text-[15px] font-medium text-muted">
-              {kos.area} · {formatDistance(kos.distance)}
+              {kos.area}, {kos.city}
             </p>
+            {kos.campus && (
+              <p className="mt-0.5 text-sm font-medium text-muted">
+                {formatDistance(kos.distance)} ke {kos.campus}
+              </p>
+            )}
           </div>
           <ScoreBadge score={kos.score} />
         </div>
@@ -49,6 +58,6 @@ export function KosCard({ kos }: { kos: Kos }) {
           </p>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }

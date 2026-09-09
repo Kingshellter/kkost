@@ -1,0 +1,183 @@
+# 06 · Conventions
+
+Rules derived from the existing code. Follow them so new work is indistinguishable
+from what is already there.
+
+## Next.js 16
+
+This is **not** the Next.js in most training data. Before using an unfamiliar
+API, read the relevant guide in `node_modules/next/dist/docs/`. Two live
+examples of the difference already in this repo:
+
+- `layout.tsx` types its props as `LayoutProps<"/">`, pages as
+  `PageProps<"/kos/[id]">` — generated global types, no import needed. After
+  adding a route, run `npx next typegen` or `tsc` will not know about it.
+- `cookies()` is **async** (`const cookieStore = await cookies()`).
+- `params` is a **Promise**: `const { id } = await props.params`.
+- The `middleware.ts` convention is **deprecated**. This repo uses `src/proxy.ts`
+  exporting a function named `proxy`.
+
+Server Components are the default. Add `"use client"` only when you need
+browser APIs, hooks, or event handlers — and push the boundary as far down the
+tree as possible (see `MapFrame`).
+
+## Tailwind v4
+
+- Tokens go in the `@theme inline` block in `globals.css`, **not** a config file.
+- Reusable CSS goes in an `@utility` block (see `eyebrow`).
+- **Never build class names by string interpolation of a variable**
+  (`bg-${accent}`). Tailwind scans for complete literals. Use the lookup maps in
+  `components/ui/accent.ts`, or an inline `style` with `ACCENT_HEX`.
+- Radii/shadows are consumed as arbitrary values:
+  `rounded-[var(--radius-panel)]`, `shadow-[var(--shadow-lift)]`.
+
+## TypeScript
+
+- `strict: true`. No `any`.
+- Import with the `@/` alias, never relative paths that climb out of a folder
+  (`@/lib/format`, not `../../lib/format`). Siblings use `./`.
+- Prefer `type` aliases over `interface` — that is what the codebase uses.
+- Model outcomes as **discriminated unions**, not thrown errors, for anything
+  the UI has to branch on. `SaveResult` is the reference example.
+- `import type { ... }` for type-only imports.
+
+## Component style
+
+- Named exports for components (`export function KosCard`). The one default
+  export is `KosMap`, because `dynamic()` needs it.
+- Props typed inline for 1–2 props; a local `type Props = {...}` beyond that.
+- Small local helpers (`Field`, `HeroCard`, `ScoreInput`, `ClickCatcher`) live
+  at the bottom of the file that uses them. Do not promote them to `ui/` until a
+  second file needs them.
+- Formatting always goes through `lib/format.ts`. Do not inline
+  `toLocaleString` in a component.
+
+## Comments
+
+The codebase comments **why**, not what — often with a specific reason a naive
+reader would get wrong. Examples worth matching in tone:
+
+> "Tailwind scans for complete class strings, so every accent variant is spelled out here rather than composed at runtime."
+
+> "Leaflet touches `window` at import time, so the map can only load in the browser."
+
+> "Overflow on the root element always applies to the viewport; the padding compensates for the vanishing scrollbar so the layout underneath does not jump sideways."
+
+Use JSDoc `/** ... */` for exported functions and types. Skip comments that
+restate the code.
+
+## Accessibility
+
+Already present, keep it up: `aria-label` on the map's nav, `role="img"` +
+label on `FacilityBar`, `role="dialog"` + `aria-modal` + `aria-labelledby` on
+the modal, Escape-to-close, backdrop-click-to-close, `autoFocus` on the first
+field, `sr-only` labels on unlabelled inputs, `aria-hidden` on every decorative
+blob, `autoComplete` on the auth inputs.
+
+The review form's 1–5 scales are a real `<fieldset>` of radio inputs with an
+`sr-only` control behind each pill — keyboard- and screen-reader-navigable, and
+it would still submit without JavaScript.
+
+Gaps to fix rather than replicate: `AddKosDialog` does not trap focus or restore
+focus to the trigger on close.
+
+## Graceful degradation
+
+A checkout with no Supabase credentials **must still run**. Three places
+implement this and any new Supabase code must too:
+
+1. `src/proxy.ts` returns early without the env vars.
+2. `isSupabaseConfigured` gates `saveKos`, which returns `"unconfigured"`.
+3. `AddKosDialog` shows an amber warning; `KosMap` still adds the pin and words
+   the toast differently.
+4. `fetchKosList` falls back to `KOS_LIST` on any error or empty result.
+
+## Responsive
+
+The competition rules require the site to work at every screen size, and the
+navbar is the easy thing to get wrong: its link list is `hidden lg:flex`, so
+`MobileNav` must keep working. Check any new navigation at 375px before calling
+it done.
+
+## Error UX
+
+Errors are surfaced **in Indonesian, inline, and actionable** — they name the
+file to run or the policy to add. The dialog stays open on error so the user's
+input is not lost. No `alert()`, no `console.error` as the user-facing path.
+
+## Server Actions
+
+- Actions live in `src/lib/*-actions.ts` with `"use server"` at the top.
+- **A `"use server"` module may only export async functions.** State objects for
+  `useActionState` therefore live in `src/lib/action-state.ts`. Exporting a
+  plain object or a const from an actions file fails the production build with
+  `A "use server" file can only export async functions, found object` — and
+  `next dev` will not catch it.
+- **Never trust the client for identity.** The form sends *which* kos and the
+  user's own input; the author is re-read from the session inside the action
+  (`getSessionUser()`).
+- Validate every action input with zod. `FormData` is untrusted.
+- Call `revalidatePath` for every route whose output changed — a review changes
+  both `/kos/[id]` and `/`.
+
+## Supabase
+
+- Read/write through the right factory for the environment (see
+  [02-architecture.md](02-architecture.md#supabase-clients--three-of-them-do-not-mix)).
+- **Repository functions take the client as their first argument** so the same
+  query works server-side and in the browser. Do not import a client factory
+  inside a repository.
+- Column names live **only** in that table's `*-repository.ts`.
+- Derived values (`kos.score`, `kos.reviews`, `reviews.average`) are computed by
+  the database. The app never writes them.
+- Schema changes go in a new numbered file under `supabase/migrations/`
+  (`0002_...sql`), written idempotently (`if not exists`, `drop constraint if
+  exists` before `add constraint`) — they are pasted into the SQL Editor by hand
+  and may be run twice.
+- RLS problems are solved with policies, never by disabling RLS.
+- **Writes need an identity, reads never do.** New tables get
+  `select using (true)` and writes `to authenticated`. Browsing kkost must stay
+  possible without an account; contributing must not.
+
+## Map
+
+- Markers are `L.divIcon` with inline HTML. Do not introduce image marker assets.
+- Overlays above the map need explicit z-index (`z-[500]`, dialog `z-[1000]`).
+- Coordinates are `[lat, lng]` everywhere.
+- Leaflet CSS overrides belong in `globals.css`, not in component styles.
+- **Never hardcode a centre, a zoom, or a reference point.** kkost is
+  nationwide; `FitToKos` derives the view from the data. `INDONESIA` is only the
+  fallback for an empty map.
+- Anything measured in pixels against the map container must scale with it —
+  the container is 343px wide on a phone and ~800px on a desktop.
+
+## Language and place
+
+Marketing copy in English, functional/app copy in Indonesian. Match the section
+you are editing. `<html lang="id">`.
+
+The brand is **kkost**, lowercase, everywhere. Copy must not assume a city or a
+campus: kkost covers all of Indonesia, and each kos carries its own `city` and
+optional `campus`. Show a distance only when that kos has a `campus`.
+
+## Git — manual only, agents must not run it
+
+**Agents never run `git commit`, `git push`, or `git pull` in this repo.** Not
+at the end of a task, not when asked to "save" or "wrap up", not with
+`--no-verify`, not through an alias, script, or subagent. Same for `gh pr
+create` / `gh pr merge` and anything else that writes to GitHub. The
+maintainers do all of it by hand.
+
+| Allowed | Not allowed |
+|---|---|
+| `git status`, `git diff`, `git log`, `git show` — read-only, for context | `git add` / `git commit` / `git push` / `git pull` / `git fetch`+merge / `git rebase` |
+| Editing files and leaving them in the working tree | `gh pr create`, `gh pr merge`, any GitHub write |
+| Writing a suggested commit message *as text* | Running that message through `git commit` |
+
+Finish a task by reporting what changed and leaving it uncommitted. Do not end
+with "commit?" — the answer is always no. If a task genuinely cannot proceed
+without a commit, stop and hand it back.
+
+Branch names in use: `main`, `ui-h-1`. Existing commit messages are terse
+(`1`, `2`, `update readme,...`) — not a standard to copy if you are asked to
+draft one.

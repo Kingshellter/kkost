@@ -5,7 +5,7 @@ export function Logo({ className = "" }: { className?: string }) {
         K
       </span>
       <span className="text-xl font-extrabold tracking-tight text-ink">
-        Koscek
+        kkost
       </span>
     </span>
   );

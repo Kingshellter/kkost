@@ -2,17 +2,18 @@
 
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   MapContainer,
   Marker,
   Popup,
   TileLayer,
   Tooltip,
+  useMap,
   useMapEvents,
 } from "react-leaflet";
 import { ACCENT_HEX, accentForScore } from "@/components/ui/accent";
-import { CAMPUS, type Accent } from "@/data/kos";
+import { INDONESIA, type Accent, type Kos } from "@/data/kos";
 import { formatRupiah } from "@/lib/format";
 import { toKos, type NewKosInput, type SaveResult } from "@/lib/kos-repository";
 import { useKosStore } from "@/store/kos-store";
@@ -40,16 +41,6 @@ function scoreIcon(score: number, accent: Accent, isNew: boolean) {
   });
 }
 
-const campusIcon = L.divIcon({
-  className: "",
-  iconSize: [18, 18],
-  iconAnchor: [9, 9],
-  html: `<span style="
-    display:block;width:18px;height:18px;border-radius:9999px;
-    border:4px solid #1c2a4e;background:#ffffff;
-  "></span>`,
-});
-
 const draftIcon = L.divIcon({
   className: "",
   iconSize: [34, 34],
@@ -62,6 +53,70 @@ const draftIcon = L.divIcon({
   ">+</span>`,
 });
 
+/**
+ * kkost spans the whole country, so there is no sensible fixed centre. Fit the
+ * view to whatever kos actually exist — data in one city zooms to that city,
+ * and the view widens on its own once other cities appear.
+ *
+ * The fit has to survive the container being sized late — a ResizeObserver
+ * re-fits as the real width arrives — and the padding scales with the
+ * container, because a fixed inset is most of the width on a phone.
+ *
+ * It stops as soon as the user touches the map, so it never fights their own
+ * panning and zooming.
+ */
+function FitToKos({ points }: { points: [number, number][] }) {
+  const map = useMap();
+  const signature = points.map((p) => p.join()).join("|");
+
+  useEffect(() => {
+    if (!points.length) return;
+
+    const container = map.getContainer();
+    let userMoved = false;
+    const markMoved = () => {
+      userMoved = true;
+    };
+
+    const fit = () => {
+      const { clientWidth: w, clientHeight: h } = container;
+      if (userMoved || !w || !h) return;
+
+      // Proportional, not fixed: 56px of breathing room either side is fine on
+      // a desktop but eats over half the width of a phone-sized map, which
+      // pushes the fit several zoom levels too far out.
+      const pad = Math.round(Math.min(56, w * 0.08, h * 0.08));
+
+      map.invalidateSize({ animate: false });
+      map.fitBounds(L.latLngBounds(points), {
+        padding: [pad, pad],
+        maxZoom: 15,
+        animate: false,
+      });
+    };
+
+    // pointerdown/wheel only ever come from the user — unlike Leaflet's own
+    // zoomstart, which fires for programmatic moves too.
+    container.addEventListener("pointerdown", markMoved);
+    container.addEventListener("wheel", markMoved, { passive: true });
+
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
+      container.removeEventListener("pointerdown", markMoved);
+      container.removeEventListener("wheel", markMoved);
+    };
+    // `signature` stands in for `points`: a new array with the same coordinates
+    // must not retrigger the fit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, signature]);
+
+  return null;
+}
+
 /** Captures map clicks so the parent can offer to add a kos there. */
 function ClickCatcher({ onPick }: { onPick: (p: [number, number]) => void }) {
   useMapEvents({
@@ -70,9 +125,16 @@ function ClickCatcher({ onPick }: { onPick: (p: [number, number]) => void }) {
   return null;
 }
 
-export default function KosMap() {
-  const kosList = useKosStore((s) => s.kos);
+export default function KosMap({
+  kos: fromServer,
+  signedIn,
+}: {
+  kos: Kos[];
+  signedIn: boolean;
+}) {
+  const added = useKosStore((s) => s.added);
   const addKos = useKosStore((s) => s.addKos);
+  const kosList = [...added, ...fromServer];
 
   /** Where the user clicked, awaiting confirmation. */
   const [draft, setDraft] = useState<[number, number] | null>(null);
@@ -95,8 +157,8 @@ export default function KosMap() {
   return (
     <div className="relative h-full w-full">
       <MapContainer
-        center={[-7.7683, 110.3845]}
-        zoom={14}
+        center={INDONESIA.center}
+        zoom={INDONESIA.zoom}
         scrollWheelZoom={false}
         className="h-full w-full"
         style={{ minHeight: "100%" }}
@@ -109,12 +171,7 @@ export default function KosMap() {
         />
 
         <ClickCatcher onPick={setDraft} />
-
-        <Marker position={CAMPUS.coords} icon={campusIcon}>
-          <Tooltip direction="right" offset={[10, 0]} permanent>
-            {CAMPUS.name}
-          </Tooltip>
-        </Marker>
+        <FitToKos points={kosList.map((k) => k.coords)} />
 
         {kosList.map((kos) => (
           <Marker
@@ -128,6 +185,8 @@ export default function KosMap() {
           >
             <Tooltip direction="top" offset={[0, -22]}>
               <span className="font-bold">{kos.name}</span>
+              {" · "}
+              {kos.city}
               {" · "}
               {formatRupiah(kos.price)}
             </Tooltip>
@@ -144,25 +203,41 @@ export default function KosMap() {
               eventHandlers={{ remove: () => setDraft(null) }}
             >
               <span className="block text-[13px] font-bold text-ink">
-                Tambahkan kos di titik ini?
+                {signedIn
+                  ? "Tambahkan kos di titik ini?"
+                  : "Masuk dulu untuk menambah kos"}
               </span>
               <span className="mt-0.5 block text-xs font-medium text-muted">
-                {draft[0].toFixed(5)}, {draft[1].toFixed(5)}
+                {signedIn
+                  ? `${draft[0].toFixed(5)}, ${draft[1].toFixed(5)}`
+                  : "Melihat kos dan review tidak perlu akun — menambah data perlu."}
               </span>
-              <button
-                type="button"
-                onClick={() => setFormAt(draft)}
-                className="mt-2.5 w-full rounded-full bg-rose px-4 py-2 text-[13px] font-extrabold text-white"
-              >
-                + Tambah kos
-              </button>
+              {signedIn ? (
+                <button
+                  type="button"
+                  onClick={() => setFormAt(draft)}
+                  className="mt-2.5 w-full rounded-full bg-rose px-4 py-2 text-[13px] font-extrabold text-white"
+                >
+                  + Tambah kos
+                </button>
+              ) : (
+                <a
+                  href="#login"
+                  onClick={() => setDraft(null)}
+                  className="mt-2.5 block w-full rounded-full bg-ink px-4 py-2 text-center text-[13px] font-extrabold text-white"
+                >
+                  Masuk atau daftar
+                </a>
+              )}
             </Popup>
           </>
         )}
       </MapContainer>
 
       <p className="pointer-events-none absolute left-1/2 top-4 z-[500] -translate-x-1/2 rounded-full bg-white/95 px-4 py-2 text-xs font-bold text-ink shadow-[var(--shadow-lift)]">
-        Klik peta untuk menambah kos
+        {signedIn
+          ? "Klik peta untuk menambah kos"
+          : "Klik peta untuk menambah kos — perlu masuk"}
       </p>
 
       {notice && (

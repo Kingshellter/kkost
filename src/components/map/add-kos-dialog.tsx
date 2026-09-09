@@ -4,23 +4,29 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { CAMPUS } from "@/data/kos";
-import { distanceBetween } from "@/lib/geo";
+import { createClient } from "@/utils/supabase/client";
 import {
   isSupabaseConfigured,
   saveKos,
   type NewKosInput,
   type SaveResult,
 } from "@/lib/kos-repository";
-import { formatDistance } from "@/lib/format";
 
 const schema = z.object({
   name: z.string().trim().min(3, "Nama kos minimal 3 karakter"),
   area: z.string().trim().min(2, "Area wajib diisi"),
+  city: z.string().trim().min(2, "Kota wajib diisi"),
+  // Optional: not every kos is near a campus, and kkost covers all of Indonesia.
+  campus: z.string().trim().max(120, "Nama kampus terlalu panjang"),
   price: z
     .number({ message: "Harga harus berupa angka" })
     .int("Harga harus bilangan bulat")
     .min(1, "Harga harus lebih dari 0"),
+  distance: z
+    .number({ message: "Jarak harus berupa angka" })
+    .int("Jarak harus bilangan bulat")
+    .min(0, "Jarak tidak boleh negatif")
+    .max(50_000, "Jarak maksimal 50.000 m"),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -33,7 +39,6 @@ type Props = {
 
 export function AddKosDialog({ position, onCancel, onSaved }: Props) {
   const [serverError, setServerError] = useState<string | null>(null);
-  const distance = distanceBetween(position, CAMPUS.coords);
 
   const {
     register,
@@ -41,7 +46,7 @@ export function AddKosDialog({ position, onCancel, onSaved }: Props) {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", area: "", price: 0 },
+    defaultValues: { name: "", area: "", city: "", campus: "", price: 0, distance: 0 },
   });
 
   // Escape closes the dialog, like any modal
@@ -74,11 +79,14 @@ export function AddKosDialog({ position, onCancel, onSaved }: Props) {
     setServerError(null);
     const input: NewKosInput = {
       ...values,
-      distance,
+      campus: values.campus || null,
       lat: position[0],
       lng: position[1],
     };
-    const result = await saveKos(input);
+    const result = await saveKos(
+      isSupabaseConfigured ? createClient() : null,
+      input,
+    );
     if (result.status === "error") {
       setServerError(result.message);
       return;
@@ -108,8 +116,7 @@ export function AddKosDialog({ position, onCancel, onSaved }: Props) {
           Kos baru di titik ini
         </h2>
         <p className="mt-2 text-sm font-medium text-muted">
-          {position[0].toFixed(5)}, {position[1].toFixed(5)} ·{" "}
-          {formatDistance(distance)} ke {CAMPUS.name}
+          {position[0].toFixed(5)}, {position[1].toFixed(5)}
         </p>
 
         <div className="mt-6 space-y-4">
@@ -122,25 +129,65 @@ export function AddKosDialog({ position, onCancel, onSaved }: Props) {
             />
           </Field>
 
-          <Field label="Area" error={errors.area?.message}>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Area" error={errors.area?.message}>
+              <input
+                {...register("area")}
+                placeholder="Tembalang"
+                className={inputClass}
+              />
+            </Field>
+
+            <Field label="Kota" error={errors.city?.message}>
+              <input
+                {...register("city")}
+                placeholder="Semarang"
+                className={inputClass}
+              />
+            </Field>
+          </div>
+
+          <Field
+            label="Kampus terdekat"
+            hint="opsional"
+            error={errors.campus?.message}
+          >
             <input
-              {...register("area")}
-              placeholder="Condongcatur"
+              {...register("campus")}
+              placeholder="Universitas Diponegoro"
               className={inputClass}
             />
           </Field>
 
-          <Field label="Harga per bulan (Rp)" error={errors.price?.message}>
-            <input
-              {...register("price", { valueAsNumber: true })}
-              type="number"
-              inputMode="numeric"
-              min={0}
-              step={50000}
-              placeholder="950000"
-              className={inputClass}
-            />
-          </Field>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Harga per bulan (Rp)" error={errors.price?.message}>
+              <input
+                {...register("price", { valueAsNumber: true })}
+                type="number"
+                inputMode="numeric"
+                min={0}
+                step={50000}
+                placeholder="950000"
+                className={inputClass}
+              />
+            </Field>
+
+            <Field
+              label="Jarak ke kampus (m)"
+              hint="jalan kaki"
+              error={errors.distance?.message}
+            >
+              <input
+                {...register("distance", { valueAsNumber: true })}
+                type="number"
+                inputMode="numeric"
+                min={0}
+                step={50}
+                placeholder="700"
+                className={inputClass}
+              />
+            </Field>
+          </div>
         </div>
 
         {serverError && (
@@ -182,16 +229,21 @@ const inputClass =
 
 function Field({
   label,
+  hint,
   error,
   children,
 }: {
   label: string;
+  hint?: string;
   error?: string;
   children: React.ReactNode;
 }) {
   return (
     <label className="block">
-      <span className="text-[15px] font-extrabold text-ink">{label}</span>
+      <span className="text-[15px] font-extrabold text-ink">
+        {label}
+        {hint && <span className="font-medium text-muted"> ({hint})</span>}
+      </span>
       {children}
       {error && <span className="mt-1.5 block text-sm font-bold text-rose">{error}</span>}
     </label>

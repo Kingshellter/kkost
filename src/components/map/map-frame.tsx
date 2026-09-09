@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { Kos } from "@/data/kos";
 
 /**
  * Leaflet touches `window` at import time, so the map can only load in the
@@ -15,6 +16,12 @@ const KosMap = dynamic(() => import("./kos-map"), {
   ),
 });
 
-export function MapFrame() {
-  return <KosMap />;
+export function MapFrame({
+  kos,
+  signedIn,
+}: {
+  kos: Kos[];
+  signedIn: boolean;
+}) {
+  return <KosMap kos={kos} signedIn={signedIn} />;
 }

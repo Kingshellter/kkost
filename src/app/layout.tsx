@@ -9,9 +9,9 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Koscek — Pilih kos dari orang yang pernah tinggal di dalamnya",
+  title: "kkost — Pilih kos dari orang yang pernah tinggal di dalamnya",
   description:
-    "Enam fasilitas, dinilai satu per satu oleh mahasiswa yang benar-benar membayar sewanya. Pemilik kos boleh membalas — tidak pernah bisa menghapus.",
+    "Enam fasilitas, dinilai satu per satu oleh mahasiswa yang benar-benar membayar sewanya, di seluruh Indonesia. Pemilik kos boleh membalas — tidak pernah bisa menghapus.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

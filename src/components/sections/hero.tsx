@@ -1,11 +1,9 @@
 import { FacilityBar } from "@/components/ui/facility-bar";
 import { ScoreBadge } from "@/components/ui/score-badge";
-import { HERO_BREAKDOWN, KOS_LIST, STATS } from "@/data/kos";
+import { HERO_BREAKDOWN, STATS, type Kos } from "@/data/kos";
 import { formatDistance, formatRupiah } from "@/lib/format";
 
-const FEATURED = KOS_LIST[0];
-
-export function Hero() {
+export function Hero({ featured }: { featured: Kos }) {
   return (
     <section className="relative overflow-hidden px-4 pb-24 pt-14 sm:px-6 lg:px-10 lg:pb-32 lg:pt-20">
       {/* Decorative blobs from the deck */}
@@ -23,7 +21,7 @@ export function Hero() {
           <p className="eyebrow bg-white text-rose shadow-[var(--shadow-lift)]">
             <span className="h-2 w-2 rounded-full bg-rose" />
             {STATS.reviews.toLocaleString("en-US")} reviews ·{" "}
-            {STATS.kos.toLocaleString("en-US")} kos
+            {STATS.kos.toLocaleString("en-US")} kos · {STATS.cities} kota
           </p>
 
           <h1 className="mt-8 text-[clamp(2.75rem,7vw,4.5rem)] font-extrabold leading-[0.98] tracking-[-0.035em] text-ink">
@@ -35,8 +33,9 @@ export function Hero() {
           </h1>
 
           <p className="mt-7 max-w-[30ch] text-lg leading-relaxed text-ink-soft sm:max-w-[46ch]">
-            Six facilities, scored one by one by students who paid the rent.
-            Owners can reply — they can never delete.
+            Six facilities, scored one by one by students who paid the rent,
+            in every city in Indonesia. Owners can reply — they can never
+            delete.
           </p>
 
           <form
@@ -45,12 +44,12 @@ export function Hero() {
           >
             <label className="flex min-w-0 flex-1 items-baseline gap-3 px-3 sm:px-0">
               <span className="shrink-0 text-[15px] font-bold text-muted">
-                Campus
+                Kota
               </span>
               <input
-                name="campus"
-                defaultValue="UGM, Yogyakarta"
-                aria-label="Kampus"
+                name="city"
+                placeholder="Semua kota di Indonesia"
+                aria-label="Kota"
                 className="min-w-0 flex-1 bg-transparent text-[15px] font-bold text-ink outline-none placeholder:text-muted"
               />
             </label>
@@ -78,13 +77,13 @@ export function Hero() {
           </form>
         </div>
 
-        <HeroCard />
+        <HeroCard kos={featured} />
       </div>
     </section>
   );
 }
 
-function HeroCard() {
+function HeroCard({ kos }: { kos: Kos }) {
   return (
     <div className="relative mx-auto w-full max-w-[480px] lg:mx-0">
       <article className="rounded-[var(--radius-panel)] bg-white p-7 shadow-[var(--shadow-float)]">
@@ -94,13 +93,14 @@ function HeroCard() {
           </span>
           <div className="min-w-0 flex-1">
             <h2 className="text-[22px] font-extrabold leading-tight text-ink">
-              {FEATURED.name}
+              {kos.name}
             </h2>
             <p className="mt-1 text-[15px] font-medium text-muted">
-              {FEATURED.area} · {formatDistance(FEATURED.distance)} to UGM
+              {kos.area}, {kos.city}
+              {kos.campus && ` · ${formatDistance(kos.distance)} ke ${kos.campus}`}
             </p>
           </div>
-          <ScoreBadge score={FEATURED.score} size="lg" />
+          <ScoreBadge score={kos.score} size="lg" />
         </div>
 
         <div className="mt-7 space-y-3.5">
@@ -111,11 +111,11 @@ function HeroCard() {
 
         <div className="mt-7 flex items-baseline justify-between border-t border-cream-deep pt-5">
           <p className="text-[22px] font-extrabold text-ink">
-            {formatRupiah(FEATURED.price)}
+            {formatRupiah(kos.price)}
             <span className="text-base font-medium text-muted"> / month</span>
           </p>
           <p className="text-[15px] font-medium text-muted">
-            {FEATURED.reviews} reviews
+            {kos.reviews} reviews
           </p>
         </div>
       </article>

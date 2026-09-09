@@ -1,7 +1,14 @@
 import { KosSidebar } from "@/components/map/kos-sidebar";
 import { MapFrame } from "@/components/map/map-frame";
+import type { Kos } from "@/data/kos";
 
-export function MapSection() {
+export function MapSection({
+  kos,
+  signedIn,
+}: {
+  kos: Kos[];
+  signedIn: boolean;
+}) {
   return (
     <section
       id="reviews"
@@ -24,16 +31,17 @@ export function MapSection() {
             Every kos on the map
           </h2>
           <p className="mx-auto mt-5 max-w-[52ch] text-lg text-white/70">
-            Distance to campus is the one thing you cannot renovate.
+            From Sabang to Merauke. Distance to campus is the one thing you
+            cannot renovate.
           </p>
         </div>
 
         <div className="mt-14 grid gap-7 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="h-[380px] overflow-hidden rounded-[var(--radius-panel)] shadow-[var(--shadow-float)] sm:h-[460px] lg:h-[520px]">
-            <MapFrame />
+            <MapFrame kos={kos} signedIn={signedIn} />
           </div>
 
-          <KosSidebar />
+          <KosSidebar kos={kos} />
         </div>
       </div>
     </section>
