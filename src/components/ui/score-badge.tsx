@@ -11,6 +11,8 @@ type Props = {
   score: number;
   size?: keyof typeof SIZES;
   accent?: Accent;
+  /** Shown instead of the number — e.g. "Baru" for a kos with no reviews yet. */
+  label?: string;
   className?: string;
 };
 
@@ -19,6 +21,7 @@ export function ScoreBadge({
   score,
   size = "md",
   accent = "rose",
+  label,
   className = "",
 }: Props) {
   return (
@@ -29,7 +32,9 @@ export function ScoreBadge({
         color: accent === "amber" || accent === "sky" ? "#1c2a4e" : "#ffffff",
       }}
     >
-      {score.toFixed(1)}
+      <span className={label ? "text-[11px] tracking-wide" : undefined}>
+        {label ?? score.toFixed(1)}
+      </span>
     </span>
   );
 }
