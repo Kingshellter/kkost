@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ACCENT_BG } from "./accent";
-import { ScoreBadge } from "./score-badge";
+import { KosScoreBadge } from "./kos-score-badge";
 import type { Kos } from "@/data/kos";
 import { formatDistance, formatRupiah } from "@/lib/format";
 
@@ -35,7 +35,7 @@ export function KosCard({ kos }: { kos: Kos }) {
               </p>
             )}
           </div>
-          <ScoreBadge score={kos.score} />
+          <KosScoreBadge kos={kos} />
         </div>
 
         <ul className="mt-5 mb-6 flex flex-wrap gap-2.5">

@@ -67,6 +67,11 @@ enforced.
   plus the click-to-add flow
 - ✅ "Add kos" dialog: validated form → Supabase insert → pin appears
 - ✅ **Responsive navbar** with a mobile menu
+- ✅ **Migrations applied and the database live** — 11 kos across 8 cities, and
+  Supabase's own security linter reports zero findings
+- ✅ **The theme, argued on the page** — a `#trust` section listing each
+  integrity guarantee and where it is enforced, plus a "dari mana angka ini"
+  panel on every kos detail page
 - ✅ Graceful degradation with no Supabase credentials (demo data, session-scoped)
 - ✅ Supabase session refresh in `src/proxy.ts`
 
@@ -78,10 +83,13 @@ enforced.
 - ❌ **Editing a review.** The 30-day window exists as an RLS policy; no UI uses it.
 - ❌ **Search/filter.** The hero city field and `action="#browse"` just jump —
   nothing filters by city yet, even though the data now supports it.
-- ❌ **`#owners` section.** `NAV_LINKS` points at an anchor nothing defines.
 - ❌ **Real photos.** Cards render coloured `PHOTO` placeholders.
-- ❌ **SDG section.** The competition scores "Kesesuaian dengan Tema" 15%; the
-  six criteria map onto SDG 11 / 6 / 4 but the site never says so.
+- ❌ **SDG mention on the site.** The README maps the six criteria onto
+  SDG 11 / 6 / 4; the page itself does not. Secondary to the theme.
+- ⚠️ **`is_student` is forgeable.** The flag is set from an `.ac.id` suffix
+  alone. With Supabase's "Confirm email" turned off, anyone can claim a campus
+  address they do not own — which contradicts the verified-tenant badge and the
+  trust section. Unresolved product decision.
 - ❌ **Tests.** No test runner configured.
 
 ## Environment

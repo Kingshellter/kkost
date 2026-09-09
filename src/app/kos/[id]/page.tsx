@@ -3,8 +3,7 @@ import { notFound } from "next/navigation";
 import { ReviewForm } from "@/components/review/review-form";
 import { ReviewList } from "@/components/review/review-list";
 import { Navbar } from "@/components/sections/navbar";
-import { ScoreBadge } from "@/components/ui/score-badge";
-import { accentForScore } from "@/components/ui/accent";
+import { KosScoreBadge } from "@/components/ui/kos-score-badge";
 import { CRITERIA, type FacilityKey } from "@/data/kos";
 import { getSessionUser } from "@/lib/auth";
 import { formatDistance, formatRupiah } from "@/lib/format";
@@ -65,17 +64,14 @@ export default async function KosDetail(props: PageProps<"/kos/[id]">) {
             </div>
 
             <div className="flex flex-col items-center gap-2">
-              <ScoreBadge
-                score={kos.score}
-                size="lg"
-                accent={kos.reviews === 0 ? "ink" : accentForScore(kos.score)}
-                label={kos.reviews === 0 ? "Baru" : undefined}
-              />
+              <KosScoreBadge kos={kos} size="lg" />
               <p className="text-sm font-bold text-muted">
                 {kos.reviews} review
               </p>
             </div>
           </header>
+
+          <ScoreProvenance score={kos.score} count={kos.reviews} />
 
           {reviews.length > 0 && (
             <section className="mt-10">
@@ -135,6 +131,51 @@ export default async function KosDetail(props: PageProps<"/kos/[id]">) {
         </div>
       </main>
     </>
+  );
+}
+
+/**
+ * Spells out where this kos's number came from. The guarantee is real — see
+ * refresh_kos_score() in 0002_reviews.sql — but a visitor has no way to know
+ * that unless the page says so.
+ *
+ * `count` is `kos.reviews`, the column the trigger maintains, not the number of
+ * review rows fetched: those are the same in normal operation, and using the
+ * column keeps this panel agreeing with the score badge above it even on the
+ * demo fallback, where the rows are not available.
+ */
+function ScoreProvenance({ score, count }: { score: number; count: number }) {
+  return (
+    <aside className="mt-6 rounded-[var(--radius-panel)] border border-cream-deep bg-white/60 px-7 py-6">
+      <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-muted">
+        Dari mana angka ini
+      </p>
+
+      {count === 0 ? (
+        <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
+          Kos ini belum punya skor karena belum ada yang menilainya. Begitu
+          review pertama masuk, skornya dihitung otomatis oleh database —
+          tidak ada yang bisa menuliskannya sendiri.
+        </p>
+      ) : (
+        <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
+          <strong className="font-extrabold text-ink">
+            {score.toFixed(1)}
+          </strong>{" "}
+          adalah rata-rata polos dari {count} review, dihitung ulang oleh
+          database setiap kali ada penilaian baru. Aplikasi kkost tidak pernah
+          menulis angka ini, dan pemilik kos tidak punya izin menghapus review
+          siapa pun.
+        </p>
+      )}
+
+      <p className="mt-3 text-sm font-medium text-muted">
+        Satu review per orang per kos, dapat disunting 30 hari.{" "}
+        <Link href="/#trust" className="font-bold text-ink underline">
+          Bagaimana ini ditegakkan
+        </Link>
+      </p>
+    </aside>
   );
 }
 

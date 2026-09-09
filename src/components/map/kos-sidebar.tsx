@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { accentForScore } from "@/components/ui/accent";
-import { ScoreBadge } from "@/components/ui/score-badge";
+import { KosScoreBadge } from "@/components/ui/kos-score-badge";
 import type { Kos } from "@/data/kos";
 import { formatRupiah } from "@/lib/format";
 import { useKosStore } from "@/store/kos-store";
@@ -24,12 +23,7 @@ export function KosSidebar({ kos: fromServer }: { kos: Kos[] }) {
               href={`/kos/${kos.id}`}
               className="flex items-start gap-4 transition-opacity hover:opacity-70"
             >
-              <ScoreBadge
-                score={kos.score}
-                size="sm"
-                accent={kos.reviews === 0 ? "ink" : accentForScore(kos.score)}
-                label={kos.reviews === 0 ? "Baru" : undefined}
-              />
+              <KosScoreBadge kos={kos} size="sm" />
               <div className="min-w-0">
                 <h3 className="text-[17px] font-extrabold leading-tight text-ink">
                   {kos.name}

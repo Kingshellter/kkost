@@ -200,8 +200,49 @@ export const CRITERIA = [
 export const NAV_LINKS = [
   { label: "Browse kos", href: "#browse" },
   { label: "How scoring works", href: "#scoring" },
+  // Replaces the old "For owners" entry, which pointed at #owners — an anchor
+  // no section ever defined. The owner story lives in the trust section now.
+  { label: "Why trust this", href: "#trust" },
   { label: "Reviews", href: "#reviews" },
-  { label: "For owners", href: "#owners" },
+];
+
+/**
+ * The competition theme is "NextGen Secure: Building the Future of Trusted Web
+ * Ecosystems", and these are kkost's answer to it. Every claim here is enforced
+ * by a database constraint, policy, or trigger — never by the interface.
+ *
+ * Keep this list honest: if a guarantee stops being true in
+ * supabase/migrations/, it comes out of here the same day.
+ */
+export const TRUST_GUARANTEES = [
+  {
+    where: "Database trigger",
+    claim: "A score is computed, never stored",
+    detail:
+      "Every kos score is recalculated by the database the moment a review changes. No part of the application can write one — there is no code path that could.",
+    accent: "rose" as Accent,
+  },
+  {
+    where: "Row level security",
+    claim: "Owners reply. Owners never delete",
+    detail:
+      "No permission to delete a review exists for anyone but its author. It is not hidden from the interface; it was never granted.",
+    accent: "amber" as Accent,
+  },
+  {
+    where: "Unique constraint",
+    claim: "One review per person, per kos",
+    detail:
+      "Enforced by the table itself, so a second review is rejected by the database rather than by a check the application could skip.",
+    accent: "blue" as Accent,
+  },
+  {
+    where: "Server action",
+    claim: "The browser is never believed",
+    detail:
+      "A review form says which kos and what the scores are. Who is writing it is read again from the session on the server, and every field is validated there.",
+    accent: "sky" as Accent,
+  },
 ];
 
 export const STATS = { reviews: 11_907, kos: 2_418, cities: 38 };

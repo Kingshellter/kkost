@@ -65,12 +65,13 @@ grounds, so they take dark text; the rest take white.
 
 | Component | Props | Notes |
 |---|---|---|
-| `ScoreBadge` | `score`, `size` (`sm`/`md`/`lg`), `accent`, `label`, `className` | Circular score chip. Pass `label="Baru"` to show text instead of the number. Colours are inline styles from `ACCENT_HEX`, not classes. |
+| `ScoreBadge` | `score`, `size` (`sm`/`md`/`lg`), `accent`, `label`, `className` | The generic circular chip. Pass `label` to show text instead of the number. Colours are inline styles from `ACCENT_HEX`, not classes. |
+| `KosScoreBadge` | `kos`, `size`, `className` | **The one to use for a kos.** Applies the `reviews === 0 → dark "Baru"` rule and picks the accent from the score. Wrapping this in a component is not decoration: the rule used to be spelled out at four call sites, two drifted, and unreviewed kos rendered `0.0` on cards and the hero while the sidebar said "Baru". |
 | `KosCard` | `kos: Kos` | Card for the top-rated grid, linking to `/kos/[id]`. Renders the `PHOTO` placeholder block, name, "area, city", the distance line when the kos has a `campus`, `ScoreBadge`, highlight pills, price + review count. |
 | `FacilityBar` | spread `FacilityScore` | One labelled 0–5 bar. Width is `score/5 * 100%`; has `role="img"` + Indonesian `aria-label`. |
 | `Logo` | `className?` | Rose "K" circle + "kkost" wordmark. |
 
-All four are Server Components — no `"use client"`, no hooks.
+All of them are Server Components — no `"use client"`, no hooks.
 
 ## Leaflet styling
 

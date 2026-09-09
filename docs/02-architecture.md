@@ -15,14 +15,16 @@ RootLayout (app/layout.tsx)  — html lang="id", Jakarta font, bg-cream
     └── <main>
         ├── <Hero/>          #(top)     server
         ├── <Scoring/>       #scoring   server
+        ├── <Trust/>         #trust     server
         ├── <MapSection/>    #reviews   server  ← hosts the client island
         ├── <TopRated/>      #browse    server
         └── <Cta/>           #login     server
 ```
 
-Within `/`, anchor ids are the navigation. `NAV_LINKS` also points at
-`#owners`, which **no section defines** — a known dead link. Kos cards and the
-map sidebar link out to `/kos/[id]`.
+Within `/`, anchor ids are the navigation, and every entry in `NAV_LINKS` now
+resolves — the old "For owners" link pointed at `#owners`, which no section
+defined, and was replaced by "Why trust this" → `#trust`. Kos cards and the map
+sidebar link out to `/kos/[id]`.
 
 ## Server / client boundary
 

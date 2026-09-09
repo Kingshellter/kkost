@@ -68,6 +68,7 @@ Three conventions worth burning in:
 | `KOS_LIST` | 4 demo kos — now only the **fallback** when Supabase is unreachable |
 | `HERO_BREAKDOWN` | 4 `FacilityScore` bars for the hero card |
 | `CRITERIA` | The six scoring criteria (`key`, number, title, description, accent) |
+| `TRUST_GUARANTEES` | The four claims rendered by the `#trust` section, each naming where it is enforced. **Keep honest** — if a guarantee stops being true in `supabase/migrations/`, remove it here the same day |
 | `NAV_LINKS` | Navbar anchors |
 | `STATS` | `{ reviews: 11_907, kos: 2_418, cities: 38 }` — display-only |
 
@@ -251,6 +252,13 @@ SQL Editor**, in order:
 2. `supabase/migrations/0002_reviews.sql`
 3. `supabase/migrations/0003_city_and_campus.sql`
 4. `supabase/migrations/0004_kos_insert_requires_login.sql`
-5. `supabase/seed.sql`
+5. `supabase/migrations/0005_linter_fixes.sql`
+6. `supabase/seed.sql`
 
-An agent cannot do this. Write the migration, then ask the user to run it.
+An agent cannot do this — the Supabase connector is read-only. Write the
+migration, then ask the user to run it, then verify with `list_tables`.
+
+**After any schema change, run Supabase's own database linter** (`get_advisors`,
+both `security` and `performance`). It catches what review misses: 0005 exists
+entirely because of what it found. On a submission judged on trustworthiness, a
+clean linter report is evidence.

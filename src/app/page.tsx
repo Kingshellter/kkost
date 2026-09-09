@@ -3,6 +3,7 @@ import { Hero } from "@/components/sections/hero";
 import { MapSection } from "@/components/sections/map-section";
 import { Navbar } from "@/components/sections/navbar";
 import { Scoring } from "@/components/sections/scoring";
+import { Trust } from "@/components/sections/trust";
 import { TopRated } from "@/components/sections/top-rated";
 import { getSessionUser } from "@/lib/auth";
 import { fetchKosList, isSupabaseConfigured } from "@/lib/kos-repository";
@@ -21,6 +22,7 @@ export default async function Home() {
       <main className="flex-1">
         <Hero featured={kos[0]} />
         <Scoring />
+        <Trust />
         <MapSection kos={kos} signedIn={Boolean(user)} />
         <TopRated kos={kos} />
         <Cta />

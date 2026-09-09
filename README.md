@@ -54,6 +54,28 @@ Prinsipnya satu: **klien tidak pernah dipercaya, dan antarmuka bukan batas
 keamanan.** Setiap klaim yang ditampilkan kkost kepada pengunjung dapat
 dibuktikan dari skema database, bukan dari kode tampilan.
 
+Argumen ini juga disampaikan di dalam situsnya sendiri, bukan hanya di berkas
+ini: bagian **"Why trust this"** di halaman utama menyebutkan setiap jaminan
+beserta tempat penegakannya, dan setiap halaman detail kos memuat panel
+**"Dari mana angka ini"** yang menjelaskan asal skornya kepada pengunjung.
+
+### Hasil audit database
+
+Skema ini diperiksa dengan **database linter bawaan Supabase**, bukan hanya
+dibaca sendiri. Pemeriksaan pertama menemukan empat hal, dan seluruhnya
+ditutup di `0005_linter_fixes.sql`:
+
+| Temuan | Tindakan |
+|---|---|
+| Dua fungsi `SECURITY DEFINER` dapat dipanggil peran `anon` sebagai endpoint RPC | Hak `execute` dicabut dari `public`, `anon`, dan `authenticated`. Trigger tetap berjalan karena eksekusi trigger tidak memeriksa hak pemanggil |
+| `auth.uid()` dievaluasi ulang untuk setiap baris pada lima policy RLS | Dibungkus `(select auth.uid())` agar dievaluasi sekali per kueri |
+| Dua policy `SELECT` permissive menumpuk di tabel `kos` | Policy lama peninggalan dashboard dihapus; membaca kos tetap terbuka |
+| Foreign key `reviews.author_id` tanpa index | Index ditambahkan |
+
+Pemeriksaan ulang setelah perbaikan: **nol temuan keamanan.** Sisa laporan
+performa hanya berupa catatan `unused_index` bertingkat INFO — wajar untuk
+index yang baru dibuat pada basis data yang belum menerima lalu lintas.
+
 ## Kontribusi terhadap SDG
 
 Panduan juga mensyaratkan karya berkontribusi pada minimal satu dari 17

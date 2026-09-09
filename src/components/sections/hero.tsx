@@ -1,5 +1,5 @@
 import { FacilityBar } from "@/components/ui/facility-bar";
-import { ScoreBadge } from "@/components/ui/score-badge";
+import { KosScoreBadge } from "@/components/ui/kos-score-badge";
 import { HERO_BREAKDOWN, STATS, type Kos } from "@/data/kos";
 import { formatDistance, formatRupiah } from "@/lib/format";
 
@@ -100,7 +100,7 @@ function HeroCard({ kos }: { kos: Kos }) {
               {kos.campus && ` · ${formatDistance(kos.distance)} ke ${kos.campus}`}
             </p>
           </div>
-          <ScoreBadge score={kos.score} size="lg" />
+          <KosScoreBadge kos={kos} size="lg" />
         </div>
 
         <div className="mt-7 space-y-3.5">

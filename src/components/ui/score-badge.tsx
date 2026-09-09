@@ -7,9 +7,11 @@ const SIZES = {
   lg: "h-[72px] w-[72px] text-[28px]",
 } as const;
 
+export type ScoreBadgeSize = keyof typeof SIZES;
+
 type Props = {
   score: number;
-  size?: keyof typeof SIZES;
+  size?: ScoreBadgeSize;
   accent?: Accent;
   /** Shown instead of the number — e.g. "Baru" for a kos with no reviews yet. */
   label?: string;

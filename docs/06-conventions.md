@@ -51,6 +51,9 @@ tree as possible (see `MapFrame`).
   second file needs them.
 - Formatting always goes through `lib/format.ts`. Do not inline
   `toLocaleString` in a component.
+- When the same rule appears at a third call site, give it a component. The
+  `reviews === 0 → "Baru"` rule silently drifted apart across four files before
+  `KosScoreBadge` existed.
 
 ## Comments
 
@@ -135,6 +138,13 @@ input is not lost. No `alert()`, no `console.error` as the user-facing path.
   exists` before `add constraint`) — they are pasted into the SQL Editor by hand
   and may be run twice.
 - RLS problems are solved with policies, never by disabling RLS.
+- Wrap `auth.uid()` as `(select auth.uid())` inside policies — otherwise it is
+  re-evaluated per row.
+- Trigger functions are `SECURITY DEFINER` and live in `public`, so PostgREST
+  exposes them as RPC. Revoke `execute` from `public, anon, authenticated`;
+  triggers do not check the caller's EXECUTE privilege.
+- Index every foreign key column.
+- Run `get_advisors` (security **and** performance) after every schema change.
 - **Writes need an identity, reads never do.** New tables get
   `select using (true)` and writes `to authenticated`. Browsing kkost must stay
   possible without an account; contributing must not.
@@ -150,6 +160,18 @@ input is not lost. No `alert()`, no `console.error` as the user-facing path.
   fallback for an empty map.
 - Anything measured in pixels against the map container must scale with it —
   the container is 343px wide on a phone and ~800px on a desktop.
+
+## Claims about integrity
+
+The `#trust` section and the `ScoreProvenance` panel state, in public, what the
+database enforces. Treat them as part of the schema's contract:
+
+- Never add a claim there that a constraint, policy, or trigger does not back.
+- If you weaken a policy in `supabase/migrations/`, remove the matching claim in
+  the same change — `TRUST_GUARANTEES` in `src/data/kos.ts` and the table in the
+  root `README.md`.
+- A false claim here is worse than no claim: the competition theme is
+  trustworthiness, and a judge can read the migrations.
 
 ## Language and place
 
