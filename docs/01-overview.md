@@ -45,6 +45,7 @@ enforced.
 | Font | `Plus_Jakarta_Sans` via `next/font/google` | Exposed as `--font-jakarta` |
 | Backend | **Supabase** (`@supabase/supabase-js` + `@supabase/ssr`) | Postgres + Auth. Reads and writes both go through it |
 | Map | **Leaflet 1.9 + react-leaflet 5** | Keyless OpenStreetMap raster tiles |
+| Geocoding | **Nominatim** (OpenStreetMap), called over `fetch` | No SDK, no key, no env var — the place search keeps working on a bare checkout. Its usage policy is why the search box debounces; see [`src/lib/geocode.ts`](../src/lib/geocode.ts) |
 | Forms | react-hook-form + zod 4 + `@hookform/resolvers` | |
 | Client state | zustand 5 | One tiny store |
 | Icons | lucide-react | Installed; **not yet imported anywhere** |
@@ -65,6 +66,9 @@ enforced.
   person, `kos.score` recomputed by a database trigger
 - ✅ Interactive map with score pins that **auto-fits to wherever the kos are**,
   plus the click-to-add flow
+- ✅ **Place search on the map** — type a street, neighbourhood, campus or
+  landmark and the view flies there, with a blue pin marking it. Geocoded by
+  Nominatim (OpenStreetMap), keyless like the tiles
 - ✅ "Add kos" dialog: validated form → Supabase insert → pin appears
 - ✅ **Responsive navbar** with a mobile menu
 - ✅ **Migrations applied and the database live** — 11 kos across 8 cities, and
@@ -81,8 +85,10 @@ enforced.
   RLS policies already make deletion impossible, but there is no replies table
   or UI.
 - ❌ **Editing a review.** The 30-day window exists as an RLS policy; no UI uses it.
-- ❌ **Search/filter.** The hero city field and `action="#browse"` just jump —
-  nothing filters by city yet, even though the data now supports it.
+- ❌ **Filtering the kos list.** The map can now search *places*, but nothing
+  filters the kos themselves: the hero city field and `action="#browse"` still
+  just jump, and neither the sidebar nor the top-rated grid narrows by city,
+  even though the data supports it.
 - ❌ **Real photos.** Cards render coloured `PHOTO` placeholders.
 - ❌ **SDG mention on the site.** The README maps the six criteria onto
   SDG 11 / 6 / 4; the page itself does not. Secondary to the theme.

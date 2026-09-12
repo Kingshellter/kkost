@@ -34,6 +34,7 @@ Almost everything is a Server Component. These files carry `"use client"`:
 |---|---|
 | `components/map/map-frame.tsx` | Holds the `dynamic(..., { ssr: false })` import |
 | `components/map/kos-map.tsx` | Leaflet, `useState`, map event handlers |
+| `components/map/map-search.tsx` | Debounced fetch, input state, keyboard handlers |
 | `components/map/kos-sidebar.tsx` | Subscribes to the zustand store |
 | `components/map/add-kos-dialog.tsx` | react-hook-form, `useEffect`, DOM writes |
 | `components/auth/auth-card.tsx` | `useActionState`, sign-in/sign-up tab state |
@@ -136,6 +137,46 @@ Two things that flow needs, both learned the hard way:
 
 The fit stops as soon as the user touches the map — `pointerdown` and `wheel`,
 which only ever come from a person, unlike Leaflet's own `zoomstart`.
+
+## Searching for a street or place
+
+The map's search box finds locations, not kos — a street, a neighbourhood, a
+campus, a landmark — so a user can get to the part of the country they care
+about before browsing or adding anything.
+
+```
+user types ≥3 characters
+  → MapSearch debounces 450ms, aborting the previous request
+  → searchPlaces(query)  [lib/geocode.ts]  → Nominatim, results capped to Indonesia
+       ok      → up to 6 Place rows in a listbox
+       error   → the message inline in the same panel, in Indonesian
+       none    → "Tidak ada tempat yang cocok."
+  → user clicks a row, or presses Enter for the best match
+  → onPick → KosMap.handlePlacePick
+       · setPlace  → blue place pin + <FocusPlace/> flies the view there
+       · setSearchTookOver(true)
+       · clears any add-kos draft, whose popup belongs to a point being left
+```
+
+Three things that flow needs:
+
+- **`FocusPlace` frames the bounding box, not the point.** A street is a line
+  and a district is an area; `flyTo` at zoom 17 is only the fallback for a
+  result Nominatim returns without a box. Padding comes from the same
+  `fitPadding` helper `FitToKos` uses.
+- **`searchTookOver` is a one-way latch, not `!place`.** Without it, the
+  `ResizeObserver` in `FitToKos` would fire after the fly and yank the view
+  back to the kos. And because it never resets, clearing the search box removes
+  the pin but leaves the view where the user put it.
+- **The search box lives outside `MapContainer`.** Rendered as a Leaflet child,
+  every click and keystroke in it would also drag the map, zoom it, or open the
+  add-kos draft. It is a sibling overlay at `z-[500]` instead, sharing a
+  top-left column with the "klik peta" hint so the two cannot overlap on a
+  phone. Leaflet's own zoom control moved to `bottomright` to make room.
+
+Nominatim is keyless, like the tiles, so search survives a checkout with no
+environment variables. Its usage policy caps callers at roughly one request a
+second, which is the debounce's real reason.
 
 ## Supabase clients — three of them, do not mix
 

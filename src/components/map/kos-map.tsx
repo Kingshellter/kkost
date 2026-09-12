@@ -9,15 +9,18 @@ import {
   Popup,
   TileLayer,
   Tooltip,
+  ZoomControl,
   useMap,
   useMapEvents,
 } from "react-leaflet";
 import { ACCENT_HEX, accentForScore } from "@/components/ui/accent";
 import { INDONESIA, type Accent, type Kos } from "@/data/kos";
 import { formatRupiah } from "@/lib/format";
+import type { Place } from "@/lib/geocode";
 import { toKos, type NewKosInput, type SaveResult } from "@/lib/kos-repository";
 import { useKosStore } from "@/store/kos-store";
 import { AddKosDialog } from "./add-kos-dialog";
+import { MapSearch } from "./map-search";
 
 /**
  * Score pins are drawn as divIcons so they match the circular badges used
@@ -53,6 +56,31 @@ const draftIcon = L.divIcon({
   ">+</span>`,
 });
 
+/** A searched street or landmark — deliberately unlike a score pin; it is a location, not a kos. */
+const placeIcon = L.divIcon({
+  className: "",
+  iconSize: [26, 26],
+  iconAnchor: [13, 13],
+  html: `<span style="
+    display:block;width:26px;height:26px;border-radius:9999px;
+    background:#3b59df;border:5px solid #ffffff;
+    box-shadow:0 8px 20px -6px rgba(28,42,78,.55);
+  "></span>`,
+});
+
+/**
+ * Breathing room around a fitted view, in pixels.
+ *
+ * Proportional, not fixed: 56px either side is fine on a desktop but eats over
+ * half the width of a phone-sized map, which pushes the fit several zoom
+ * levels too far out.
+ */
+function fitPadding(map: L.Map): [number, number] {
+  const { clientWidth: w, clientHeight: h } = map.getContainer();
+  const pad = Math.round(Math.min(56, w * 0.08, h * 0.08));
+  return [pad, pad];
+}
+
 /**
  * kkost spans the whole country, so there is no sensible fixed centre. Fit the
  * view to whatever kos actually exist — data in one city zooms to that city,
@@ -63,14 +91,22 @@ const draftIcon = L.divIcon({
  * container, because a fixed inset is most of the width on a phone.
  *
  * It stops as soon as the user touches the map, so it never fights their own
- * panning and zooming.
+ * panning and zooming — and `active` switches it off for good once a place
+ * search has chosen the view, which a late ResizeObserver fit would otherwise
+ * yank back to the kos.
  */
-function FitToKos({ points }: { points: [number, number][] }) {
+function FitToKos({
+  points,
+  active,
+}: {
+  points: [number, number][];
+  active: boolean;
+}) {
   const map = useMap();
   const signature = points.map((p) => p.join()).join("|");
 
   useEffect(() => {
-    if (!points.length) return;
+    if (!active || !points.length) return;
 
     const container = map.getContainer();
     let userMoved = false;
@@ -82,14 +118,9 @@ function FitToKos({ points }: { points: [number, number][] }) {
       const { clientWidth: w, clientHeight: h } = container;
       if (userMoved || !w || !h) return;
 
-      // Proportional, not fixed: 56px of breathing room either side is fine on
-      // a desktop but eats over half the width of a phone-sized map, which
-      // pushes the fit several zoom levels too far out.
-      const pad = Math.round(Math.min(56, w * 0.08, h * 0.08));
-
       map.invalidateSize({ animate: false });
       map.fitBounds(L.latLngBounds(points), {
-        padding: [pad, pad],
+        padding: fitPadding(map),
         maxZoom: 15,
         animate: false,
       });
@@ -112,7 +143,33 @@ function FitToKos({ points }: { points: [number, number][] }) {
     // `signature` stands in for `points`: a new array with the same coordinates
     // must not retrigger the fit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, signature]);
+  }, [map, signature, active]);
+
+  return null;
+}
+
+/**
+ * Moves the view onto a searched place.
+ *
+ * A street is a line and a district is an area, so the geocoder's bounding box
+ * frames what the user asked for; `flyTo` at street zoom is only the fallback
+ * for a result that came back without one.
+ */
+function FocusPlace({ place }: { place: Place | null }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!place) return;
+
+    if (place.bounds) {
+      map.flyToBounds(L.latLngBounds(place.bounds), {
+        padding: fitPadding(map),
+        maxZoom: 17,
+      });
+    } else {
+      map.flyTo(place.coords, 17);
+    }
+  }, [map, place]);
 
   return null;
 }
@@ -141,6 +198,20 @@ export default function KosMap({
   /** Same point, once "Tambah kos" opens the form. */
   const [formAt, setFormAt] = useState<[number, number] | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  /** The street or landmark the user searched for, marked on the map. */
+  const [place, setPlace] = useState<Place | null>(null);
+  /**
+   * One-way latch, not `!place`: clearing the search box should leave the view
+   * where the user put it, not snap back to the kos.
+   */
+  const [searchTookOver, setSearchTookOver] = useState(false);
+
+  function handlePlacePick(picked: Place) {
+    setPlace(picked);
+    setSearchTookOver(true);
+    // The draft popup belongs to a point we are about to fly away from.
+    setDraft(null);
+  }
 
   function handleSaved(input: NewKosInput, result: SaveResult) {
     addKos(toKos(input, kosList.length));
@@ -160,9 +231,14 @@ export default function KosMap({
         center={INDONESIA.center}
         zoom={INDONESIA.zoom}
         scrollWheelZoom={false}
+        // Top left belongs to the search box now; the default zoom control
+        // would sit underneath it.
+        zoomControl={false}
         className="h-full w-full"
         style={{ minHeight: "100%" }}
       >
+        <ZoomControl position="bottomright" />
+
         {/* Keyless OSM tiles; the washed-out look comes from a CSS filter. */}
         <TileLayer
           url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -171,7 +247,25 @@ export default function KosMap({
         />
 
         <ClickCatcher onPick={setDraft} />
-        <FitToKos points={kosList.map((k) => k.coords)} />
+        <FitToKos
+          points={kosList.map((k) => k.coords)}
+          active={!searchTookOver}
+        />
+        <FocusPlace place={place} />
+
+        {place && (
+          <Marker position={place.coords} icon={placeIcon}>
+            <Tooltip direction="top" offset={[0, -16]}>
+              <span className="font-bold">{place.name}</span>
+              {place.detail && (
+                <>
+                  {" · "}
+                  {place.detail}
+                </>
+              )}
+            </Tooltip>
+          </Marker>
+        )}
 
         {kosList.map((kos) => (
           <Marker
@@ -234,11 +328,18 @@ export default function KosMap({
         )}
       </MapContainer>
 
-      <p className="pointer-events-none absolute left-1/2 top-4 z-[500] -translate-x-1/2 rounded-full bg-white/95 px-4 py-2 text-xs font-bold text-ink shadow-[var(--shadow-lift)]">
-        {signedIn
-          ? "Klik peta untuk menambah kos"
-          : "Klik peta untuk menambah kos — perlu masuk"}
-      </p>
+      {/* One top-left column so the search box and the hint never overlap on a
+          phone-width map. `pointer-events-none` on the column keeps the map
+          draggable between them; the search box opts itself back in. */}
+      <div className="pointer-events-none absolute left-4 right-4 top-4 z-[500] flex flex-col items-start gap-2 sm:right-auto sm:w-[320px]">
+        <MapSearch onPick={handlePlacePick} onClear={() => setPlace(null)} />
+
+        <p className="rounded-full bg-white/95 px-4 py-2 text-xs font-bold text-ink shadow-[var(--shadow-lift)]">
+          {signedIn
+            ? "Klik peta untuk menambah kos"
+            : "Klik peta untuk menambah kos — perlu masuk"}
+        </p>
+      </div>
 
       {notice && (
         <p className="absolute bottom-4 left-1/2 z-[500] w-[min(92%,380px)] -translate-x-1/2 rounded-full bg-ink px-5 py-3 text-center text-[13px] font-bold text-white shadow-[var(--shadow-float)]">

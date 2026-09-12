@@ -97,6 +97,9 @@ Sustainable Development Goals. Keenam kriteria penilaian memetakan langsung:
   tidak** — seluruh isi kkost dapat dibaca tanpa mendaftar
 - **Peta interaktif** — pin skor di seluruh Indonesia, tampilan menyesuaikan
   sendiri ke sebaran data; klik peta untuk menambahkan kos baru
+- **Pencarian jalan dan tempat** — ketik nama jalan, kelurahan, kampus, atau
+  landmark; peta terbang ke sana dan menandainya. Memakai Nominatim
+  (OpenStreetMap), tanpa kunci API
 - **Halaman detail kos** — rata-rata per fasilitas, seluruh review, form penilaian
 - **Responsif** — diuji pada 375px dan 1280px
 
@@ -107,7 +110,7 @@ Sustainable Development Goals. Keenam kriteria penilaian memetakan langsung:
 | Framework | Next.js 16 (App Router, React Server Components) |
 | UI | React 19, Tailwind CSS v4 (konfigurasi CSS-first), TypeScript `strict` |
 | Backend | Supabase — PostgreSQL + Auth, Row Level Security |
-| Peta | Leaflet 1.9 + react-leaflet 5, ubin OpenStreetMap |
+| Peta | Leaflet 1.9 + react-leaflet 5, ubin OpenStreetMap, geocoding Nominatim |
 | Form | React Hook Form + Zod, Server Actions |
 | State | Zustand |
 

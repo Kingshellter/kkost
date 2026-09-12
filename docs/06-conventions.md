@@ -160,6 +160,34 @@ input is not lost. No `alert()`, no `console.error` as the user-facing path.
   fallback for an empty map.
 - Anything measured in pixels against the map container must scale with it —
   the container is 343px wide on a phone and ~800px on a desktop.
+- **Map UI that takes typing or clicks goes outside `MapContainer`**, as a
+  sibling overlay. Inside it, Leaflet also treats those events as drags, zooms
+  and map clicks. `MapSearch` is the reference.
+- **Anything that moves the view on purpose must switch `FitToKos` off** with a
+  latch that never resets (`searchTookOver`), or a later auto-fit will undo it.
+
+## Third-party services
+
+`saveKos` is not the only outside call any more. Whatever you add:
+
+- **Keyless or it does not ship.** Tiles and geocoding both work with no env
+  var, which is what keeps a bare checkout usable. A key means a new
+  `NEXT_PUBLIC_*`, and that reaches the browser.
+- **One module owns the endpoint**, the way a repository owns its table —
+  `lib/geocode.ts` is the only file that knows a Nominatim URL.
+- **Return a discriminated union, never throw.** `GeocodeResult` follows
+  `SaveResult`: the caller renders `"error"` inline, in Indonesian.
+- **Respect the provider's rate limit in the UI that triggers it.** Debounce,
+  set a minimum query length, and abort the in-flight request with an
+  `AbortController` — the effect's cleanup is where that belongs.
+
+## Effects
+
+React's lint (`react-hooks/set-state-in-effect`) rejects a **synchronous**
+`setState` in an effect body, so `npm run lint` fails on it. State that a user
+action implies belongs in the handler for that action; keep the effect for the
+asynchronous part only. `MapSearch` splits exactly along that line —
+`type()` resets the panel, the effect owns just the debounced fetch.
 
 ## Claims about integrity
 

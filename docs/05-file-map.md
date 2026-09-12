@@ -21,6 +21,7 @@ map exists so you can read *only the right one*.
 | [`src/data/kos.ts`](../src/data/kos.ts) | 195 | Domain types — `Accent`, `FacilityScore`, `Kos`, `FACILITY_KEYS`, `FacilityKey`, `Review` — plus static content (`INDONESIA`, `CRITERIA`, `TRUST_GUARANTEES`, `NAV_LINKS`, `HERO_BREAKDOWN`, `STATS`) and the `KOS_LIST` fallback |
 | [`src/lib/kos-repository.ts`](../src/lib/kos-repository.ts) | 175 | **The only file that knows `kos` column names.** `isSupabaseConfigured`, `fetchKosList`, `fetchKos`, `saveKos`, `toKosRow`, `explain`, `toKos` |
 | [`src/lib/review-repository.ts`](../src/lib/review-repository.ts) | 110 | **The only file that knows `reviews` column names.** `fetchReviews`, `saveReview` |
+| [`src/lib/geocode.ts`](../src/lib/geocode.ts) | 110 | **The only file that talks to Nominatim.** `Place`, `GeocodeResult`, `searchPlaces` — keyless place lookup for the map search, results capped to Indonesia |
 | [`src/lib/auth.ts`](../src/lib/auth.ts) | 50 | `getSessionUser()` — the only trusted source of the current user. `isCampusEmail` |
 | [`src/lib/auth-actions.ts`](../src/lib/auth-actions.ts) | 105 | `"use server"`: `signIn`, `signUp`, `signOut`, plus Indonesian error translation |
 | [`src/lib/review-actions.ts`](../src/lib/review-actions.ts) | 70 | `"use server"`: `submitReview` — reads the author from the session, validates, revalidates both routes |
@@ -59,7 +60,8 @@ map exists so you can read *only the right one*.
 | File | ~n | Owns |
 |---|---|---|
 | [`map-frame.tsx`](../src/components/map/map-frame.tsx) | 22 | The `dynamic(..., { ssr: false })` boundary + loading state. Exists only for that |
-| [`kos-map.tsx`](../src/components/map/kos-map.tsx) | 230 | `MapContainer`, OSM `TileLayer`, `ClickCatcher`, `FitToKos` (auto-fit + `ResizeObserver`), the two `divIcon`s, draft marker + popup, draft/form/notice state, `handleSaved` |
+| [`kos-map.tsx`](../src/components/map/kos-map.tsx) | 300 | `MapContainer`, OSM `TileLayer`, bottom-right `ZoomControl`, `ClickCatcher`, `FitToKos` (auto-fit + `ResizeObserver`), `FocusPlace` (flies to a search result), `fitPadding`, the three `divIcon`s, draft marker + popup, draft/form/notice/place state, `handleSaved` |
+| [`map-search.tsx`](../src/components/map/map-search.tsx) | 240 | Debounced place-search combobox overlaying the map's top-left — results list, keyboard navigation, loading/empty/error states, clear button. Calls `searchPlaces`; the parent owns the map move |
 | [`kos-sidebar.tsx`](../src/components/map/kos-sidebar.tsx) | 52 | "N kos in view" list, each row linking to `/kos/[id]`; "Open full map" link |
 | [`add-kos-dialog.tsx`](../src/components/map/add-kos-dialog.tsx) | 245 | Modal form — name, area, city, campus (optional), price, distance. zod + react-hook-form, Escape-to-close, scroll lock with scrollbar compensation, `saveKos` call, inline server error, unconfigured warning, local `Field` + `inputClass` helpers |
 
