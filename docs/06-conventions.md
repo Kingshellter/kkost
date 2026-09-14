@@ -138,6 +138,14 @@ input is not lost. No `alert()`, no `console.error` as the user-facing path.
   exists` before `add constraint`) — they are pasted into the SQL Editor by hand
   and may be run twice.
 - RLS problems are solved with policies, never by disabling RLS.
+- **RLS picks rows, not columns.** Supabase grants `anon` and `authenticated`
+  INSERT/UPDATE on every column, so "update your own row" also means "rewrite
+  any column of it". For every table, `revoke insert, update ... from anon,
+  authenticated`, then `grant insert (...)` / `grant update (...)` only the
+  columns a user legitimately types in. 0006 is the reference; the linter does
+  not catch this, `information_schema.column_privileges` does.
+- A trigger that maintains an aggregate must recompute for **both** `OLD` and
+  `NEW` keys on UPDATE — a row can move from one parent to another.
 - Wrap `auth.uid()` as `(select auth.uid())` inside policies — otherwise it is
   re-evaluated per row.
 - Trigger functions are `SECURITY DEFINER` and live in `public`, so PostgREST
@@ -189,6 +197,14 @@ action implies belongs in the handler for that action; keep the effect for the
 asynchronous part only. `MapSearch` splits exactly along that line —
 `type()` resets the panel, the effect owns just the debounced fetch.
 
+## URL state for filters
+
+Anything a visitor would want to share or bookmark — filters, sort order —
+lives in `searchParams`, read by the Server Component page and parsed with zod
+using `.catch(...)` so a bad URL degrades to the default instead of erroring.
+The forms that set it are plain GET forms (`action="/#browse"`), not client
+state. `src/lib/kos-browse.ts` is the reference.
+
 ## Claims about integrity
 
 The `#trust` section and the `ScoreProvenance` panel state, in public, what the
@@ -200,11 +216,20 @@ database enforces. Treat them as part of the schema's contract:
   root `README.md`.
 - A false claim here is worse than no claim: the competition theme is
   trustworthiness, and a judge can read the migrations.
+- **No typed-in statistics, anywhere on the site.** Counts are computed from
+  the data (`summarizeKos`). The hero once claimed 11,907 reviews over an empty
+  table.
+- **No promise of a feature that does not exist.** Owner replies and review
+  editing were both advertised before either had a UI.
+- **Demo data is labelled at the source.** Seeded reviews come from accounts
+  flagged `profiles.is_demo` and render with a "Review contoh" badge. Never
+  seed an unlabelled review.
 
 ## Language and place
 
-Marketing copy in English, functional/app copy in Indonesian. Match the section
-you are editing. `<html lang="id">`.
+All user-facing copy is Indonesian — marketing and app alike. Numbers go
+through `lib/format.ts` (`id-ID`). `<html lang="id">`. Code, comments and these
+docs stay in English.
 
 The brand is **kkost**, lowercase, everywhere. Copy must not assume a city or a
 campus: kkost covers all of Indonesia, and each kos carries its own `city` and

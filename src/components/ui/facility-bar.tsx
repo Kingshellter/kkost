@@ -5,7 +5,7 @@ import type { FacilityScore } from "@/data/kos";
 export function FacilityBar({ label, score, accent }: FacilityScore) {
   return (
     <div className="flex items-center gap-3">
-      <span className="w-[74px] shrink-0 text-sm font-semibold text-ink">
+      <span className="w-[108px] shrink-0 text-sm font-semibold text-ink">
         {label}
       </span>
       <span

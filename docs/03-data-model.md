@@ -34,8 +34,10 @@ type FacilityKey = (typeof FACILITY_KEYS)[number];
 type Review = {
   id: string;
   kosId: string;
+  authorId: string;                      // profiles.id — identity checks use this, never authorName
   authorName: string;
   isStudent: boolean;                    // signed up with a .ac.id address
+  isDemo: boolean;                       // written by a seeded demo account — always labelled
   scores: Record<FacilityKey, number>;   // each 1–5
   average: number;                       // mean of the six, computed by the DB
   body: string | null;
@@ -66,15 +68,20 @@ Three conventions worth burning in:
 |---|---|
 | `INDONESIA` | `{ center: [-2.5, 118], zoom: 5 }` — the map's fallback view when there is nothing to fit to |
 | `KOS_LIST` | 4 demo kos — now only the **fallback** when Supabase is unreachable |
-| `HERO_BREAKDOWN` | 4 `FacilityScore` bars for the hero card |
 | `CRITERIA` | The six scoring criteria (`key`, number, title, description, accent) |
 | `TRUST_GUARANTEES` | The four claims rendered by the `#trust` section, each naming where it is enforced. **Keep honest** — if a guarantee stops being true in `supabase/migrations/`, remove it here the same day |
-| `NAV_LINKS` | Navbar anchors |
-| `STATS` | `{ reviews: 11_907, kos: 2_418, cities: 38 }` — display-only |
+| `NAV_LINKS` | Navbar anchors, in page order |
+| `PROBLEMS` | Three problem cards for `#dampak`. Qualitative on purpose — no unsourced figures |
+| `SDG_GOALS` | The four SDGs (number, name, real target id, detail, accent, `primary`) shown on `#dampak`; mirrored in the root README |
 
-`INDONESIA`, `CRITERIA`, `NAV_LINKS`, `HERO_BREAKDOWN` and `STATS` are still
-static content. `KOS_LIST` is now only a fallback — the real list comes from
-Supabase.
+`INDONESIA`, `CRITERIA`, `NAV_LINKS`, `PROBLEMS`, `SDG_GOALS` and
+`TRUST_GUARANTEES` are static copy, all in Indonesian. `KOS_LIST` is only a
+fallback — the real list comes from Supabase.
+
+The hero's headline numbers are **not** static: `summarizeKos` in
+[`src/lib/kos-browse.ts`](../src/lib/kos-browse.ts) counts them from the loaded
+list. They used to be a hardcoded `STATS` object claiming 11,907 reviews on a
+database with none — do not reintroduce a typed-in statistic.
 
 ## Supabase table: `public.kos`
 
@@ -146,13 +153,14 @@ into Indonesian, actionable text:
 
 | Condition | Message |
 |---|---|
-| `PGRST204` / `column ... of 'kos'` | "Kolom belum ada di tabel kos. Jalankan supabase/migrations/0001_kos_location_fields.sql di SQL Editor." |
-| `42501` / `row-level security` | "Ditolak RLS: tabel kos belum punya policy INSERT untuk role ini." |
+| `PGRST204` / `column ... of 'kos'` | "Kolom belum ada di tabel kos. Jalankan migrasi di supabase/migrations/ secara berurutan lewat SQL Editor." |
+| `42501` / `row-level security` | "Ditolak: menambah kos harus masuk dulu." |
 | anything else | the raw PostgREST message |
 
-**RLS:** the table needs an `INSERT` policy for the anon role for the add-kos
-flow to persist. If you see the 42501 message, that policy is missing — write
-the policy, do not disable RLS.
+**RLS:** inserts need a session (`kos_insert_authenticated`, 0004). `42501` is
+also what Postgres returns when an insert names a column the role holds no
+privilege on — after 0006, sending `score` or `reviews` fails that way. Fix a
+42501 with a policy or a column grant, never by disabling RLS.
 
 ## Reads
 
@@ -197,7 +205,8 @@ the same six strings, so they cannot drift.
 |---|---|---|
 | `id` | uuid | → `auth.users(id)` |
 | `display_name` | text | from sign-up metadata, else the email local part |
-| `is_student` | boolean | true when the address ends in `.ac.id` |
+| `is_demo` | boolean | `not null default false`, from 0007. Marks the seeded demo accounts; not writable by any client role |
+| `is_student` | boolean | true when the address ends in `.ac.id` (case-insensitive since 0006). **Not writable by the user** — 0006 grants UPDATE on `display_name` only |
 | `created_at` | timestamptz | |
 
 `auth.users` is not readable from the client, so the public identity of a review
@@ -214,8 +223,14 @@ kos.score   = round(avg(reviews.average), 1)
 kos.reviews = count(reviews)
 ```
 
-The application must never assign them. If a score looks wrong, the bug is in
-the trigger or in the review rows, not in the client.
+The application must never assign them, and since 0006 it cannot: neither
+`anon` nor `authenticated` holds a privilege on those two columns, so even a
+hand-written REST insert is rejected. The trigger recomputes **both**
+`old.kos_id` and `new.kos_id`, so a review moved between kos (possible only from
+the dashboard or service role) leaves neither score stale.
+
+If a score looks wrong, the bug is in the trigger or in the review rows, not in
+the client.
 
 ## Row Level Security
 
@@ -233,6 +248,23 @@ contributing requires one. That split is the submission's answer to the
 competition theme, so keep it when adding tables: `select using (true)`, writes
 `to authenticated`.
 
+### Column privileges — 0006
+
+RLS decides **which rows** a role may write, not **which columns**. Supabase
+grants `anon` and `authenticated` INSERT/UPDATE on every column by default, so
+before 0006 "update your own profile" also meant "set your own `is_student`".
+0006 revokes the table-level privileges and grants back only what a user types:
+
+| Table | INSERT (authenticated) | UPDATE (authenticated) |
+|---|---|---|
+| `kos` | `name, area, city, campus, price, distance_m, lat, lng` | none |
+| `profiles` | none — the trigger creates rows | `display_name` |
+| `reviews` | `kos_id, author_id`, the six scores, `body` | the six scores, `body` |
+
+`anon` holds neither. `created_at` on `reviews` is not updatable, which is what
+makes the 30-day window real. Supabase's linter does not check this — query
+`information_schema.column_privileges` after adding a table or column.
+
 There is deliberately **no policy that lets a kos owner delete a review**. That
 is the product's core promise, enforced in the database rather than in the UI.
 
@@ -242,6 +274,29 @@ is the product's core promise, enforced in the database rather than in the UI.
 inserts kos across Jakarta, Bandung, Surabaya, Sleman, Malang, Semarang and
 Surakarta, so the map shows a national spread. Rows are matched by `name`, so
 re-running only updates. Run it after all three migrations.
+
+## Demo reviews
+
+[`supabase/seed_demo_reviews.sql`](../supabase/seed_demo_reviews.sql) inserts
+four accounts straight into `auth.users` and 17 reviews across eight kos,
+leaving three kos unreviewed so the "Baru" state is visible too.
+
+A demo review that looks like a tenant's is a fake review, so the honesty is
+structural rather than a promise:
+
+- the accounts are flagged `profiles.is_demo`, which no client role can write;
+- their emails end in `.invalid` (reserved by RFC 2606), so none can earn the
+  verified-tenant badge;
+- `encrypted_password` is empty, so nobody can sign in as them;
+- `Review.isDemo` drives a "Review contoh" badge on every card, a count in the
+  `ScoreProvenance` panel, and a "review contoh" caption on the hero quote.
+
+Their scores still flow through `refresh_kos_score()` like any other review.
+The token columns are set to `''` rather than NULL because Supabase Auth fails
+to list users whose token columns are NULL.
+
+`fetchReviews` asks for `profiles.is_demo` and, if that select errors (0007 not
+run yet), retries without it — reviews lose their label instead of vanishing.
 
 ## Running migrations — a manual step
 
@@ -253,7 +308,10 @@ SQL Editor**, in order:
 3. `supabase/migrations/0003_city_and_campus.sql`
 4. `supabase/migrations/0004_kos_insert_requires_login.sql`
 5. `supabase/migrations/0005_linter_fixes.sql`
-6. `supabase/seed.sql`
+6. `supabase/migrations/0006_column_grants.sql`
+7. `supabase/migrations/0007_demo_profiles.sql`
+8. `supabase/seed.sql`
+9. `supabase/seed_demo_reviews.sql` — optional, but the demo is empty without it
 
 An agent cannot do this — the Supabase connector is read-only. Write the
 migration, then ask the user to run it, then verify with `list_tables`.

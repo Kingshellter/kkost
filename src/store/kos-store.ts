@@ -20,3 +20,13 @@ export const useKosStore = create<KosStore>((set) => ({
   added: [],
   addKos: (kos) => set((state) => ({ added: [kos, ...state.added] })),
 }));
+
+/**
+ * The list the map and sidebar render. A kos saved to Supabase lands in the
+ * store with its real id and then arrives again in the refreshed server list;
+ * the server copy wins, so the pin and the sidebar row are not drawn twice.
+ */
+export function mergeKos(added: Kos[], fromServer: Kos[]): Kos[] {
+  const onServer = new Set(fromServer.map((kos) => kos.id));
+  return [...added.filter((kos) => !onServer.has(kos.id)), ...fromServer];
+}

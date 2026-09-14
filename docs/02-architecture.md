@@ -5,7 +5,8 @@
 Two routes: `/` and `/kos/[id]`.
 
 [`src/app/page.tsx`](../src/app/page.tsx) is an async Server Component. It
-fetches the kos list once and passes it down as props, then stacks five
+loads the kos list, the session and `searchParams` in parallel, derives the
+filtered list, fetches the featured kos's reviews for the hero, and stacks seven
 sections inside a `<main>`:
 
 ```
@@ -13,17 +14,39 @@ RootLayout (app/layout.tsx)  — html lang="id", Jakarta font, bg-cream
 └── page.tsx
     ├── <Navbar/>                       server
     └── <main>
-        ├── <Hero/>          #(top)     server
+        ├── <Hero/>          #(top)     server  ← all kos: live stats, featured kos
+        ├── <Impact/>        #dampak    server  ← problem statement + SDGs
         ├── <Scoring/>       #scoring   server
         ├── <Trust/>         #trust     server
-        ├── <MapSection/>    #reviews   server  ← hosts the client island
-        ├── <TopRated/>      #browse    server
+        ├── <MapSection/>    #reviews   server  ← filtered kos; hosts the client island
+        ├── <Browse/>        #browse    server  ← filtered kos + filter form
         └── <Cta/>           #login     server
 ```
 
+## The URL filter
+
+Filtering is a server render, not client state:
+
+```
+hero form or browse form  (plain <form action="/#browse">, GET)
+  → /?kota=Surakarta&harga=1000000&urut=harga#browse
+  → page.tsx: await props.searchParams
+       · parseKosFilter(params)   zod with .catch — bad input means "no filter"
+       · applyKosFilter(all, f)   in memory: city (id-ID, case-insensitive),
+                                  price ≤ budget, sort by skor / harga / jarak
+  → <MapSection kos={filtered} narrowed/>  map pins + sidebar
+  → <Browse kos={filtered} total={all.length}/>  grid, count, reset link
+  → <Hero stats={summarizeKos(all)}/>  unaffected by the filter
+```
+
+It works with JavaScript off, survives a refresh, and a result can be shared
+as a link. Filtering happens after the fetch because the hero's numbers and the
+city dropdown need the unfiltered list anyway; move it into the query only when
+the list is large enough for that to matter.
+
 Within `/`, anchor ids are the navigation, and every entry in `NAV_LINKS` now
 resolves — the old "For owners" link pointed at `#owners`, which no section
-defined, and was replaced by "Why trust this" → `#trust`. Kos cards and the map
+defined, and was replaced by "Kenapa terpercaya" → `#trust`. Kos cards and the map
 sidebar link out to `/kos/[id]`.
 
 ## Server / client boundary
@@ -80,7 +103,10 @@ user clicks map
             ├─ insert ok     → { status: "saved", id }
             └─ postgrest err → { status: "error", message }  ← shown inline, dialog stays open
   → onSaved(input, result)  [kos-map.tsx handleSaved]
-       · addKos(toKos(input, index))   → zustand store
+       · addKos(toKos(input, index, savedId))   → zustand store
+         (real uuid when saved, `local-…` when unconfigured)
+       · saved → router.refresh(); mergeKos drops the optimistic copy
+         once the server list carries the same id
        · close dialog + clear draft
        · toast notice for 6s (wording differs for "saved" vs "unconfigured")
   → new pin renders (dark "Baru" badge, because reviews === 0)
@@ -107,7 +133,9 @@ The zustand store, [`src/store/kos-store.ts`](../src/store/kos-store.ts), holds
 { added: Kos[], addKos: (kos: Kos) => void }
 ```
 
-`KosMap` and `KosSidebar` each merge `[...added, ...fromServer]`. The store
+`KosMap` and `KosSidebar` each merge through `mergeKos(added, fromServer)`,
+which drops an added kos the server list already carries — without that, a
+saved kos renders twice after `router.refresh()`. The store
 exists because those two are siblings under a Server Component parent, so props
 cannot be threaded between them. It is session-only — a refresh drops anything
 not persisted to Supabase.
@@ -205,7 +233,8 @@ a `useActionState` form rendered by the CTA section.
   to read the current user. Call it from Server Components. **Never** take a
   user id from the client.
 - A `.ac.id` address sets `profiles.is_student` — the "penghuni terverifikasi"
-  badge. The flag is computed by a database trigger on sign-up, not by the app.
+  badge. The flag is computed by a database trigger on sign-up, not by the app,
+  and 0006 leaves the user no UPDATE privilege on it.
 - A `"use server"` module may only export **async functions**. The
   `useActionState` initial objects therefore live in
   [`src/lib/action-state.ts`](../src/lib/action-state.ts), not next to the
@@ -216,7 +245,7 @@ a `useActionState` form rendered by the CTA section.
 ```
 /kos/[id] (server)
   → getSessionUser()             not signed in → prompt to sign in
-  → fetchReviews(supabase, id)   already reviewed → tell the user
+  → fetchReviews(supabase, id)   already reviewed (matched on authorId) → tell the user
   → <ReviewForm kosId>           six radio groups, 1–5, + optional note
        submit → submitReview (server action)
             · re-reads the user from the session — the form never sends an author id

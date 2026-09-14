@@ -12,17 +12,16 @@ export function Trust() {
     <section id="trust" className="px-4 pb-24 sm:px-6 lg:px-10 lg:pb-32">
       <div className="mx-auto max-w-[1160px]">
         <div className="text-center">
-          <p className="eyebrow bg-white text-rose">Why trust this</p>
+          <p className="eyebrow bg-white text-rose">Kenapa bisa dipercaya</p>
 
           <h2 className="mx-auto mt-7 max-w-[22ch] text-balance text-[clamp(2.25rem,5vw,3.5rem)] font-extrabold leading-[1.02] tracking-[-0.03em] text-ink">
-            A review site is only worth its weakest guarantee
+            Situs review hanya sekuat jaminan terlemahnya
           </h2>
 
           <p className="mx-auto mt-6 max-w-[58ch] text-lg leading-relaxed text-ink-soft">
-            The person with the most to gain from bending these numbers is the
-            owner of the kos. So none of the rules below live in the interface —
-            they live in the database, where nothing in the app can reach past
-            them.
+            Orang yang paling diuntungkan jika angka ini dibengkokkan adalah
+            pemilik kos. Karena itu tidak satu pun aturan di bawah tinggal di
+            tampilan — semuanya ditegakkan database, di luar jangkauan aplikasi.
           </p>
         </div>
 
@@ -50,10 +49,10 @@ export function Trust() {
         </ul>
 
         <p className="mx-auto mt-12 max-w-[54ch] text-center text-[15px] font-bold leading-relaxed text-muted">
-          Every one of these is a constraint, a policy, or a trigger you can read
-          in{" "}
+          Setiap poin di atas adalah constraint, policy, trigger, atau hak akses
+          yang bisa dibaca di{" "}
           <span className="font-extrabold text-ink">supabase/migrations/</span>.
-          Nothing here is a promise the front end is keeping on its own.
+          Tidak ada yang sekadar janji dari tampilan.
         </p>
       </div>
     </section>

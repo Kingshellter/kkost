@@ -4,11 +4,12 @@ import { ReviewForm } from "@/components/review/review-form";
 import { ReviewList } from "@/components/review/review-list";
 import { Navbar } from "@/components/sections/navbar";
 import { KosScoreBadge } from "@/components/ui/kos-score-badge";
-import { CRITERIA, type FacilityKey } from "@/data/kos";
+import { CRITERIA } from "@/data/kos";
 import { getSessionUser } from "@/lib/auth";
 import { formatDistance, formatRupiah } from "@/lib/format";
 import { fetchKos, isSupabaseConfigured } from "@/lib/kos-repository";
 import { fetchReviews } from "@/lib/review-repository";
+import { averageFor } from "@/lib/scores";
 import { createClient } from "@/utils/supabase/server";
 
 export async function generateMetadata(props: PageProps<"/kos/[id]">) {
@@ -30,7 +31,9 @@ export default async function KosDetail(props: PageProps<"/kos/[id]">) {
 
   if (!kos) notFound();
 
-  const alreadyReviewed = reviews.some((r) => r.authorName === user?.displayName);
+  // By id, not display name: two tenants can share a name, and a renamed one
+  // must not get the form back for a kos they already scored.
+  const alreadyReviewed = !!user && reviews.some((r) => r.authorId === user.id);
 
   return (
     <>
@@ -71,7 +74,11 @@ export default async function KosDetail(props: PageProps<"/kos/[id]">) {
             </div>
           </header>
 
-          <ScoreProvenance score={kos.score} count={kos.reviews} />
+          <ScoreProvenance
+            score={kos.score}
+            count={kos.reviews}
+            demoCount={reviews.filter((r) => r.isDemo).length}
+          />
 
           {reviews.length > 0 && (
             <section className="mt-10">
@@ -106,7 +113,7 @@ export default async function KosDetail(props: PageProps<"/kos/[id]">) {
                   Masuk untuk menulis review
                 </p>
                 <p className="mx-auto mt-2 max-w-[42ch] text-[15px] font-medium text-muted">
-                  Satu review per kos, per masa sewa. Bisa diedit selama 30 hari.
+                  Satu review per kos, per masa sewa.
                 </p>
                 <Link
                   href="/#login"
@@ -144,7 +151,16 @@ export default async function KosDetail(props: PageProps<"/kos/[id]">) {
  * column keeps this panel agreeing with the score badge above it even on the
  * demo fallback, where the rows are not available.
  */
-function ScoreProvenance({ score, count }: { score: number; count: number }) {
+function ScoreProvenance({
+  score,
+  count,
+  demoCount,
+}: {
+  score: number;
+  count: number;
+  /** How many of the fetched reviews came from the seeded demo accounts. */
+  demoCount: number;
+}) {
   return (
     <aside className="mt-6 rounded-[var(--radius-panel)] border border-cream-deep bg-white/60 px-7 py-6">
       <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-muted">
@@ -169,22 +185,23 @@ function ScoreProvenance({ score, count }: { score: number; count: number }) {
         </p>
       )}
 
+      {demoCount > 0 && (
+        <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
+          {demoCount} di antaranya ditulis akun contoh kkost untuk
+          demonstrasi, dan diberi label{" "}
+          <strong className="font-extrabold text-ink">Review contoh</strong> di
+          kartunya.
+        </p>
+      )}
+
       <p className="mt-3 text-sm font-medium text-muted">
-        Satu review per orang per kos, dapat disunting 30 hari.{" "}
+        Satu review per orang per kos.{" "}
         <Link href="/#trust" className="font-bold text-ink underline">
           Bagaimana ini ditegakkan
         </Link>
       </p>
     </aside>
   );
-}
-
-function averageFor(
-  reviews: { scores: Record<FacilityKey, number> }[],
-  key: FacilityKey,
-) {
-  const sum = reviews.reduce((acc, r) => acc + r.scores[key], 0);
-  return Math.round((sum / reviews.length) * 10) / 10;
 }
 
 function FacilityAverage({ label, value }: { label: string; value: number }) {

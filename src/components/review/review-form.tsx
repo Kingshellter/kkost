@@ -20,7 +20,7 @@ export function ReviewForm({ kosId }: { kosId: string }) {
       >
         <p className="text-xl font-extrabold text-ink">Review kamu tersimpan.</p>
         <p className="mt-2 text-[15px] font-medium text-muted">
-          Skor kos langsung ikut berubah. Kamu bisa mengeditnya selama 30 hari.
+          Skor kos langsung ikut berubah.
         </p>
       </div>
     );

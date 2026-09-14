@@ -1,7 +1,8 @@
 /**
- * Demo content for the landing page, transcribed from the design deck.
- * Swap this module for a Supabase query once the `kos` table is seeded —
- * the section components only depend on the types below.
+ * Domain types plus the site's static copy. Live data comes from Supabase;
+ * `KOS_LIST` below is only the fallback for a checkout with no database.
+ *
+ * All user-facing copy here is Indonesian, like the rest of the site.
  */
 
 export type Accent = "rose" | "amber" | "blue" | "sky" | "ink";
@@ -26,9 +27,19 @@ export type FacilityKey = (typeof FACILITY_KEYS)[number];
 export type Review = {
   id: string;
   kosId: string;
+  /**
+   * `profiles.id`. Identity checks compare this, never `authorName` — display
+   * names are neither unique nor fixed.
+   */
+  authorId: string;
   authorName: string;
   /** Signed up with a .ac.id address — shown as a "verified tenant" badge. */
   isStudent: boolean;
+  /**
+   * Written by one of the seeded demo accounts (`profiles.is_demo`). Always
+   * labelled in the UI: an unlabelled demo review would be a fake review.
+   */
+  isDemo: boolean;
   scores: Record<FacilityKey, number>;
   /** Mean of the six scores, one decimal. Computed by the database. */
   average: number;
@@ -82,8 +93,8 @@ export const KOS_LIST: Kos[] = [
     photoAccent: "amber",
     coords: [-6.369, 106.827],
     highlights: [
-      { label: "Water", score: 4.9, accent: "amber" },
-      { label: "Bathroom", score: 4.8, accent: "rose" },
+      { label: "Air & listrik", score: 4.9, accent: "blue" },
+      { label: "Kamar mandi", score: 4.8, accent: "rose" },
     ],
   },
   {
@@ -99,7 +110,7 @@ export const KOS_LIST: Kos[] = [
     photoAccent: "sky",
     coords: [-6.889, 107.61],
     highlights: [
-      { label: "Parking", score: 4.9, accent: "blue" },
+      { label: "Parkir", score: 4.9, accent: "amber" },
       { label: "WiFi", score: 4.5, accent: "sky" },
     ],
   },
@@ -116,8 +127,8 @@ export const KOS_LIST: Kos[] = [
     photoAccent: "rose",
     coords: [-7.559, 110.856],
     highlights: [
-      { label: "Kitchen", score: 4.9, accent: "amber" },
-      { label: "Room", score: 4.5, accent: "ink" },
+      { label: "Dapur", score: 4.9, accent: "ink" },
+      { label: "Kamar & kasur", score: 4.5, accent: "amber" },
     ],
   },
   {
@@ -133,116 +144,172 @@ export const KOS_LIST: Kos[] = [
     photoAccent: "blue",
     coords: [-7.952, 112.615],
     highlights: [
-      { label: "Parking", score: 4.2, accent: "blue" },
-      { label: "Room", score: 3.8, accent: "ink" },
+      { label: "Parkir", score: 4.2, accent: "amber" },
+      { label: "Kamar & kasur", score: 3.8, accent: "amber" },
     ],
   },
-];
-
-/** The hero card breaks the score down bar-by-bar. */
-export const HERO_BREAKDOWN: FacilityScore[] = [
-  { label: "Bathroom", score: 4.8, accent: "rose" },
-  { label: "Water", score: 4.7, accent: "amber" },
-  { label: "WiFi", score: 4.2, accent: "blue" },
-  { label: "Kitchen", score: 4.5, accent: "sky" },
 ];
 
 export const CRITERIA = [
   {
     number: "01",
     key: "room" as FacilityKey,
-    title: "Room & bed",
+    title: "Kamar & kasur",
     description:
-      "Real floor space, daylight, the state of the mattress, somewhere to put your clothes.",
+      "Luas yang sebenarnya, cahaya matahari, kondisi kasur, dan tempat untuk menyimpan baju.",
     accent: "amber" as Accent,
   },
   {
     number: "02",
     key: "bathroom" as FacilityKey,
-    title: "Bathroom",
+    title: "Kamar mandi",
     description:
-      "How clean it stays, how long the morning queue is, whether hot water actually exists.",
+      "Seberapa bersih, seberapa panjang antrean pagi, dan apakah air panasnya benar-benar ada.",
     accent: "rose" as Accent,
   },
   {
     number: "03",
     key: "water" as FacilityKey,
-    title: "Water & power",
+    title: "Air & listrik",
     description:
-      "Outages, pressure on the top floor, and whether the meter is split fairly.",
+      "Seberapa sering mati, tekanan air di lantai atas, dan apakah token listrik dibagi adil.",
     accent: "blue" as Accent,
   },
   {
     number: "04",
     key: "wifi" as FacilityKey,
     title: "WiFi",
-    description: "Measured in your room at 9pm, not in the lobby at noon.",
+    description: "Diukur di kamar jam sembilan malam, bukan di ruang tamu siang hari.",
     accent: "sky" as Accent,
   },
   {
     number: "05",
     key: "kitchen" as FacilityKey,
-    title: "Kitchen",
+    title: "Dapur",
     description:
-      "What is actually in it, who cleans it, and whether cooking is allowed at all.",
+      "Apa saja isinya, siapa yang membersihkan, dan apakah memasak diperbolehkan.",
     accent: "ink" as Accent,
   },
   {
     number: "06",
     key: "parking" as FacilityKey,
-    title: "Parking",
+    title: "Parkir",
     description:
-      "Space for everyone's motorbike, a roof over it, and a gate at night.",
+      "Cukup untuk motor semua penghuni, beratap, dan ada gerbang di malam hari.",
     accent: "amber" as Accent,
   },
 ];
 
+/** In page order, so the menu reads top to bottom like the page does. */
 export const NAV_LINKS = [
-  { label: "Browse kos", href: "#browse" },
-  { label: "How scoring works", href: "#scoring" },
-  // Replaces the old "For owners" entry, which pointed at #owners — an anchor
-  // no section ever defined. The owner story lives in the trust section now.
-  { label: "Why trust this", href: "#trust" },
-  { label: "Reviews", href: "#reviews" },
+  { label: "Dampak", href: "#dampak" },
+  { label: "Cara menilai", href: "#scoring" },
+  { label: "Kenapa terpercaya", href: "#trust" },
+  { label: "Cari kos", href: "#browse" },
+];
+
+/**
+ * The problem statement on the `#dampak` section. Qualitative on purpose: no
+ * figure appears here that the project cannot source.
+ */
+export const PROBLEMS = [
+  {
+    title: "Yang penting tidak terlihat di foto",
+    detail:
+      "Air yang mati tiap pagi, WiFi yang hanya kuat di ruang tamu, antrean kamar mandi. Semuanya baru ketahuan setelah sewa dibayar.",
+  },
+  {
+    title: "Ulasan tercecer dan bisa hilang",
+    detail:
+      "Pengalaman penghuni tersebar di grup chat dan kolom komentar — tanpa struktur, tidak bisa dibandingkan, dan bisa dihapus pengelolanya.",
+  },
+  {
+    title: "Mahasiswa baru memilih dari jauh",
+    detail:
+      "Banyak yang harus menyewa sebelum pernah melihat kotanya, justru saat informasi yang mereka punya paling sedikit.",
+  },
+];
+
+/**
+ * SDG contribution, shown on the page and mirrored in the root README. Each
+ * target number is a real SDG target; keep the two in sync.
+ */
+export const SDG_GOALS = [
+  {
+    number: 11,
+    name: "Kota dan Permukiman Berkelanjutan",
+    target: "11.1",
+    detail:
+      "Akses ke hunian yang layak, aman, dan terjangkau. Kamar, kamar mandi, dan parkir dinilai sebagai indikator kelayakan, berdampingan dengan harga.",
+    accent: "amber" as Accent,
+    primary: true,
+  },
+  {
+    number: 6,
+    name: "Air Bersih dan Sanitasi",
+    target: "6.2",
+    detail:
+      "Dua dari enam kriteria — air dan kamar mandi — adalah indikator sanitasi langsung yang selama ini tidak terdokumentasi.",
+    accent: "sky" as Accent,
+    primary: false,
+  },
+  {
+    number: 4,
+    name: "Pendidikan Berkualitas",
+    target: "4.3",
+    detail:
+      "Akses setara ke pendidikan tinggi juga soal tempat tinggal yang terjangkau. Filter budget dan jarak ke kampus membantu menemukannya.",
+    accent: "rose" as Accent,
+    primary: false,
+  },
+  {
+    number: 9,
+    name: "Industri, Inovasi, dan Infrastruktur",
+    target: "9.c",
+    detail:
+      "Akses internet diperlakukan sebagai kebutuhan belajar, bukan fasilitas tambahan: WiFi diukur di kamar, bukan di lobi.",
+    accent: "blue" as Accent,
+    primary: false,
+  },
 ];
 
 /**
  * The competition theme is "NextGen Secure: Building the Future of Trusted Web
  * Ecosystems", and these are kkost's answer to it. Every claim here is enforced
- * by a database constraint, policy, or trigger — never by the interface.
+ * by a database constraint, policy, trigger, or privilege — never by the
+ * interface.
  *
  * Keep this list honest: if a guarantee stops being true in
- * supabase/migrations/, it comes out of here the same day.
+ * supabase/migrations/, it comes out of here the same day. Nothing about owner
+ * replies belongs here until replies exist.
  */
 export const TRUST_GUARANTEES = [
   {
-    where: "Database trigger",
-    claim: "A score is computed, never stored",
+    where: "Trigger database",
+    claim: "Skor dihitung, tidak pernah diketik",
     detail:
-      "Every kos score is recalculated by the database the moment a review changes. No part of the application can write one — there is no code path that could.",
+      "Skor setiap kos dihitung ulang database begitu ada review yang berubah. Tidak ada peran pengguna yang punya hak menulis kolom skor — lewat API sekalipun.",
     accent: "rose" as Accent,
   },
   {
     where: "Row level security",
-    claim: "Owners reply. Owners never delete",
+    claim: "Pemilik kos tidak bisa menghapus review",
     detail:
-      "No permission to delete a review exists for anyone but its author. It is not hidden from the interface; it was never granted.",
+      "Hak menghapus review hanya dimiliki penulisnya. Bukan disembunyikan dari tampilan — haknya memang tidak pernah diberikan.",
     accent: "amber" as Accent,
   },
   {
     where: "Unique constraint",
-    claim: "One review per person, per kos",
+    claim: "Satu review per orang, per kos",
     detail:
-      "Enforced by the table itself, so a second review is rejected by the database rather than by a check the application could skip.",
+      "Ditegakkan oleh tabelnya sendiri, jadi review kedua ditolak database, bukan oleh pengecekan yang bisa dilewati aplikasi.",
     accent: "blue" as Accent,
   },
   {
     where: "Server action",
-    claim: "The browser is never believed",
+    claim: "Browser tidak pernah dipercaya",
     detail:
-      "A review form says which kos and what the scores are. Who is writing it is read again from the session on the server, and every field is validated there.",
+      "Formulir review hanya menyebut kos mana dan berapa skornya. Siapa penulisnya dibaca ulang dari sesi di server, dan setiap isian divalidasi di sana.",
     accent: "sky" as Accent,
   },
 ];
-
-export const STATS = { reviews: 11_907, kos: 2_418, cities: 38 };

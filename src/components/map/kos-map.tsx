@@ -2,6 +2,7 @@
 
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   MapContainer,
@@ -18,7 +19,7 @@ import { INDONESIA, type Accent, type Kos } from "@/data/kos";
 import { formatRupiah } from "@/lib/format";
 import type { Place } from "@/lib/geocode";
 import { toKos, type NewKosInput, type SaveResult } from "@/lib/kos-repository";
-import { useKosStore } from "@/store/kos-store";
+import { mergeKos, useKosStore } from "@/store/kos-store";
 import { AddKosDialog } from "./add-kos-dialog";
 import { MapSearch } from "./map-search";
 
@@ -191,7 +192,8 @@ export default function KosMap({
 }) {
   const added = useKosStore((s) => s.added);
   const addKos = useKosStore((s) => s.addKos);
-  const kosList = [...added, ...fromServer];
+  const kosList = mergeKos(added, fromServer);
+  const router = useRouter();
 
   /** Where the user clicked, awaiting confirmation. */
   const [draft, setDraft] = useState<[number, number] | null>(null);
@@ -214,11 +216,15 @@ export default function KosMap({
   }
 
   function handleSaved(input: NewKosInput, result: SaveResult) {
-    addKos(toKos(input, kosList.length));
+    const saved = result.status === "saved";
+    addKos(toKos(input, kosList.length, saved ? result.id : undefined));
+    // Pull the persisted row from the server so its card links to a real page;
+    // mergeKos drops the optimistic copy once the refreshed list carries it.
+    if (saved) router.refresh();
     setFormAt(null);
     setDraft(null);
     setNotice(
-      result.status === "saved"
+      saved
         ? `"${input.name}" tersimpan ke Supabase.`
         : `"${input.name}" ditambahkan ke peta (belum tersimpan ke database).`,
     );

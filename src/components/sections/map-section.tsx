@@ -5,9 +5,12 @@ import type { Kos } from "@/data/kos";
 export function MapSection({
   kos,
   signedIn,
+  narrowed,
 }: {
   kos: Kos[];
   signedIn: boolean;
+  /** The URL filter removed some kos — say so, or the map looks half-empty. */
+  narrowed: boolean;
 }) {
   return (
     <section
@@ -26,13 +29,14 @@ export function MapSection({
 
       <div className="relative mx-auto max-w-[1240px]">
         <div className="text-center">
-          <p className="eyebrow bg-white/10 text-amber">Where they are</p>
+          <p className="eyebrow bg-white/10 text-amber">Di mana saja</p>
           <h2 className="mt-7 text-[clamp(2.25rem,5vw,3.5rem)] font-extrabold leading-[1.02] tracking-[-0.03em] text-white">
-            Every kos on the map
+            Semua kos di peta
           </h2>
           <p className="mx-auto mt-5 max-w-[52ch] text-lg text-white/70">
-            From Sabang to Merauke. Distance to campus is the one thing you
-            cannot renovate.
+            {narrowed
+              ? `Menampilkan ${kos.length} kos yang cocok dengan filter di bawah.`
+              : "Dari Sabang sampai Merauke. Jarak ke kampus adalah satu hal yang tidak bisa direnovasi."}
           </p>
         </div>
 

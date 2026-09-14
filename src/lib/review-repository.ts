@@ -27,26 +27,41 @@ export type ReviewResult =
   | { status: "duplicate" }
   | { status: "error"; message: string };
 
+const COLUMNS = `id, kos_id, author_id, average, body, created_at,
+  ${FACILITY_KEYS.join(", ")}`;
+
 /** The columns a Review is built from, including the joined author profile. */
-const SELECT = `id, kos_id, average, body, created_at,
-  ${FACILITY_KEYS.join(", ")},
-  profiles ( display_name, is_student )` as const;
+const SELECT = `${COLUMNS}, profiles ( display_name, is_student, is_demo )`;
+
+/**
+ * The same minus `is_demo`, for a database that has not run
+ * 0007_demo_profiles.sql yet — without it the missing column would make every
+ * review silently disappear instead of merely losing its demo label.
+ */
+const SELECT_BEFORE_0007 = `${COLUMNS}, profiles ( display_name, is_student )`;
 
 type Row = {
   id: string;
   kos_id: string;
+  author_id: string;
   average: number | string;
   body: string | null;
   created_at: string;
-  profiles: { display_name: string | null; is_student: boolean } | null;
+  profiles: {
+    display_name: string | null;
+    is_student: boolean;
+    is_demo?: boolean;
+  } | null;
 } & Record<FacilityKey, number>;
 
 function toReview(row: Row): Review {
   return {
     id: row.id,
     kosId: row.kos_id,
+    authorId: row.author_id,
     authorName: row.profiles?.display_name ?? "Anonim",
     isStudent: row.profiles?.is_student ?? false,
+    isDemo: row.profiles?.is_demo ?? false,
     scores: Object.fromEntries(
       FACILITY_KEYS.map((k) => [k, row[k]]),
     ) as Record<FacilityKey, number>,
@@ -60,11 +75,15 @@ export async function fetchReviews(
   supabase: SupabaseClient,
   kosId: string,
 ): Promise<Review[]> {
-  const { data, error } = await supabase
-    .from("reviews")
-    .select(SELECT)
-    .eq("kos_id", kosId)
-    .order("created_at", { ascending: false });
+  const query = (select: string) =>
+    supabase
+      .from("reviews")
+      .select(select)
+      .eq("kos_id", kosId)
+      .order("created_at", { ascending: false });
+
+  let { data, error } = await query(SELECT);
+  if (error) ({ data, error } = await query(SELECT_BEFORE_0007));
 
   if (error || !data) return [];
   return (data as unknown as Row[]).map(toReview);

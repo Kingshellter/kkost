@@ -1,9 +1,22 @@
+import Link from "next/link";
 import { FacilityBar } from "@/components/ui/facility-bar";
 import { KosScoreBadge } from "@/components/ui/kos-score-badge";
-import { HERO_BREAKDOWN, STATS, type Kos } from "@/data/kos";
-import { formatDistance, formatRupiah } from "@/lib/format";
+import { CRITERIA, type Kos, type Review } from "@/data/kos";
+import { formatDistance, formatNumber, formatRupiah } from "@/lib/format";
+import { BUDGETS, type KosFilter } from "@/lib/kos-browse";
+import { averageFor } from "@/lib/scores";
 
-export function Hero({ featured }: { featured: Kos }) {
+type Props = {
+  /** Undefined only when there is no kos at all to feature. */
+  featured: Kos | undefined;
+  /** The featured kos's reviews, newest first. Empty on the demo fallback. */
+  reviews: Review[];
+  stats: { reviews: number; kos: number; cities: number };
+  cities: string[];
+  filter: KosFilter;
+};
+
+export function Hero({ featured, reviews, stats, cities, filter }: Props) {
   return (
     <section className="relative overflow-hidden px-4 pb-24 pt-14 sm:px-6 lg:px-10 lg:pb-32 lg:pt-20">
       {/* Decorative blobs from the deck */}
@@ -20,38 +33,45 @@ export function Hero({ featured }: { featured: Kos }) {
         <div>
           <p className="eyebrow bg-white text-rose shadow-[var(--shadow-lift)]">
             <span className="h-2 w-2 rounded-full bg-rose" />
-            {STATS.reviews.toLocaleString("en-US")} reviews ·{" "}
-            {STATS.kos.toLocaleString("en-US")} kos · {STATS.cities} kota
+            {formatNumber(stats.reviews)} review · {formatNumber(stats.kos)} kos
+            · {formatNumber(stats.cities)} kota
           </p>
 
-          <h1 className="mt-8 text-[clamp(2.75rem,7vw,4.5rem)] font-extrabold leading-[0.98] tracking-[-0.035em] text-ink">
-            Choose your kos
+          <h1 className="mt-8 text-[clamp(2.5rem,6.5vw,4.25rem)] font-extrabold leading-[1] tracking-[-0.035em] text-ink">
+            Pilih kos dari
             <br />
-            from the people
+            orang yang pernah
             <br />
-            who <span className="text-rose">lived in it</span>.
+            <span className="text-rose">tinggal di sana</span>.
           </h1>
 
-          <p className="mt-7 max-w-[30ch] text-lg leading-relaxed text-ink-soft sm:max-w-[46ch]">
-            Six facilities, scored one by one by students who paid the rent,
-            in every city in Indonesia. Owners can reply — they can never
-            delete.
+          <p className="mt-7 max-w-[34ch] text-lg leading-relaxed text-ink-soft sm:max-w-[48ch]">
+            Enam fasilitas, dinilai satu per satu oleh mahasiswa yang benar-benar
+            membayar sewanya, di seluruh Indonesia. Tidak ada yang bisa menghapus
+            review orang lain — termasuk pemilik kos.
           </p>
 
+          {/* Same GET contract as the browse filter: lands on /?kota=…#browse. */}
           <form
-            className="mt-10 flex max-w-[600px] flex-col gap-3 rounded-[32px] bg-white p-3 shadow-[var(--shadow-lift)] sm:flex-row sm:items-center sm:rounded-full sm:gap-0 sm:py-2.5 sm:pl-6 sm:pr-2.5"
-            action="#browse"
+            action="/#browse"
+            className="mt-10 flex max-w-[620px] flex-col gap-3 rounded-[32px] bg-white p-3 shadow-[var(--shadow-lift)] sm:flex-row sm:items-center sm:gap-0 sm:rounded-full sm:py-2.5 sm:pl-6 sm:pr-2.5"
           >
-            <label className="flex min-w-0 flex-1 items-baseline gap-3 px-3 sm:px-0">
+            <label className="flex min-w-0 flex-1 items-center gap-3 px-3 sm:px-0">
               <span className="shrink-0 text-[15px] font-bold text-muted">
                 Kota
               </span>
-              <input
-                name="city"
-                placeholder="Semua kota di Indonesia"
-                aria-label="Kota"
-                className="min-w-0 flex-1 bg-transparent text-[15px] font-bold text-ink outline-none placeholder:text-muted"
-              />
+              <select
+                name="kota"
+                defaultValue={filter.city ?? ""}
+                className={selectClass}
+              >
+                <option value="">Semua kota</option>
+                {cities.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <span
@@ -59,41 +79,69 @@ export function Hero({ featured }: { featured: Kos }) {
               className="hidden h-7 w-px shrink-0 bg-cream-deep sm:block"
             />
 
-            <label className="flex min-w-0 flex-1 items-baseline px-3 sm:px-5">
-              <span className="sr-only">Budget maksimum</span>
-              <input
-                name="budget"
-                defaultValue="Under Rp1,200,000"
-                className="min-w-0 flex-1 bg-transparent text-[15px] font-bold text-muted outline-none"
-              />
+            <label className="flex min-w-0 flex-1 items-center gap-3 px-3 sm:px-5">
+              <span className="shrink-0 text-[15px] font-bold text-muted">
+                Budget
+              </span>
+              <select
+                name="harga"
+                defaultValue={filter.maxPrice?.toString() ?? ""}
+                className={selectClass}
+              >
+                <option value="">Berapa saja</option>
+                {BUDGETS.map((budget) => (
+                  <option key={budget} value={budget}>
+                    ≤ {formatRupiah(budget)}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <button
               type="submit"
               className="shrink-0 rounded-full bg-rose px-8 py-3.5 text-[15px] font-extrabold text-white transition-transform hover:-translate-y-0.5"
             >
-              Search
+              Cari
             </button>
           </form>
         </div>
 
-        <HeroCard kos={featured} />
+        {featured && <HeroCard kos={featured} reviews={reviews} />}
       </div>
     </section>
   );
 }
 
-function HeroCard({ kos }: { kos: Kos }) {
+const selectClass =
+  "min-w-0 flex-1 cursor-pointer bg-transparent py-2 text-[15px] font-bold text-ink outline-none";
+
+/**
+ * The featured kos with its real per-facility averages and newest written
+ * review. Falls back to the kos's own highlights only on the demo list, where
+ * no review rows exist.
+ */
+function HeroCard({ kos, reviews }: { kos: Kos; reviews: Review[] }) {
+  const bars = reviews.length
+    ? CRITERIA.map((c) => ({
+        label: c.title,
+        score: averageFor(reviews, c.key),
+        accent: c.accent,
+      }))
+    : kos.highlights;
+  const quote = reviews.find((review) => review.body);
+
   return (
     <div className="relative mx-auto w-full max-w-[480px] lg:mx-0">
       <article className="rounded-[var(--radius-panel)] bg-white p-7 shadow-[var(--shadow-float)]">
         <div className="flex items-start gap-4">
           <span className="flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-full bg-sky text-[11px] font-extrabold tracking-[0.16em] text-ink/60">
-            PHOTO
+            FOTO
           </span>
           <div className="min-w-0 flex-1">
             <h2 className="text-[22px] font-extrabold leading-tight text-ink">
-              {kos.name}
+              <Link href={`/kos/${kos.id}`} className="hover:text-rose">
+                {kos.name}
+              </Link>
             </h2>
             <p className="mt-1 text-[15px] font-medium text-muted">
               {kos.area}, {kos.city}
@@ -103,28 +151,40 @@ function HeroCard({ kos }: { kos: Kos }) {
           <KosScoreBadge kos={kos} size="lg" />
         </div>
 
-        <div className="mt-7 space-y-3.5">
-          {HERO_BREAKDOWN.map((item) => (
-            <FacilityBar key={item.label} {...item} />
-          ))}
-        </div>
+        {bars.length > 0 ? (
+          <div className="mt-7 space-y-3.5">
+            {bars.map((item) => (
+              <FacilityBar key={item.label} {...item} />
+            ))}
+          </div>
+        ) : (
+          <p className="mt-7 text-[15px] font-medium text-muted">
+            Belum ada review untuk kos ini.
+          </p>
+        )}
 
         <div className="mt-7 flex items-baseline justify-between border-t border-cream-deep pt-5">
           <p className="text-[22px] font-extrabold text-ink">
             {formatRupiah(kos.price)}
-            <span className="text-base font-medium text-muted"> / month</span>
+            <span className="text-base font-medium text-muted"> / bulan</span>
           </p>
           <p className="text-[15px] font-medium text-muted">
-            {kos.reviews} reviews
+            {kos.reviews} review
           </p>
         </div>
       </article>
 
-      <figure className="relative -mt-6 ml-2 w-fit max-w-[290px] rounded-[22px] bg-blue px-5 py-4 shadow-[var(--shadow-lift)] sm:-ml-6">
-        <blockquote className="text-[15px] font-bold leading-snug text-white">
-          &ldquo;The water has never once cut out.&rdquo;
-        </blockquote>
-      </figure>
+      {quote?.body && (
+        <figure className="relative -mt-6 ml-2 w-fit max-w-[320px] rounded-[22px] bg-blue px-5 py-4 shadow-[var(--shadow-lift)] sm:-ml-6">
+          <blockquote className="line-clamp-3 text-[15px] font-bold leading-snug text-white">
+            &ldquo;{quote.body}&rdquo;
+          </blockquote>
+          <figcaption className="mt-2 text-xs font-bold text-white/75">
+            {quote.authorName}
+            {quote.isDemo && " · review contoh"}
+          </figcaption>
+        </figure>
+      )}
     </div>
   );
 }

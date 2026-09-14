@@ -17,7 +17,7 @@ export function KosCard({ kos }: { kos: Kos }) {
             : "text-white/70"
         }`}
       >
-        PHOTO
+        FOTO
       </div>
 
       <div className="flex flex-1 flex-col px-3 pb-2 pt-6">
@@ -52,9 +52,10 @@ export function KosCard({ kos }: { kos: Kos }) {
         <div className="mt-auto flex items-baseline justify-between border-t border-cream-deep pt-5">
           <p className="text-xl font-extrabold text-ink">
             {formatRupiah(kos.price)}
+            <span className="text-sm font-medium text-muted"> / bulan</span>
           </p>
           <p className="text-[15px] font-medium text-muted">
-            {kos.reviews} reviews
+            {kos.reviews} review
           </p>
         </div>
       </div>

@@ -24,24 +24,24 @@ export async function Cta() {
       <div className="relative mx-auto grid max-w-[1240px] items-center gap-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)]">
         <div>
           <p className="eyebrow bg-ink text-amber">
-            {user ? "Kamu sudah masuk" : "Log in to post"}
+            {user ? "Kamu sudah masuk" : "Masuk untuk menulis"}
           </p>
 
           <h2 className="mt-7 text-[clamp(2.25rem,5.5vw,3.75rem)] font-extrabold leading-[1.02] tracking-[-0.03em] text-ink">
-            Lived somewhere?
+            Pernah ngekos?
             <br />
-            Write it down.
+            Ceritakan.
           </h2>
 
           <p className="mt-7 max-w-[44ch] text-lg leading-relaxed text-ink">
-            Five minutes of your time saves the next student a bad year. One
-            review per kos, per tenancy — editable for 30 days.
+            Lima menit darimu bisa menyelamatkan mahasiswa berikutnya dari
+            setahun yang buruk. Satu review per kos, per orang.
           </p>
 
           <div className="mt-14 flex flex-wrap items-center gap-x-4 gap-y-2">
             <Logo />
             <p className="text-[15px] font-bold text-ink">
-              · Free to search, free to review. Seluruh Indonesia.
+              · Gratis mencari, gratis menilai. Seluruh Indonesia.
             </p>
           </div>
         </div>

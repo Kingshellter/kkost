@@ -6,15 +6,15 @@ export function Scoring() {
     <section id="scoring" className="px-4 py-24 sm:px-6 lg:px-10 lg:py-32">
       <div className="mx-auto max-w-[1160px]">
         <div className="text-center">
-          <p className="eyebrow bg-white text-blue">How scoring works</p>
+          <p className="eyebrow bg-white text-blue">Cara menilai</p>
 
           <h2 className="mx-auto mt-7 max-w-[20ch] text-balance text-[clamp(2.25rem,5vw,3.5rem)] font-extrabold leading-[1.02] tracking-[-0.03em] text-ink">
-            Six things a photo will never tell you
+            Enam hal yang tidak pernah terlihat di foto
           </h2>
 
           <p className="mx-auto mt-6 max-w-[56ch] text-lg leading-relaxed text-ink-soft">
-            Every reviewer rates each one from 1 to 5. The kos score is their
-            plain average — never weighted, never bought.
+            Setiap penghuni menilai masing-masing dari 1 sampai 5. Skor kos
+            adalah rata-rata polosnya — tanpa bobot, tidak bisa dibeli.
           </p>
         </div>
 

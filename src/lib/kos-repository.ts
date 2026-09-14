@@ -168,10 +168,20 @@ function explain(error: Postgrestish) {
   return error.message;
 }
 
-/** Turn form input into the shape the map and cards already render. */
-export function toKos(input: NewKosInput, index: number): Kos {
+/**
+ * Turn form input into the shape the map and cards already render.
+ *
+ * Pass the database `id` when the row was saved, so the card links to a real
+ * `/kos/[id]` page and the server list can replace the optimistic copy; the
+ * `local-` id is only for kos that never reached Supabase.
+ */
+export function toKos(
+  input: NewKosInput,
+  index: number,
+  id = `local-${Date.now()}`,
+): Kos {
   return {
-    id: `local-${Date.now()}`,
+    id,
     name: input.name,
     area: input.area,
     city: input.city,

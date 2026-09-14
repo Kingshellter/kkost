@@ -67,8 +67,8 @@ grounds, so they take dark text; the rest take white.
 |---|---|---|
 | `ScoreBadge` | `score`, `size` (`sm`/`md`/`lg`), `accent`, `label`, `className` | The generic circular chip. Pass `label` to show text instead of the number. Colours are inline styles from `ACCENT_HEX`, not classes. |
 | `KosScoreBadge` | `kos`, `size`, `className` | **The one to use for a kos.** Applies the `reviews === 0 → dark "Baru"` rule and picks the accent from the score. Wrapping this in a component is not decoration: the rule used to be spelled out at four call sites, two drifted, and unreviewed kos rendered `0.0` on cards and the hero while the sidebar said "Baru". |
-| `KosCard` | `kos: Kos` | Card for the top-rated grid, linking to `/kos/[id]`. Renders the `PHOTO` placeholder block, name, "area, city", the distance line when the kos has a `campus`, `ScoreBadge`, highlight pills, price + review count. |
-| `FacilityBar` | spread `FacilityScore` | One labelled 0–5 bar. Width is `score/5 * 100%`; has `role="img"` + Indonesian `aria-label`. |
+| `KosCard` | `kos: Kos` | Card for the browse grid, linking to `/kos/[id]`. Renders the `FOTO` placeholder block, name, "area, city", the distance line when the kos has a `campus`, `ScoreBadge`, highlight pills, price + review count. |
+| `FacilityBar` | spread `FacilityScore` | One labelled 0–5 bar. The label column is 108px, sized for the longest Indonesian criterion ("Kamar & kasur"). Width is `score/5 * 100%`; has `role="img"` + Indonesian `aria-label`. |
 | `Logo` | `className?` | Rose "K" circle + "kkost" wordmark. |
 
 All of them are Server Components — no `"use client"`, no hooks.
@@ -94,14 +94,16 @@ z-index: the hint pill and toast are `z-[500]`, and `AddKosDialog` is `z-[1000]`
 
 ## Copy language
 
-Mixed, deliberately:
+**Indonesian, everywhere.** The site used to mix English marketing copy with
+Indonesian app copy; UI/UX is 25% of the competition score and the mix read as
+unfinished, so it was unified.
 
-- **Marketing copy → English** (hero, scoring, top-rated, CTA)
-- **App/functional copy → Indonesian** (map hints, dialog, validation errors,
-  toasts, `aria-label`s)
+- The only English left is the name of where a guarantee is enforced on the
+  trust cards (`Row level security`, `Unique constraint`, `Server action`) —
+  those are the terms a reader would look up.
+- Numbers go through `lib/format.ts`, which formats with `id-ID`:
+  `Rp950.000`, `1,1 km`, `11.907`.
 - `<html lang="id">`
-
-Follow the surrounding section rather than picking one globally.
 
 ## Responsive
 

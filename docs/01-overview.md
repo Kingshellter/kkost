@@ -6,8 +6,9 @@
 Indonesia**. The pitch, verbatim from the page metadata:
 
 > "Pilih kos dari orang yang pernah tinggal di dalamnya."
-> Six facilities, scored one by one by students who paid the rent, across
-> Indonesia. Owners can reply — they can never delete.
+> Enam fasilitas, dinilai satu per satu oleh mahasiswa yang benar-benar
+> membayar sewanya, di seluruh Indonesia. Pemilik kos tidak pernah bisa
+> menghapus review.
 
 The scoring model is the product's core idea: every reviewer rates **six fixed
 facilities** 1–5, and the kos score is the plain unweighted average.
@@ -52,7 +53,8 @@ enforced.
 
 ## What actually works today
 
-- ✅ Landing page at `/` — navbar, hero, scoring, map, top-rated, CTA
+- ✅ Landing page at `/` — navbar, hero, impact (`#dampak`), scoring, trust,
+  map, browse, CTA
 - ✅ **Kos detail page at `/kos/[id]`** — per-facility averages, review list,
   review form
 - ✅ **Nationwide scope** — every kos stores its own `city` and optional
@@ -71,8 +73,26 @@ enforced.
   Nominatim (OpenStreetMap), keyless like the tiles
 - ✅ "Add kos" dialog: validated form → Supabase insert → pin appears
 - ✅ **Responsive navbar** with a mobile menu
-- ✅ **Migrations applied and the database live** — 11 kos across 8 cities, and
-  Supabase's own security linter reports zero findings
+- ✅ **Filter & sort** — city, budget ceiling and sort order (score, price,
+  distance to campus) live in the URL: `/?kota=&harga=&urut=#browse`. The hero
+  search and the browse filter are plain GET forms, so it works without
+  JavaScript and a result can be shared. The map, sidebar and grid all follow it
+- ✅ **Honest headline numbers** — the hero's review / kos / city counts are
+  counted from the data, and the hero card shows the featured kos's real
+  per-facility averages and its newest written review
+- ✅ **Problem statement and SDG mapping on the page** — the `#dampak` section
+- ✅ **All copy in Indonesian**, numbers formatted `id-ID`
+- ✅ **Labelled demo reviews** — `supabase/seed_demo_reviews.sql` seeds four
+  accounts flagged `profiles.is_demo` (no password, `.invalid` email); every
+  review they wrote is badged "Review contoh" and counted in the provenance
+  panel
+- ✅ **Migrations applied and the database live** — 11 kos across 9 cities, and
+  Supabase's own security linter reports no schema findings (one Auth
+  setting warning — see ⚠️ below). 0001–0007, `seed.sql` and
+  `seed_demo_reviews.sql` are applied (17 labelled demo reviews over 8 kos,
+  3 kos left unreviewed),
+  so the column-level grants are live too (verified via
+  `information_schema.column_privileges`)
 - ✅ **The theme, argued on the page** — a `#trust` section listing each
   integrity guarantee and where it is enforced, plus a "dari mana angka ini"
   panel on every kos detail page
@@ -83,19 +103,19 @@ enforced.
 
 - ❌ **Owner replies.** The pitch says owners can reply but never delete; the
   RLS policies already make deletion impossible, but there is no replies table
-  or UI.
+  or UI. The site no longer claims owners can reply — put that claim back only
+  together with the feature.
 - ❌ **Editing a review.** The 30-day window exists as an RLS policy; no UI uses it.
-- ❌ **Filtering the kos list.** The map can now search *places*, but nothing
-  filters the kos themselves: the hero city field and `action="#browse"` still
-  just jump, and neither the sidebar nor the top-rated grid narrows by city,
-  even though the data supports it.
 - ❌ **Real photos.** Cards render coloured `PHOTO` placeholders.
-- ❌ **SDG mention on the site.** The README maps the six criteria onto
-  SDG 11 / 6 / 4; the page itself does not. Secondary to the theme.
 - ⚠️ **`is_student` is forgeable.** The flag is set from an `.ac.id` suffix
-  alone. With Supabase's "Confirm email" turned off, anyone can claim a campus
-  address they do not own — which contradicts the verified-tenant badge and the
+  alone. 0006 stops users editing it afterwards, but with Supabase's "Confirm
+  email" turned off, anyone can still sign up with a campus address they do not
+  own — which contradicts the verified-tenant badge and the
   trust section. Unresolved product decision.
+- ⚠️ **Leaked password protection is off.** The only Supabase security
+  advisor finding (WARN, `auth_leaked_password_protection`) is an Auth setting,
+  not a schema problem: sign-up does not check passwords against
+  HaveIBeenPwned. It is toggled in the Supabase dashboard, not in a migration.
 - ❌ **Tests.** No test runner configured.
 
 ## Environment

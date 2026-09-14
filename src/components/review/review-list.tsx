@@ -44,6 +44,14 @@ export function ReviewList({ reviews }: { reviews: Review[] }) {
                     Penghuni terverifikasi
                   </span>
                 )}
+                {review.isDemo && (
+                  <span
+                    title="Ditulis akun contoh kkost untuk demonstrasi, bukan penghuni sungguhan"
+                    className="rounded-full bg-cream px-3 py-1 text-xs font-extrabold text-muted"
+                  >
+                    Review contoh
+                  </span>
+                )}
               </p>
               <p className="mt-1 text-sm font-medium text-muted">
                 {dateFmt.format(new Date(review.createdAt))}

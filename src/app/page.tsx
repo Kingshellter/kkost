@@ -1,30 +1,63 @@
+import { Browse } from "@/components/sections/browse";
 import { Cta } from "@/components/sections/cta";
 import { Hero } from "@/components/sections/hero";
+import { Impact } from "@/components/sections/impact";
 import { MapSection } from "@/components/sections/map-section";
 import { Navbar } from "@/components/sections/navbar";
 import { Scoring } from "@/components/sections/scoring";
 import { Trust } from "@/components/sections/trust";
-import { TopRated } from "@/components/sections/top-rated";
 import { getSessionUser } from "@/lib/auth";
+import {
+  applyKosFilter,
+  cityOptions,
+  isNarrowed,
+  parseKosFilter,
+  summarizeKos,
+} from "@/lib/kos-browse";
 import { fetchKosList, isSupabaseConfigured } from "@/lib/kos-repository";
+import { fetchReviews } from "@/lib/review-repository";
 import { createClient } from "@/utils/supabase/server";
 
-export default async function Home() {
+export default async function Home(props: PageProps<"/">) {
   const supabase = isSupabaseConfigured ? await createClient() : null;
-  const [kos, user] = await Promise.all([
+  const [all, user, params] = await Promise.all([
     fetchKosList(supabase),
     getSessionUser(),
+    props.searchParams,
   ]);
+
+  // The map and the browse grid follow the URL filter; the hero's numbers and
+  // the city dropdown describe everything, filtered or not.
+  const filter = parseKosFilter(params);
+  const kos = applyKosFilter(all, filter);
+  const cities = cityOptions(all);
+
+  // The hero shows a kos people have actually scored, with its real
+  // per-facility averages — not a mock breakdown next to a live name.
+  const featured = all.find((item) => item.reviews > 0) ?? all[0];
+  const featuredReviews =
+    supabase && featured ? await fetchReviews(supabase, featured.id) : [];
 
   return (
     <>
       <Navbar />
       <main className="flex-1">
-        <Hero featured={kos[0]} />
+        <Hero
+          featured={featured}
+          reviews={featuredReviews}
+          stats={summarizeKos(all)}
+          cities={cities}
+          filter={filter}
+        />
+        <Impact />
         <Scoring />
         <Trust />
-        <MapSection kos={kos} signedIn={Boolean(user)} />
-        <TopRated kos={kos} />
+        <MapSection
+          kos={kos}
+          signedIn={Boolean(user)}
+          narrowed={isNarrowed(filter)}
+        />
+        <Browse kos={kos} total={all.length} cities={cities} filter={filter} />
         <Cta />
       </main>
     </>
