@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FacilityBar } from "@/components/ui/facility-bar";
+import { KosPhoto } from "@/components/ui/kos-photo";
 import { KosScoreBadge } from "@/components/ui/kos-score-badge";
 import { CRITERIA, type Kos, type Review } from "@/data/kos";
 import { formatDistance, formatNumber, formatRupiah } from "@/lib/format";
@@ -134,9 +135,11 @@ function HeroCard({ kos, reviews }: { kos: Kos; reviews: Review[] }) {
     <div className="relative mx-auto w-full max-w-[480px] lg:mx-0">
       <article className="rounded-[var(--radius-panel)] bg-white p-7 shadow-[var(--shadow-float)]">
         <div className="flex items-start gap-4">
-          <span className="flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-full bg-sky text-[11px] font-extrabold tracking-[0.16em] text-ink/60">
-            FOTO
-          </span>
+          <KosPhoto
+            kos={kos}
+            showLabel={false}
+            className="h-[68px] w-[68px] shrink-0 rounded-full"
+          />
           <div className="min-w-0 flex-1">
             <h2 className="text-[22px] font-extrabold leading-tight text-ink">
               <Link href={`/kos/${kos.id}`} className="hover:text-rose">

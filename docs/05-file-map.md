@@ -9,8 +9,8 @@ map exists so you can read *only the right one*.
 | File | ~n | Owns |
 |---|---|---|
 | [`src/app/layout.tsx`](../src/app/layout.tsx) | 25 | Root layout. `lang="id"`, Jakarta font variable, `bg-cream text-ink`, site `metadata` (title/description) |
-| [`src/app/page.tsx`](../src/app/page.tsx) | 60 | Route `/`. Loads the kos list, session and `searchParams`; parses the URL filter; fetches the featured kos's reviews; stacks Navbar + 7 sections |
-| [`src/app/kos/[id]/page.tsx`](../src/app/kos/[id]/page.tsx) | 210 | Route `/kos/[id]`. Kos header, `ScoreProvenance` panel, per-facility averages, review list, and either the review form, a sign-in prompt, or "sudah menilai" |
+| [`src/app/page.tsx`](../src/app/page.tsx) | 100 | Route `/`. Loads the kos list (and its `source`), session and `searchParams`; renders `DataNotice` when not showing the real database; parses the URL filter; fetches the featured kos's reviews; stacks Navbar + 7 sections |
+| [`src/app/kos/[id]/page.tsx`](../src/app/kos/[id]/page.tsx) | 210 | Route `/kos/[id]`. Kos header with a `KosPhoto` banner, `ScoreProvenance` panel, per-facility averages, review list, and either the review form, a sign-in prompt, or "sudah menilai" |
 | [`src/app/globals.css`](../src/app/globals.css) | 90 | Tailwind v4 `@theme inline` tokens, `eyebrow` utility, all Leaflet overrides |
 | [`src/proxy.ts`](../src/proxy.ts) | 40 | Supabase session refresh; no-ops without env vars; matcher excludes static assets. Named `proxy`, not `middleware` — that convention is deprecated in Next 16 |
 
@@ -19,7 +19,7 @@ map exists so you can read *only the right one*.
 | File | ~n | Owns |
 |---|---|---|
 | [`src/data/kos.ts`](../src/data/kos.ts) | 330 | Domain types — `Accent`, `FacilityScore`, `Kos`, `FACILITY_KEYS`, `FacilityKey`, `Review` (incl. `isDemo`) — plus static Indonesian copy (`INDONESIA`, `CRITERIA`, `NAV_LINKS`, `PROBLEMS`, `SDG_GOALS`, `TRUST_GUARANTEES`) and the `KOS_LIST` fallback |
-| [`src/lib/kos-repository.ts`](../src/lib/kos-repository.ts) | 175 | **The only file that knows `kos` column names.** `isSupabaseConfigured`, `fetchKosList`, `fetchKos`, `saveKos`, `toKosRow`, `explain`, `toKos` (takes the saved uuid when there is one) |
+| [`src/lib/kos-repository.ts`](../src/lib/kos-repository.ts) | 175 | **The only file that knows `kos` column names.** `isSupabaseConfigured`, `KosSource`, `fetchKosList` (returns `{ kos, source }`), `fetchKos` (throws on a DB error), `photoAccentFor` (id hash), `saveKos`, `toKosRow`, `explain`, `toKos` (takes the saved uuid when there is one) |
 | [`src/lib/review-repository.ts`](../src/lib/review-repository.ts) | 110 | **The only file that knows `reviews` column names.** `fetchReviews` (retries without `is_demo` before 0007), `saveReview` |
 | [`src/lib/geocode.ts`](../src/lib/geocode.ts) | 110 | **The only file that talks to Nominatim.** `Place`, `GeocodeResult`, `searchPlaces` — keyless place lookup for the map search, results capped to Indonesia |
 | [`src/lib/kos-browse.ts`](../src/lib/kos-browse.ts) | 115 | URL filter for the landing page: `SORTS`, `BUDGETS`, `KosFilter`, `parseKosFilter` (zod, never throws), `isNarrowed`, `hasFilter`, `applyKosFilter`, `cityOptions`, `summarizeKos` (the hero's live numbers) |
@@ -41,6 +41,7 @@ map exists so you can read *only the right one*.
 | [`score-badge.tsx`](../src/components/ui/score-badge.tsx) | 42 | Circular score chip, 3 sizes, optional text label. Generic — knows nothing about kos |
 | [`kos-score-badge.tsx`](../src/components/ui/kos-score-badge.tsx) | 32 | `ScoreBadge` + the kos rule: `reviews === 0` renders a dark "Baru" chip instead of `0.0`. **Use this for any kos**, never `ScoreBadge` directly |
 | [`kos-card.tsx`](../src/components/ui/kos-card.tsx) | 57 | Kos card for the browse grid; links to `/kos/[id]` |
+| [`kos-photo.tsx`](../src/components/ui/kos-photo.tsx) | 150 | `KosPhoto` — labelled SVG illustration per kos (4 scenes keyed by `photoAccent`). The seam where uploaded photos will go |
 | [`facility-bar.tsx`](../src/components/ui/facility-bar.tsx) | 26 | Labelled 0–5 progress bar |
 | [`logo.tsx`](../src/components/ui/logo.tsx) | 12 | Wordmark |
 
@@ -92,6 +93,7 @@ map exists so you can read *only the right one*.
 | `supabase/migrations/0005_linter_fixes.sql` | Closes every finding from Supabase's database linter: revokes public EXECUTE on the two SECURITY DEFINER trigger functions, wraps `auth.uid()` in a subquery in all policies, drops a duplicate legacy SELECT policy, indexes the `reviews.author_id` FK. Run by hand |
 | `supabase/migrations/0006_column_grants.sql` | Column-level INSERT/UPDATE grants, so `kos.score`/`reviews`, `profiles.is_student` and `reviews.created_at`/`kos_id` cannot be written from the client; score trigger recomputes old and new kos; case-insensitive `.ac.id`. Run by hand |
 | `supabase/migrations/0007_demo_profiles.sql` | `profiles.is_demo`, not writable by clients. Run by hand |
+| `supabase/migrations/0008_kos_constraints.sql` | CHECK constraints on every user-entered `kos` column (lengths, price, distance, Indonesia bbox), `kos.created_by` filled from `auth.uid()` and not client-writable, insert policy checks it. Run by hand |
 | `supabase/seed.sql` | Backfills the legacy rows and inserts kos across seven cities. Idempotent. Run by hand, before the demo reviews |
 | `supabase/seed_demo_reviews.sql` | Four flagged demo accounts (no password, `.invalid` email) and 17 labelled reviews. Needs 0007. Idempotent. Run by hand, last |
 | `.claude/launch.json` | Dev-server config for the preview tooling (`npm run dev`, port 3000) |

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ReviewForm } from "@/components/review/review-form";
 import { ReviewList } from "@/components/review/review-list";
 import { Navbar } from "@/components/sections/navbar";
+import { KosPhoto } from "@/components/ui/kos-photo";
 import { KosScoreBadge } from "@/components/ui/kos-score-badge";
 import { CRITERIA } from "@/data/kos";
 import { getSessionUser } from "@/lib/auth";
@@ -47,8 +48,12 @@ export default async function KosDetail(props: PageProps<"/kos/[id]">) {
             ← Semua kos
           </Link>
 
-          <header className="mt-6 flex flex-wrap items-start gap-6 rounded-[var(--radius-panel)] bg-white p-7 shadow-[var(--shadow-float)] sm:p-8">
-            <div className="min-w-0 flex-1">
+          <header className="mt-6 flex flex-wrap items-start gap-6 rounded-[var(--radius-panel)] bg-white p-4 pb-7 shadow-[var(--shadow-float)] sm:p-5 sm:pb-8">
+            <KosPhoto
+              kos={kos}
+              className="h-[200px] w-full rounded-[22px] sm:h-[260px]"
+            />
+            <div className="min-w-0 flex-1 px-3 sm:px-3">
               <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] font-extrabold leading-[1.05] tracking-[-0.02em] text-ink">
                 {kos.name}
               </h1>
@@ -66,7 +71,7 @@ export default async function KosDetail(props: PageProps<"/kos/[id]">) {
               </p>
             </div>
 
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-2 px-3">
               <KosScoreBadge kos={kos} size="lg" />
               <p className="text-sm font-bold text-muted">
                 {kos.reviews} review

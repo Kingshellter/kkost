@@ -67,7 +67,8 @@ grounds, so they take dark text; the rest take white.
 |---|---|---|
 | `ScoreBadge` | `score`, `size` (`sm`/`md`/`lg`), `accent`, `label`, `className` | The generic circular chip. Pass `label` to show text instead of the number. Colours are inline styles from `ACCENT_HEX`, not classes. |
 | `KosScoreBadge` | `kos`, `size`, `className` | **The one to use for a kos.** Applies the `reviews === 0 → dark "Baru"` rule and picks the accent from the score. Wrapping this in a component is not decoration: the rule used to be spelled out at four call sites, two drifted, and unreviewed kos rendered `0.0` on cards and the hero while the sidebar said "Baru". |
-| `KosCard` | `kos: Kos` | Card for the browse grid, linking to `/kos/[id]`. Renders the `FOTO` placeholder block, name, "area, city", the distance line when the kos has a `campus`, `ScoreBadge`, highlight pills, price + review count. |
+| `KosCard` | `kos: Kos` | Card for the browse grid, linking to `/kos/[id]`. Renders `KosPhoto`, name, "area, city", the distance line when the kos has a `campus`, `ScoreBadge`, highlight pills, price + review count. |
+| `KosPhoto` | `kos` (`name`, `photoAccent`), `className`, `showLabel` | **The only place that draws a kos picture.** A flat SVG scene (bedroom / study / house / kitchen, chosen by `photoAccent`) on the accent colour, built from palette classes (`fill-ink`, `fill-white/90`…). Always carries an "Ilustrasi" chip and an `aria-label` saying it is not a real photo — `showLabel={false}` only where there is no room (the 68px hero avatar). Size and radius come from `className`. When photo upload exists, render the real image here and keep the illustration as fallback. |
 | `FacilityBar` | spread `FacilityScore` | One labelled 0–5 bar. The label column is 108px, sized for the longest Indonesian criterion ("Kamar & kasur"). Width is `score/5 * 100%`; has `role="img"` + Indonesian `aria-label`. |
 | `Logo` | `className?` | Rose "K" circle + "kkost" wordmark. |
 

@@ -82,6 +82,10 @@ export function MapSearch({ onPick, onClear }: Props) {
    */
   function type(value: string) {
     setQuery(value);
+    // Typing means the box no longer holds a pick. Without this, editing a
+    // picked label back to itself showed "Mencari…" while the effect skipped
+    // the request, and the spinner never cleared.
+    pickedLabel.current = null;
 
     if (value.trim().length < MIN_QUERY) {
       setPlaces([]);

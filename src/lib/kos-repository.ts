@@ -53,6 +53,17 @@ type Row = {
 
 const PHOTO_ACCENTS = ["amber", "sky", "rose", "blue"] as const satisfies Accent[];
 
+/**
+ * Picks the picture accent from the id, not the list position: the same kos
+ * must look the same on its card, in the hero and on its own detail page,
+ * where it is fetched alone.
+ */
+function photoAccentFor(id: string): Accent {
+  let hash = 0;
+  for (const char of id) hash = (hash * 31 + char.charCodeAt(0)) | 0;
+  return PHOTO_ACCENTS[Math.abs(hash) % PHOTO_ACCENTS.length];
+}
+
 export function toKosRow(input: NewKosInput) {
   return {
     name: input.name,
@@ -66,9 +77,10 @@ export function toKosRow(input: NewKosInput) {
   };
 }
 
-function fromRow(row: Row, index: number): Kos {
+function fromRow(row: Row): Kos {
+  const id = String(row.id);
   return {
-    id: String(row.id),
+    id,
     name: row.name,
     area: row.area ?? "—",
     city: row.city ?? "—",
@@ -77,7 +89,7 @@ function fromRow(row: Row, index: number): Kos {
     price: row.price ?? 0,
     score: Number(row.score ?? 0),
     reviews: row.reviews ?? 0,
-    photoAccent: PHOTO_ACCENTS[index % PHOTO_ACCENTS.length],
+    photoAccent: photoAccentFor(id),
     coords: [row.lat ?? 0, row.lng ?? 0],
     highlights: [],
   };
@@ -91,32 +103,57 @@ function hasCoords(row: Row) {
   return row.lat !== null && row.lng !== null;
 }
 
-/** Falls back to the demo list so the page still renders on a bare checkout. */
+/**
+ * Where a kos list came from. Only "demo" ever shows the hardcoded `KOS_LIST`,
+ * and only on a checkout with no Supabase credentials.
+ *
+ * "unavailable" is deliberately an empty list, not the demo list: `KOS_LIST`
+ * carries invented scores, and showing them while the real database is down
+ * would present made-up numbers as tenant reviews — the one thing kkost exists
+ * to prevent.
+ */
+export type KosSource = "database" | "demo" | "unavailable";
+
+export type KosListResult = { kos: Kos[]; source: KosSource };
+
 export async function fetchKosList(
   supabase: SupabaseClient | null,
-): Promise<Kos[]> {
-  if (!supabase || !isSupabaseConfigured) return KOS_LIST;
+): Promise<KosListResult> {
+  if (!supabase || !isSupabaseConfigured) {
+    return { kos: KOS_LIST, source: "demo" };
+  }
 
   const { data, error } = await supabase
     .from("kos")
     .select(SELECT)
     .order("score", { ascending: false });
 
-  if (error || !data?.length) return KOS_LIST;
-  return (data as Row[]).filter(hasCoords).map(fromRow);
+  if (error || !data) return { kos: [], source: "unavailable" };
+  // An empty table is a real, honest state — not a reason to show demo data.
+  return {
+    kos: (data as Row[]).filter(hasCoords).map((row) => fromRow(row)),
+    source: "database",
+  };
 }
 
+/** Postgres rejects a non-uuid id with this code; that is a 404, not an outage. */
+const INVALID_UUID = "22P02";
+
 /**
- * Falls back to the demo list, like fetchKosList — otherwise every card on a
- * bare checkout links to a 404, because the demo ids are slugs rather than the
- * uuids the database hands out.
+ * Resolves the demo slugs only when Supabase is not configured — otherwise
+ * every card on a bare checkout would link to a 404.
+ *
+ * With Supabase configured, a database failure throws instead of falling back:
+ * the demo kos carry invented scores, and a detail page is not allowed to pass
+ * them off as real. The error surfaces through Next's error boundary.
  */
 export async function fetchKos(
   supabase: SupabaseClient | null,
   id: string,
 ): Promise<Kos | null> {
-  const fallback = () => KOS_LIST.find((kos) => kos.id === id) ?? null;
-  if (!supabase || !isSupabaseConfigured) return fallback();
+  if (!supabase || !isSupabaseConfigured) {
+    return KOS_LIST.find((kos) => kos.id === id) ?? null;
+  }
 
   const { data, error } = await supabase
     .from("kos")
@@ -124,8 +161,9 @@ export async function fetchKos(
     .eq("id", id)
     .maybeSingle();
 
-  if (error || !data) return fallback();
-  return fromRow(data as Row, 0);
+  if (error?.code === INVALID_UUID) return null;
+  if (error) throw new Error(`Gagal memuat kos: ${error.message}`);
+  return data ? fromRow(data as Row) : null;
 }
 
 export async function saveKos(
@@ -159,6 +197,13 @@ function explain(error: Postgrestish) {
   if (error.code === "PGRST204" || /column .* of 'kos'/.test(error.message)) {
     return "Kolom belum ada di tabel kos. Jalankan migrasi di supabase/migrations/ secara berurutan lewat SQL Editor.";
   }
+  // A CHECK constraint from 0008 rejected a value the form should have caught
+  // — someone bypassed it, or the two limits have drifted apart.
+  if (error.code === "23514") {
+    return error.message.includes("kos_in_indonesia")
+      ? "Titik ini di luar Indonesia. kkost hanya mencakup kos di Indonesia."
+      : "Data kos di luar batas yang diizinkan. Periksa panjang teks, harga, dan jarak.";
+  }
   // Row Level Security rejected the write. Since 0004 only authenticated users
   // may insert, so this is almost always a missing session — the UI gates the
   // form too, but the policy is the actual boundary.
@@ -177,7 +222,6 @@ function explain(error: Postgrestish) {
  */
 export function toKos(
   input: NewKosInput,
-  index: number,
   id = `local-${Date.now()}`,
 ): Kos {
   return {
@@ -190,7 +234,7 @@ export function toKos(
     price: input.price,
     score: 0,
     reviews: 0,
-    photoAccent: PHOTO_ACCENTS[index % PHOTO_ACCENTS.length],
+    photoAccent: photoAccentFor(id),
     coords: [input.lat, input.lng],
     highlights: [],
   };

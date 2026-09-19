@@ -45,6 +45,8 @@ antarmuka. Antarmuka bisa dilewati; kebijakan database tidak.
 | **Satu ulasan per kos per orang** | Constraint `unique (kos_id, author_id)` di database, bukan pengecekan di aplikasi | `0002_reviews.sql` |
 | **Jendela penyuntingan 30 hari** | Policy RLS `UPDATE` mensyaratkan `created_at > now() - interval '30 days'`; `created_at` dan `kos_id` tidak dapat diubah klien, sehingga jendela tidak bisa di-reset | `0002_reviews.sql`, `0006_column_grants.sql` |
 | **Identitas penulis tidak berasal dari klien** | Server Action membaca ulang pengguna dari sesi (`getSessionUser()`); formulir hanya mengirim *kos mana* dan penilaiannya | `review-actions.ts` |
+| **Data kos dibatasi di database** | CHECK constraint untuk panjang teks, harga, jarak, dan koordinat di dalam Indonesia; `created_by` diisi dari sesi dan tidak dapat ditulis klien, sehingga setiap kos tercatat penambahnya | `0008_kos_constraints.sql` |
+| **Tidak ada angka karangan saat database gagal** | Data contoh hanya muncul tanpa kredensial Supabase, dengan penanda "Mode contoh". Jika database gagal dihubungi, daftar dikosongkan — skor contoh tidak pernah menggantikan data asli | `kos-repository.ts` |
 | **Setiap masukan divalidasi di server** | Skema Zod di dalam Server Action. `FormData` diperlakukan sebagai data tidak tepercaya | `review-actions.ts`, `auth-actions.ts` |
 | **Row Level Security aktif di semua tabel** | `kos`, `profiles`, `reviews` — akses ditentukan kebijakan eksplisit, bukan default terbuka | `0002_reviews.sql` |
 | **Menulis wajib identitas, membaca tetap terbuka** | Menambah kos dan menulis review hanya untuk pengguna terautentikasi, ditegakkan policy RLS. Melihat peta, daftar kos, halaman detail, dan seluruh review tidak memerlukan akun | `0004_kos_insert_requires_login.sql` |
@@ -160,8 +162,9 @@ Jalankan skrip database lewat **Supabase Dashboard → SQL Editor**, berurutan:
 | 5 | `supabase/migrations/0005_linter_fixes.sql` | Perbaikan temuan linter Supabase |
 | 6 | `supabase/migrations/0006_column_grants.sql` | Hak tulis per kolom; skor, `is_student`, dan `created_at` tidak bisa ditulis klien |
 | 7 | `supabase/migrations/0007_demo_profiles.sql` | Penanda akun contoh (`profiles.is_demo`) |
-| 8 | `supabase/seed.sql` | Data awal lintas kota |
-| 9 | `supabase/seed_demo_reviews.sql` | Review contoh berlabel dari empat akun demo |
+| 8 | `supabase/migrations/0008_kos_constraints.sql` | Batas isi kos di database (panjang teks, harga, jarak, wilayah Indonesia) dan `created_by` |
+| 9 | `supabase/seed.sql` | Data awal lintas kota |
+| 10 | `supabase/seed_demo_reviews.sql` | Review contoh berlabel dari empat akun demo |
 
 Terakhir, matikan **Authentication → Providers → Email → Confirm email** agar
 pendaftaran tidak memerlukan konfirmasi lewat surel.
@@ -173,7 +176,8 @@ npm run dev
 Buka <http://localhost:3000>.
 
 Tanpa kredensial Supabase aplikasi tetap berjalan menggunakan data contoh —
-peta, kartu, dan navigasi tetap berfungsi.
+peta, kartu, dan navigasi tetap berfungsi, dengan penanda "Mode contoh" di
+atas halaman.
 
 ## Perintah
 

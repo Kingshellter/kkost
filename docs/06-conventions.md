@@ -93,7 +93,13 @@ implement this and any new Supabase code must too:
 2. `isSupabaseConfigured` gates `saveKos`, which returns `"unconfigured"`.
 3. `AddKosDialog` shows an amber warning; `KosMap` still adds the pin and words
    the toast differently.
-4. `fetchKosList` falls back to `KOS_LIST` on any error or empty result.
+4. `fetchKosList` returns `KOS_LIST` **only** when unconfigured (`source: "demo"`).
+   A database error is `source: "unavailable"` with an empty list, and
+   `fetchKos` throws. **Never fall back to demo data when Supabase is
+   configured** — the demo kos carry invented scores, and showing them during
+   an outage presents fake numbers as reviews.
+5. Every limit on user-entered data lives in a database CHECK first; a zod
+   schema in the form may mirror it for an earlier error, never replace it.
 
 ## Responsive
 
@@ -122,6 +128,13 @@ input is not lost. No `alert()`, no `console.error` as the user-facing path.
 - Validate every action input with zod. `FormData` is untrusted.
 - Call `revalidatePath` for every route whose output changed — a review changes
   both `/kos/[id]` and `/`.
+- **React 19 resets a `<form action>` after the action settles** — on error
+  too. A plain uncontrolled field loses what the user typed, and a controlled
+  radio (`checked=`) comes back unchecked in the DOM while its UI still looks
+  selected, so `required` blocks the resubmit. The pattern used in `AuthCard`
+  and `ReviewForm`: keep the field uncontrolled, mirror it into `useState` via
+  `onChange`, and pass that state as `defaultValue` / `defaultChecked` — the
+  reset then restores the user's input. Never keep a password this way.
 
 ## Supabase
 

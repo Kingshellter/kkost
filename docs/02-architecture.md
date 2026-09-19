@@ -103,7 +103,7 @@ user clicks map
             ├─ insert ok     → { status: "saved", id }
             └─ postgrest err → { status: "error", message }  ← shown inline, dialog stays open
   → onSaved(input, result)  [kos-map.tsx handleSaved]
-       · addKos(toKos(input, index, savedId))   → zustand store
+       · addKos(toKos(input, savedId))   → zustand store
          (real uuid when saved, `local-…` when unconfigured)
        · saved → router.refresh(); mergeKos drops the optimistic copy
          once the server list carries the same id

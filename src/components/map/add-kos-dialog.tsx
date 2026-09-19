@@ -12,22 +12,47 @@ import {
   type SaveResult,
 } from "@/lib/kos-repository";
 
+// Limits mirror the CHECK constraints in 0008_kos_constraints.sql — the
+// database is the real boundary; this only gives the error before a round trip.
 const schema = z.object({
-  name: z.string().trim().min(3, "Nama kos minimal 3 karakter"),
-  area: z.string().trim().min(2, "Area wajib diisi"),
-  city: z.string().trim().min(2, "Kota wajib diisi"),
+  name: z
+    .string()
+    .trim()
+    .min(3, "Nama kos minimal 3 karakter")
+    .max(120, "Nama kos maksimal 120 karakter"),
+  area: z
+    .string()
+    .trim()
+    .min(2, "Area wajib diisi")
+    .max(120, "Area maksimal 120 karakter"),
+  city: z
+    .string()
+    .trim()
+    .min(2, "Kota wajib diisi")
+    .max(80, "Kota maksimal 80 karakter"),
   // Optional: not every kos is near a campus, and kkost covers all of Indonesia.
-  campus: z.string().trim().max(120, "Nama kampus terlalu panjang"),
+  // Empty becomes null on submit; one character would fail the database check.
+  campus: z
+    .string()
+    .trim()
+    .max(120, "Nama kampus terlalu panjang")
+    .refine((v) => v.length !== 1, "Nama kampus minimal 2 karakter"),
   price: z
     .number({ message: "Harga harus berupa angka" })
     .int("Harga harus bilangan bulat")
-    .min(1, "Harga harus lebih dari 0"),
+    .min(1, "Harga harus lebih dari 0")
+    .max(100_000_000, "Harga maksimal Rp100.000.000"),
   distance: z
     .number({ message: "Jarak harus berupa angka" })
     .int("Jarak harus bilangan bulat")
     .min(0, "Jarak tidak boleh negatif")
     .max(50_000, "Jarak maksimal 50.000 m"),
 });
+
+/** Same box as the kos_in_indonesia constraint. */
+function inIndonesia([lat, lng]: [number, number]) {
+  return lat >= -11.5 && lat <= 6.5 && lng >= 94 && lng <= 141.5;
+}
 
 type FormValues = z.infer<typeof schema>;
 
@@ -77,6 +102,12 @@ export function AddKosDialog({ position, onCancel, onSaved }: Props) {
 
   async function onSubmit(values: FormValues) {
     setServerError(null);
+    if (!inIndonesia(position)) {
+      setServerError(
+        "Titik ini di luar Indonesia. kkost hanya mencakup kos di Indonesia.",
+      );
+      return;
+    }
     const input: NewKosInput = {
       ...values,
       campus: values.campus || null,

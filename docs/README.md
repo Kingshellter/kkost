@@ -16,6 +16,7 @@ something here, the code wins — and this folder must be updated (see
 | 5 | [05-file-map.md](05-file-map.md) | Which file owns what — one line per file in `src/` |
 | 6 | [06-conventions.md](06-conventions.md) | The rules to follow when writing code in this repo |
 | 7 | [07-maintaining-these-docs.md](07-maintaining-these-docs.md) | What to update here after you change code |
+| 8 | [08-roadmap.md](08-roadmap.md) | **What to do next, in order** — the hand-off list (in Indonesian), ranked by the competition's judging weights. Start here if you are picking the project up |
 
 ## 30-second version
 

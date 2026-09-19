@@ -16,7 +16,7 @@ type Kos = {
   price: number;         // rupiah per month, plain integer (950_000)
   score: number;         // 0–5, one decimal
   reviews: number;       // count; 0 means "Baru" (new) everywhere in the UI
-  photoAccent: Accent;   // placeholder tint until real photography exists
+  photoAccent: Accent;   // picks the KosPhoto illustration + tint until real photos exist
   coords: [number, number];   // [lat, lng] — Leaflet order, not GeoJSON order
   highlights: FacilityScore[];
 };
@@ -67,7 +67,7 @@ Three conventions worth burning in:
 | Export | What it is |
 |---|---|
 | `INDONESIA` | `{ center: [-2.5, 118], zoom: 5 }` — the map's fallback view when there is nothing to fit to |
-| `KOS_LIST` | 4 demo kos — now only the **fallback** when Supabase is unreachable |
+| `KOS_LIST` | 4 demo kos with **invented** scores — shown only when Supabase is not configured, never on a database error (see [Reads](#reads)) |
 | `CRITERIA` | The six scoring criteria (`key`, number, title, description, accent) |
 | `TRUST_GUARANTEES` | The four claims rendered by the `#trust` section, each naming where it is enforced. **Keep honest** — if a guarantee stops being true in `supabase/migrations/`, remove it here the same day |
 | `NAV_LINKS` | Navbar anchors, in page order |
@@ -75,8 +75,8 @@ Three conventions worth burning in:
 | `SDG_GOALS` | The four SDGs (number, name, real target id, detail, accent, `primary`) shown on `#dampak`; mirrored in the root README |
 
 `INDONESIA`, `CRITERIA`, `NAV_LINKS`, `PROBLEMS`, `SDG_GOALS` and
-`TRUST_GUARANTEES` are static copy, all in Indonesian. `KOS_LIST` is only a
-fallback — the real list comes from Supabase.
+`TRUST_GUARANTEES` are static copy, all in Indonesian. `KOS_LIST` exists only
+for a checkout without credentials — the real list comes from Supabase.
 
 The hero's headline numbers are **not** static: `summarizeKos` in
 [`src/lib/kos-browse.ts`](../src/lib/kos-browse.ts) counts them from the loaded
@@ -105,10 +105,28 @@ there is no migration runner wired up.
 | `lng` | double precision | nullable |
 | `score` | numeric(2,1) | `not null default 0` |
 | `reviews` | integer | `not null default 0` |
+| `created_by` | uuid | nullable — from 0008. → `profiles(id)`, `on delete set null`. `default auth.uid()`; **not writable by any client role**, so it always names the session that inserted the row. NULL on seed and legacy rows |
 
 Plus a `kos_lat_lng_valid` check constraint (both null, or lat ∈ [-90,90] and
 lng ∈ [-180,180]), a `kos_lat_lng_idx` index on `(lat, lng)`, and a
 `kos_city_idx` index on `(city)`.
+
+**Content limits — 0008.** Before 0008 the only validation lived in the zod
+schema of `AddKosDialog`, which a direct REST call skips. Now the database
+enforces it:
+
+| Constraint | Rule |
+|---|---|
+| `kos_name_length` | `name` 3–120 chars |
+| `kos_area_length` | `area` 2–120 chars |
+| `kos_city_length` | `city` 2–80 chars (the URL filter also caps `kota` at 80) |
+| `kos_campus_length` | `campus` 2–120 chars |
+| `kos_price_range` | `price` 1–100,000,000 |
+| `kos_distance_range` | `distance_m` 0–50,000 |
+| `kos_in_indonesia` | both null, or lat ∈ [-11.5, 6.5] and lng ∈ [94, 141.5] |
+
+NULL passes a CHECK, so legacy nullable rows are unaffected. The zod schema in
+`add-kos-dialog.tsx` mirrors these numbers — **change both together**.
 
 The new columns are deliberately **nullable** so the migration does not fail on
 pre-existing rows. The SQL file carries a commented-out `set not null` block to
@@ -154,6 +172,8 @@ into Indonesian, actionable text:
 | Condition | Message |
 |---|---|
 | `PGRST204` / `column ... of 'kos'` | "Kolom belum ada di tabel kos. Jalankan migrasi di supabase/migrations/ secara berurutan lewat SQL Editor." |
+| `23514` on `kos_in_indonesia` | "Titik ini di luar Indonesia. …" |
+| `23514` on any other check (0008) | "Data kos di luar batas yang diizinkan. …" |
 | `42501` / `row-level security` | "Ditolak: menambah kos harus masuk dulu." |
 | anything else | the raw PostgREST message |
 
@@ -168,15 +188,23 @@ privilege on — after 0006, sending `score` or `reviews` fails that way. Fix a
 
 - `distance_m` → `distance`
 - `lat`/`lng` → `coords: [lat, lng]`
-- `photoAccent` — not stored; cycled from `["amber","sky","rose","blue"]` by index
+- `photoAccent` — not stored; `photoAccentFor(id)` hashes the id into
+  `["amber","sky","rose","blue"]`. By id, not list position, so a kos gets the
+  same illustration on its card, in the hero and on its detail page (fetched alone)
 - `highlights` — not stored; the detail page computes per-facility averages from
   the review rows instead
 
 Two behaviours worth knowing:
 
-- **`fetchKosList` and `fetchKos` both fall back to `KOS_LIST`** when Supabase
-  errors or returns nothing, so the page renders on a bare checkout — and the
-  detail route resolves the demo slugs instead of 404ing on every card.
+- **`KOS_LIST` appears only when Supabase is not configured.** `fetchKosList`
+  returns `{ kos, source }` where `source` is `"demo"` (no credentials →
+  `KOS_LIST`), `"database"` (the real rows — an empty table stays empty), or
+  `"unavailable"` (query failed → **empty list**). The landing page renders a
+  notice for the last two non-database states. `fetchKos` resolves demo slugs
+  only without credentials; with credentials a non-uuid id (`22P02`) is a 404
+  and any other error **throws**. The demo kos carry invented scores, so
+  falling back to them during an outage would pass fake numbers off as tenant
+  reviews — which is exactly what an earlier version did.
 - **Rows with a null `lat`/`lng` are filtered out.** Legacy rows predate the
   location migration; without this they would all pile up at [0, 0].
 
@@ -238,7 +266,7 @@ Enabled on `kos`, `profiles`, and `reviews`.
 
 | Table | Policy |
 |---|---|
-| `kos` | select: anyone. insert: **authenticated only** (0004 replaced 0002's open policy) |
+| `kos` | select: anyone. insert: **authenticated only**, and since 0008 `auth.uid() = created_by` (0004 replaced 0002's open policy) |
 | `profiles` | select: anyone. update: own row only |
 | `reviews` | select: anyone. insert: authenticated, `auth.uid() = author_id`. update: own row **and** `created_at > now() - 30 days`. delete: own row only |
 
@@ -260,6 +288,9 @@ before 0006 "update your own profile" also meant "set your own `is_student`".
 | `kos` | `name, area, city, campus, price, distance_m, lat, lng` | none |
 | `profiles` | none — the trigger creates rows | `display_name` |
 | `reviews` | `kos_id, author_id`, the six scores, `body` | the six scores, `body` |
+
+`kos.created_by` (0008) is deliberately absent from the INSERT list, so its
+`auth.uid()` default is the only way it gets a value.
 
 `anon` holds neither. `created_at` on `reviews` is not updatable, which is what
 makes the 30-day window real. Supabase's linter does not check this — query
@@ -310,8 +341,9 @@ SQL Editor**, in order:
 5. `supabase/migrations/0005_linter_fixes.sql`
 6. `supabase/migrations/0006_column_grants.sql`
 7. `supabase/migrations/0007_demo_profiles.sql`
-8. `supabase/seed.sql`
-9. `supabase/seed_demo_reviews.sql` — optional, but the demo is empty without it
+8. `supabase/migrations/0008_kos_constraints.sql`
+9. `supabase/seed.sql`
+10. `supabase/seed_demo_reviews.sql` — optional, but the demo is empty without it
 
 An agent cannot do this — the Supabase connector is read-only. Write the
 migration, then ask the user to run it, then verify with `list_tables`.

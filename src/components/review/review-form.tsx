@@ -11,6 +11,9 @@ export function ReviewForm({ kosId }: { kosId: string }) {
     submitReview,
     REVIEW_INITIAL,
   );
+  // See ScoreInput: fields are uncontrolled with a state-backed default, so
+  // React 19's post-action form reset restores the note instead of erasing it.
+  const [body, setBody] = useState("");
 
   if (state.ok) {
     return (
@@ -53,6 +56,8 @@ export function ReviewForm({ kosId }: { kosId: string }) {
         </span>
         <textarea
           name="body"
+          defaultValue={body}
+          onChange={(e) => setBody(e.target.value)}
           rows={4}
           maxLength={2000}
           placeholder="Apa yang tidak terlihat dari foto?"
@@ -80,7 +85,14 @@ export function ReviewForm({ kosId }: { kosId: string }) {
   );
 }
 
-/** Radio group styled as five pills — keyboard-navigable, no JS needed to submit. */
+/**
+ * Radio group styled as five pills — keyboard-navigable, no JS needed to submit.
+ *
+ * `defaultChecked`, not `checked`: React 19 resets the form after the action
+ * settles, and a controlled radio would come back unchecked in the DOM while
+ * its pill still looked selected — `required` then blocked the resubmit.
+ * Tying the default to state makes the reset land on the user's choice.
+ */
 function ScoreInput({ name, label }: { name: FacilityKey; label: string }) {
   const [value, setValue] = useState(0);
 
@@ -108,7 +120,7 @@ function ScoreInput({ name, label }: { name: FacilityKey; label: string }) {
               name={name}
               value={n}
               required
-              checked={value === n}
+              defaultChecked={value === n}
               onChange={() => setValue(n)}
               className="sr-only"
             />

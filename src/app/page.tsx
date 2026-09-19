@@ -14,13 +14,17 @@ import {
   parseKosFilter,
   summarizeKos,
 } from "@/lib/kos-browse";
-import { fetchKosList, isSupabaseConfigured } from "@/lib/kos-repository";
+import {
+  fetchKosList,
+  isSupabaseConfigured,
+  type KosSource,
+} from "@/lib/kos-repository";
 import { fetchReviews } from "@/lib/review-repository";
 import { createClient } from "@/utils/supabase/server";
 
 export default async function Home(props: PageProps<"/">) {
   const supabase = isSupabaseConfigured ? await createClient() : null;
-  const [all, user, params] = await Promise.all([
+  const [{ kos: all, source }, user, params] = await Promise.all([
     fetchKosList(supabase),
     getSessionUser(),
     props.searchParams,
@@ -36,12 +40,15 @@ export default async function Home(props: PageProps<"/">) {
   // per-facility averages — not a mock breakdown next to a live name.
   const featured = all.find((item) => item.reviews > 0) ?? all[0];
   const featuredReviews =
-    supabase && featured ? await fetchReviews(supabase, featured.id) : [];
+    supabase && source === "database" && featured
+      ? await fetchReviews(supabase, featured.id)
+      : [];
 
   return (
     <>
       <Navbar />
       <main className="flex-1">
+        <DataNotice source={source} />
         <Hero
           featured={featured}
           reviews={featuredReviews}
@@ -61,5 +68,39 @@ export default async function Home(props: PageProps<"/">) {
         <Cta />
       </main>
     </>
+  );
+}
+
+/**
+ * Says so whenever the page is not showing the real database. The demo list
+ * carries invented scores, and an outage shows nothing at all; either way a
+ * visitor must not mistake what they see for tenant reviews.
+ */
+function DataNotice({ source }: { source: KosSource }) {
+  if (source === "database") return null;
+
+  return (
+    <div className="px-4 pt-5 sm:px-6 lg:px-10">
+      <p
+        role="status"
+        className="mx-auto max-w-[1240px] rounded-[22px] bg-amber/15 px-5 py-3.5 text-sm font-medium text-ink"
+      >
+        {source === "demo" ? (
+          <>
+            <strong className="font-extrabold">Mode contoh.</strong> Supabase
+            belum dikonfigurasi, jadi kos dan skor di halaman ini adalah data
+            contoh — bukan review penghuni sungguhan.
+          </>
+        ) : (
+          <>
+            <strong className="font-extrabold">
+              Database sedang tidak bisa dihubungi.
+            </strong>{" "}
+            Daftar kos dikosongkan sampai koneksi pulih — kkost tidak pernah
+            menggantinya dengan angka karangan.
+          </>
+        )}
+      </p>
+    </div>
   );
 }

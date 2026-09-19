@@ -12,6 +12,12 @@ type Mode = "signin" | "signup";
  */
 export function AuthCard() {
   const [mode, setMode] = useState<Mode>("signin");
+  // React 19 resets a <form action> once the action settles, which would wipe
+  // what the user typed on every wrong password. Tracking the fields and feeding
+  // them back as `defaultValue` makes that reset restore them instead. The
+  // password is deliberately not kept.
+  const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const action = mode === "signin" ? signIn : signUp;
   const [state, formAction, pending] = useActionState<AuthState, FormData>(
     action,
@@ -53,6 +59,8 @@ export function AuthCard() {
           <Field label="Nama tampilan">
             <input
               name="displayName"
+              defaultValue={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
               required
               minLength={2}
               autoComplete="name"
@@ -66,6 +74,8 @@ export function AuthCard() {
           <input
             type="email"
             name="email"
+            defaultValue={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
             placeholder="rina.a@mail.ugm.ac.id"

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ACCENT_BG } from "./accent";
+import { KosPhoto } from "./kos-photo";
 import { KosScoreBadge } from "./kos-score-badge";
 import type { Kos } from "@/data/kos";
 import { formatDistance, formatRupiah } from "@/lib/format";
@@ -10,15 +10,7 @@ export function KosCard({ kos }: { kos: Kos }) {
       href={`/kos/${kos.id}`}
       className="flex flex-col rounded-[var(--radius-panel)] bg-white p-4 shadow-[var(--shadow-lift)] transition-transform hover:-translate-y-1"
     >
-      <div
-        className={`flex h-[190px] items-center justify-center rounded-[22px] text-[11px] font-extrabold tracking-[0.18em] ${ACCENT_BG[kos.photoAccent]} ${
-          kos.photoAccent === "amber" || kos.photoAccent === "sky"
-            ? "text-ink/45"
-            : "text-white/70"
-        }`}
-      >
-        FOTO
-      </div>
+      <KosPhoto kos={kos} className="h-[190px] rounded-[22px]" />
 
       <div className="flex flex-1 flex-col px-3 pb-2 pt-6">
         <div className="flex items-start gap-4">

@@ -217,7 +217,7 @@ export default function KosMap({
 
   function handleSaved(input: NewKosInput, result: SaveResult) {
     const saved = result.status === "saved";
-    addKos(toKos(input, kosList.length, saved ? result.id : undefined));
+    addKos(toKos(input, saved ? result.id : undefined));
     // Pull the persisted row from the server so its card links to a real page;
     // mergeKos drops the optimistic copy once the refreshed list carries it.
     if (saved) router.refresh();

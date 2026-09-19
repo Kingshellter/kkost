@@ -59,8 +59,9 @@ enforced.
   review form
 - ✅ **Nationwide scope** — every kos stores its own `city` and optional
   `campus`; distance is entered by whoever adds the kos
-- ✅ **Reads from Supabase**, with the hardcoded `KOS_LIST` as the fallback when
-  the database is unreachable or empty
+- ✅ **Reads from Supabase.** The hardcoded `KOS_LIST` is shown only on a
+  checkout without credentials, under a "Mode contoh" notice. A database
+  error shows an empty list and a notice — never the invented demo scores
 - ✅ **Auth** — email + password sign-up/sign-in via Supabase Auth, Server
   Actions, session in the navbar, sign-out. A `.ac.id` address flags the account
   as a verified student
@@ -88,15 +89,21 @@ enforced.
   panel
 - ✅ **Migrations applied and the database live** — 11 kos across 9 cities, and
   Supabase's own security linter reports no schema findings (one Auth
-  setting warning — see ⚠️ below). 0001–0007, `seed.sql` and
+  setting warning — see ⚠️ below). 0001–0008, `seed.sql` and
   `seed_demo_reviews.sql` are applied (17 labelled demo reviews over 8 kos,
   3 kos left unreviewed),
   so the column-level grants are live too (verified via
   `information_schema.column_privileges`)
+- ✅ **Kos content limits in the database** — `0008_kos_constraints.sql` adds
+  CHECK constraints (lengths, price, distance, an Indonesia bounding box) and
+  `kos.created_by`. Applied and verified live (constraints, `auth.uid()`
+  default, insert policy, no client grant on `created_by`); linter shows no
+  new findings
 - ✅ **The theme, argued on the page** — a `#trust` section listing each
   integrity guarantee and where it is enforced, plus a "dari mana angka ini"
   panel on every kos detail page
-- ✅ Graceful degradation with no Supabase credentials (demo data, session-scoped)
+- ✅ Graceful degradation with no Supabase credentials (demo data under a
+  "Mode contoh" notice, session-scoped)
 - ✅ Supabase session refresh in `src/proxy.ts`
 
 ## What does NOT exist yet
@@ -106,7 +113,9 @@ enforced.
   or UI. The site no longer claims owners can reply — put that claim back only
   together with the feature.
 - ❌ **Editing a review.** The 30-day window exists as an RLS policy; no UI uses it.
-- ❌ **Real photos.** Cards render coloured `PHOTO` placeholders.
+- ❌ **Real photos / photo upload.** Every kos shows a flat SVG illustration
+  labelled "Ilustrasi" (`KosPhoto`). Planned next: upload via Supabase Storage,
+  rendered inside `KosPhoto` with the illustration as fallback.
 - ⚠️ **`is_student` is forgeable.** The flag is set from an `.ac.id` suffix
   alone. 0006 stops users editing it afterwards, but with Supabase's "Confirm
   email" turned off, anyone can still sign up with a campus address they do not
