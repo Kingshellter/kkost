@@ -10,7 +10,6 @@ import { getSessionUser } from "@/lib/auth";
 import {
   applyKosFilter,
   cityOptions,
-  isNarrowed,
   parseKosFilter,
   summarizeKos,
 } from "@/lib/kos-browse";
@@ -62,7 +61,7 @@ export default async function Home(props: PageProps<"/">) {
         <MapSection
           kos={kos}
           signedIn={Boolean(user)}
-          narrowed={isNarrowed(filter)}
+          filter={filter}
         />
         <Browse kos={kos} total={all.length} cities={cities} filter={filter} />
         <Cta />

@@ -67,8 +67,10 @@ export type Kos = {
   price: number;
   score: number;
   reviews: number;
-  /** Placeholder tint until real photography lands. */
+  /** Picks the fallback illustration and its tint when there is no photo. */
   photoAccent: Accent;
+  /** Public URL of the newest uploaded photo (0009), or null — then the illustration shows. */
+  photoUrl: string | null;
   coords: [number, number];
   highlights: FacilityScore[];
 };
@@ -91,6 +93,7 @@ export const KOS_LIST: Kos[] = [
     score: 4.8,
     reviews: 64,
     photoAccent: "amber",
+    photoUrl: null,
     coords: [-6.369, 106.827],
     highlights: [
       { label: "Air & listrik", score: 4.9, accent: "blue" },
@@ -108,6 +111,7 @@ export const KOS_LIST: Kos[] = [
     score: 4.6,
     reviews: 88,
     photoAccent: "sky",
+    photoUrl: null,
     coords: [-6.889, 107.61],
     highlights: [
       { label: "Parkir", score: 4.9, accent: "amber" },
@@ -125,6 +129,7 @@ export const KOS_LIST: Kos[] = [
     score: 4.5,
     reviews: 41,
     photoAccent: "rose",
+    photoUrl: null,
     coords: [-7.559, 110.856],
     highlights: [
       { label: "Dapur", score: 4.9, accent: "ink" },
@@ -142,6 +147,7 @@ export const KOS_LIST: Kos[] = [
     score: 3.9,
     reviews: 27,
     photoAccent: "blue",
+    photoUrl: null,
     coords: [-7.952, 112.615],
     highlights: [
       { label: "Parkir", score: 4.2, accent: "amber" },

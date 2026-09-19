@@ -40,8 +40,13 @@ export async function Cta() {
 
           <div className="mt-14 flex flex-wrap items-center gap-x-4 gap-y-2">
             <Logo />
+            {/* The separator dot only makes sense on one line; on a phone
+                the tagline wraps under the logo, where it would dangle. */}
             <p className="text-[15px] font-bold text-ink">
-              · Gratis mencari, gratis menilai. Seluruh Indonesia.
+              <span aria-hidden className="hidden sm:inline">
+                ·{" "}
+              </span>
+              Gratis mencari, gratis menilai. Seluruh Indonesia.
             </p>
           </div>
         </div>

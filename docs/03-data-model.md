@@ -16,7 +16,8 @@ type Kos = {
   price: number;         // rupiah per month, plain integer (950_000)
   score: number;         // 0–5, one decimal
   reviews: number;       // count; 0 means "Baru" (new) everywhere in the UI
-  photoAccent: Accent;   // picks the KosPhoto illustration + tint until real photos exist
+  photoAccent: Accent;   // picks the fallback KosPhoto illustration + tint
+  photoUrl: string | null; // public URL of the newest uploaded photo (0009), else null
   coords: [number, number];   // [lat, lng] — Leaflet order, not GeoJSON order
   highlights: FacilityScore[];
 };
@@ -193,6 +194,11 @@ privilege on — after 0006, sending `score` or `reviews` fails that way. Fix a
   same illustration on its card, in the hero and on its detail page (fetched alone)
 - `highlights` — not stored; the detail page computes per-facility averages from
   the review rows instead
+- `photoUrl` — the newest `kos_photos` row, embedded in the same query
+  (`kos_photos(path, created_at)`, ordered and limited to 1 per kos), turned
+  into a public URL with `storage.getPublicUrl`. **If the embed errors (0009
+  not run), both fetches retry the plain SELECT** — kos lose their photo, not
+  the page. `KOS_LIST` and `toKos` set `photoUrl: null`
 
 Two behaviours worth knowing:
 
@@ -241,6 +247,41 @@ the same six strings, so they cannot drift.
 author lives here. Rows are created by the `on_auth_user_created` trigger — the
 app never inserts a profile.
 
+## `public.kos_photos` and the `kos-photos` bucket — from 0009_kos_photos.sql
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | `default gen_random_uuid()` |
+| `kos_id` | uuid | → `kos(id)`, cascade delete |
+| `path` | text | unique. Object name in the bucket, `<kos_id>/<uuid>.<ext>`. CHECK `kos_photos_path_in_kos_folder`: must start with its own `kos_id/`, ≤ 200 chars |
+| `uploaded_by` | uuid | → `profiles(id)`. `default auth.uid()`, **not client-writable** |
+| `created_at` | timestamptz | newest is the one shown |
+
+Repository: [`src/lib/kos-photo-repository.ts`](../src/lib/kos-photo-repository.ts)
+(`uploadKosPhoto`, `checkPhotoFile`). `PHOTO_BUCKET` is exported from
+`kos-repository.ts`, which reads the embed.
+
+How a photo is protected, layer by layer:
+
+- **Bucket** `kos-photos`: public read, `file_size_limit` 2 MB,
+  `allowed_mime_types` jpeg/png/webp — enforced by Storage, mirrored by
+  `checkPhotoFile` for an earlier error.
+- **Storage policy** `kos_photos_upload`: INSERT for `authenticated` only, and
+  the first folder must be the id of an existing kos. **No SELECT, UPDATE or
+  DELETE policy** — public URLs need no SELECT (and one would let anyone list
+  the bucket), and nobody can overwrite or delete a photo through the API.
+- **Table**: RLS select anyone, insert `authenticated` with
+  `auth.uid() = uploaded_by`; column grant INSERT `(kos_id, path)` only; no
+  UPDATE/DELETE grant.
+- **Trigger** `kos_photos_check_object` → `check_kos_photo_object()`
+  (SECURITY DEFINER, EXECUTE revoked): the row is rejected (`23514`) unless
+  `storage.objects` holds that path, in that bucket, with
+  `owner_id = uploaded_by`. So nobody can claim someone else's upload, or a
+  file that was never uploaded.
+
+The upload is two steps — object, then row — in that order. A failed row
+insert leaves an orphaned object that is never displayed.
+
 ## Derived scores — never write these
 
 `kos.score` and `kos.reviews` are **derived**. The `refresh_kos_score()` trigger
@@ -262,7 +303,7 @@ the client.
 
 ## Row Level Security
 
-Enabled on `kos`, `profiles`, and `reviews`.
+Enabled on `kos`, `profiles`, `reviews`, and (after 0009) `kos_photos`.
 
 | Table | Policy |
 |---|---|
@@ -342,8 +383,10 @@ SQL Editor**, in order:
 6. `supabase/migrations/0006_column_grants.sql`
 7. `supabase/migrations/0007_demo_profiles.sql`
 8. `supabase/migrations/0008_kos_constraints.sql`
-9. `supabase/seed.sql`
-10. `supabase/seed_demo_reviews.sql` — optional, but the demo is empty without it
+9. `supabase/migrations/0009_kos_photos.sql` — **written, not yet applied to
+   the live database** (as of 19 Sep 2026). The app runs without it
+10. `supabase/seed.sql`
+11. `supabase/seed_demo_reviews.sql` — optional, but the demo is empty without it
 
 An agent cannot do this — the Supabase connector is read-only. Write the
 migration, then ask the user to run it, then verify with `list_tables`.

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PhotoUpload } from "@/components/photo/photo-upload";
 import { ReviewForm } from "@/components/review/review-form";
 import { ReviewList } from "@/components/review/review-list";
 import { Navbar } from "@/components/sections/navbar";
@@ -51,6 +52,7 @@ export default async function KosDetail(props: PageProps<"/kos/[id]">) {
           <header className="mt-6 flex flex-wrap items-start gap-6 rounded-[var(--radius-panel)] bg-white p-4 pb-7 shadow-[var(--shadow-float)] sm:p-5 sm:pb-8">
             <KosPhoto
               kos={kos}
+              sizes="(min-width: 1000px) 960px, 100vw"
               className="h-[200px] w-full rounded-[22px] sm:h-[260px]"
             />
             <div className="min-w-0 flex-1 px-3 sm:px-3">
@@ -65,7 +67,7 @@ export default async function KosDetail(props: PageProps<"/kos/[id]">) {
                   {formatDistance(kos.distance)} ke {kos.campus}
                 </p>
               )}
-              <p className="mt-5 text-[22px] font-extrabold text-ink">
+              <p className="mt-5 whitespace-nowrap text-[22px] font-extrabold text-ink">
                 {formatRupiah(kos.price)}
                 <span className="text-base font-medium text-muted"> / bulan</span>
               </p>
@@ -140,6 +142,14 @@ export default async function KosDetail(props: PageProps<"/kos/[id]">) {
               <ReviewForm kosId={kos.id} />
             )}
           </section>
+
+          {/* Uploading needs an account, like every other write. Without
+              Supabase there is nowhere to put the file. */}
+          {user && isSupabaseConfigured && (
+            <section className="mt-8">
+              <PhotoUpload kosId={kos.id} />
+            </section>
+          )}
         </div>
       </main>
     </>

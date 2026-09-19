@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { createClient } from "@/utils/supabase/client";
@@ -60,10 +60,24 @@ type Props = {
   position: [number, number];
   onCancel: () => void;
   onSaved: (input: NewKosInput, result: SaveResult) => void;
+  /**
+   * Where focus goes when the dialog closes. The "+ Tambah kos" button that
+   * opened it lives in a map popup that is gone by then, so it is the map.
+   */
+  returnFocusRef: RefObject<HTMLElement | null>;
 };
 
-export function AddKosDialog({ position, onCancel, onSaved }: Props) {
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+export function AddKosDialog({
+  position,
+  onCancel,
+  onSaved,
+  returnFocusRef,
+}: Props) {
   const [serverError, setServerError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const {
     register,
@@ -74,12 +88,46 @@ export function AddKosDialog({ position, onCancel, onSaved }: Props) {
     defaultValues: { name: "", area: "", city: "", campus: "", price: 0, distance: 0 },
   });
 
-  // Escape closes the dialog, like any modal
+  // Escape closes the dialog, like any modal; Tab cycles inside it, so a
+  // keyboard user cannot wander onto the page that aria-modal says is inert.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onCancel();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onCancel();
+        return;
+      }
+      if (e.key !== "Tab" || !formRef.current) return;
+
+      const items = [
+        ...formRef.current.querySelectorAll<HTMLElement>(FOCUSABLE),
+      ];
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const inside = formRef.current.contains(document.activeElement);
+
+      if (e.shiftKey && (document.activeElement === first || !inside)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (document.activeElement === last || !inside)) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onCancel]);
+
+  // Hand focus back to the map on close, whether cancelled or saved.
+  useEffect(() => {
+    const box = returnFocusRef;
+    return () => {
+      const target =
+        box.current?.querySelector<HTMLElement>(".leaflet-container") ??
+        box.current;
+      target?.focus({ preventScroll: true });
+    };
+  }, [returnFocusRef]);
 
   // Freeze the page behind the dialog. Overflow on the root element always
   // applies to the viewport; the padding compensates for the vanishing
@@ -134,6 +182,7 @@ export function AddKosDialog({ position, onCancel, onSaved }: Props) {
       onClick={(e) => e.target === e.currentTarget && onCancel()}
     >
       <form
+        ref={formRef}
         onSubmit={handleSubmit(onSubmit)}
         className="my-auto w-full max-w-[440px] rounded-[var(--radius-panel)] bg-white p-8 shadow-[var(--shadow-float)]"
       >

@@ -6,9 +6,13 @@
 Indonesia**. The pitch, verbatim from the page metadata:
 
 > "Pilih kos dari orang yang pernah tinggal di dalamnya."
-> Enam fasilitas, dinilai satu per satu oleh mahasiswa yang benar-benar
-> membayar sewanya, di seluruh Indonesia. Pemilik kos tidak pernah bisa
-> menghapus review.
+> Iklan kos ditulis pemiliknya. Di kkost, penghuni menilai enam fasilitas satu
+> per satu, di seluruh Indonesia — dan pemilik kos tidak pernah bisa menghapus
+> review.
+
+The description used to say reviewers were students "who actually pay the
+rent". Nothing verifies that (see ⚠️ `is_student` below), so the claim was
+dropped in favour of stating the problem first.
 
 The scoring model is the product's core idea: every reviewer rates **six fixed
 facilities** 1–5, and the kos score is the plain unweighted average.
@@ -105,6 +109,17 @@ enforced.
 - ✅ Graceful degradation with no Supabase credentials (demo data under a
   "Mode contoh" notice, session-scoped)
 - ✅ Supabase session refresh in `src/proxy.ts`
+- ✅ **Photo upload (code)** — signed-in users upload a JPG/PNG/WebP ≤ 2 MB
+  on `/kos/[id]`; `KosPhoto` shows the newest one, labelled "Foto pengguna",
+  with the illustration as fallback. **Needs `0009_kos_photos.sql` run by
+  hand** — until then reads fall back to the illustrations and an upload
+  says the feature is not active yet. Only one photo is shown per kos; there
+  is no gallery
+- ✅ **Indonesian error and 404 pages** (`app/error.tsx`, `app/not-found.tsx`)
+  and basic security headers in `next.config.ts`
+- ✅ **Map respects the URL filter for kos added this session**, the toast
+  timer restarts on a second save, and a `local-` kos is not a dead link
+- ✅ **`AddKosDialog` traps focus** and returns it to the map on close
 
 ## What does NOT exist yet
 
@@ -113,9 +128,10 @@ enforced.
   or UI. The site no longer claims owners can reply — put that claim back only
   together with the feature.
 - ❌ **Editing a review.** The 30-day window exists as an RLS policy; no UI uses it.
-- ❌ **Real photos / photo upload.** Every kos shows a flat SVG illustration
-  labelled "Ilustrasi" (`KosPhoto`). Planned next: upload via Supabase Storage,
-  rendered inside `KosPhoto` with the illustration as fallback.
+- ❌ **Photo moderation.** Nobody can delete a photo through the API — by
+  design, like reviews — so removing an inappropriate one means the project
+  owner deleting it (object and `kos_photos` row) from the Supabase dashboard.
+- ❌ **Photo in the add-kos dialog.** Upload lives only on the detail page.
 - ⚠️ **`is_student` is forgeable.** The flag is set from an `.ac.id` suffix
   alone. 0006 stops users editing it afterwards, but with Supabase's "Confirm
   email" turned off, anyone can still sign up with a campus address they do not
@@ -126,6 +142,8 @@ enforced.
   not a schema problem: sign-up does not check passwords against
   HaveIBeenPwned. It is toggled in the Supabase dashboard, not in a migration.
 - ❌ **Tests.** No test runner configured.
+- ❌ **Live deployment.** The guidebook's proposal asks for a "Link
+  Website/Demo"; none exists yet (see `08-roadmap.md` step 8).
 
 ## Environment
 

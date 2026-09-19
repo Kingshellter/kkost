@@ -81,8 +81,10 @@ The review form's 1–5 scales are a real `<fieldset>` of radio inputs with an
 `sr-only` control behind each pill — keyboard- and screen-reader-navigable, and
 it would still submit without JavaScript.
 
-Gaps to fix rather than replicate: `AddKosDialog` does not trap focus or restore
-focus to the trigger on close.
+Modals trap Tab inside themselves and hand focus back on close.
+`AddKosDialog` is the reference: its trigger lives in a map popup that is gone
+by the time it closes, so focus returns to the map container instead
+(`returnFocusRef`).
 
 ## Graceful degradation
 
@@ -166,6 +168,14 @@ input is not lost. No `alert()`, no `console.error` as the user-facing path.
   triggers do not check the caller's EXECUTE privilege.
 - Index every foreign key column.
 - Run `get_advisors` (security **and** performance) after every schema change.
+- **Storage buckets follow the table rules.** Limits (size, MIME type) live on
+  the bucket; policies grant INSERT only; no UPDATE/DELETE policy for anything
+  a user contributes; no SELECT policy on a public bucket (it enables listing).
+  A table row that points at an object is checked by a trigger against
+  `storage.objects` (`owner_id`). 0009 is the reference.
+- **A new embed must not take the page down before its migration runs.**
+  Retry the plain query when the embedded select errors, as `fetchKosList`
+  does for `kos_photos` and `fetchReviews` does for `is_demo`.
 - **Writes need an identity, reads never do.** New tables get
   `select using (true)` and writes `to authenticated`. Browsing kkost must stay
   possible without an account; contributing must not.
@@ -184,6 +194,9 @@ input is not lost. No `alert()`, no `console.error` as the user-facing path.
 - **Map UI that takes typing or clicks goes outside `MapContainer`**, as a
   sibling overlay. Inside it, Leaflet also treats those events as drags, zooms
   and map clicks. `MapSearch` is the reference.
+- **Fit around the overlays, not under them.** The search box and hint cover
+  the top of the map at every width, so `FitToKos` adds `OVERLAY_INSET` to the
+  top padding. Change it if that column's height changes.
 - **Anything that moves the view on purpose must switch `FitToKos` off** with a
   latch that never resets (`searchTookOver`), or a later auto-fit will undo it.
 

@@ -3,7 +3,7 @@
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   MapContainer,
   Marker,
@@ -18,6 +18,7 @@ import { ACCENT_HEX, accentForScore } from "@/components/ui/accent";
 import { INDONESIA, type Accent, type Kos } from "@/data/kos";
 import { formatRupiah } from "@/lib/format";
 import type { Place } from "@/lib/geocode";
+import type { KosFilter } from "@/lib/kos-browse";
 import { toKos, type NewKosInput, type SaveResult } from "@/lib/kos-repository";
 import { mergeKos, useKosStore } from "@/store/kos-store";
 import { AddKosDialog } from "./add-kos-dialog";
@@ -83,6 +84,14 @@ function fitPadding(map: L.Map): [number, number] {
 }
 
 /**
+ * Height of the search-and-hint column over the map's top edge, in pixels.
+ * It covers pins at every width — full-width on a phone, a 320px corner box
+ * wider up, which still hid a pin at tablet width — so the fit always leaves
+ * room for it. Kept in step with the column's markup below.
+ */
+const OVERLAY_INSET = 96;
+
+/**
  * kkost spans the whole country, so there is no sensible fixed centre. Fit the
  * view to whatever kos actually exist — data in one city zooms to that city,
  * and the view widens on its own once other cities appear.
@@ -120,8 +129,12 @@ function FitToKos({
       if (userMoved || !w || !h) return;
 
       map.invalidateSize({ animate: false });
+      const [padX, padY] = fitPadding(map);
       map.fitBounds(L.latLngBounds(points), {
-        padding: fitPadding(map),
+        // The search box and hint cover the top of the map; no pin may be
+        // fitted underneath them.
+        paddingTopLeft: [padX, padY + OVERLAY_INSET],
+        paddingBottomRight: [padX, padY],
         maxZoom: 15,
         animate: false,
       });
@@ -186,13 +199,15 @@ function ClickCatcher({ onPick }: { onPick: (p: [number, number]) => void }) {
 export default function KosMap({
   kos: fromServer,
   signedIn,
+  filter,
 }: {
   kos: Kos[];
   signedIn: boolean;
+  filter: KosFilter;
 }) {
   const added = useKosStore((s) => s.added);
   const addKos = useKosStore((s) => s.addKos);
-  const kosList = mergeKos(added, fromServer);
+  const kosList = mergeKos(added, fromServer, filter);
   const router = useRouter();
 
   /** Where the user clicked, awaiting confirmation. */
@@ -200,6 +215,20 @@ export default function KosMap({
   /** Same point, once "Tambah kos" opens the form. */
   const [formAt, setFormAt] = useState<[number, number] | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  /**
+   * The toast's pending hide. Kept so a second save restarts the countdown —
+   * otherwise the first save's timer hides the second toast early.
+   */
+  /** The map's box — where focus returns when the add-kos dialog closes. */
+  const mapBox = useRef<HTMLDivElement>(null);
+  const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (noticeTimer.current) clearTimeout(noticeTimer.current);
+    },
+    [],
+  );
   /** The street or landmark the user searched for, marked on the map. */
   const [place, setPlace] = useState<Place | null>(null);
   /**
@@ -228,11 +257,12 @@ export default function KosMap({
         ? `"${input.name}" tersimpan ke Supabase.`
         : `"${input.name}" ditambahkan ke peta (belum tersimpan ke database).`,
     );
-    setTimeout(() => setNotice(null), 6000);
+    if (noticeTimer.current) clearTimeout(noticeTimer.current);
+    noticeTimer.current = setTimeout(() => setNotice(null), 6000);
   }
 
   return (
-    <div className="relative h-full w-full">
+    <div ref={mapBox} className="relative h-full w-full">
       <MapContainer
         center={INDONESIA.center}
         zoom={INDONESIA.zoom}
@@ -358,6 +388,7 @@ export default function KosMap({
           position={formAt}
           onCancel={() => setFormAt(null)}
           onSaved={handleSaved}
+          returnFocusRef={mapBox}
         />
       )}
     </div>

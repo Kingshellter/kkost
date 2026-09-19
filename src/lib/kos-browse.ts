@@ -84,14 +84,20 @@ const COMPARE: Record<SortKey, (a: Kos, b: Kos) => number> = {
   jarak: (a, b) => distanceRank(a) - distanceRank(b),
 };
 
+/**
+ * The filter's predicate on its own. The map applies it to kos added this
+ * session too, which never pass through `applyKosFilter` on the server.
+ */
+export function matchesKosFilter(kos: Kos, filter: KosFilter) {
+  return (
+    (filter.city === null || collator.compare(kos.city, filter.city) === 0) &&
+    (filter.maxPrice === null || kos.price <= filter.maxPrice)
+  );
+}
+
 export function applyKosFilter(list: Kos[], filter: KosFilter): Kos[] {
   return list
-    .filter(
-      (kos) =>
-        (filter.city === null ||
-          collator.compare(kos.city, filter.city) === 0) &&
-        (filter.maxPrice === null || kos.price <= filter.maxPrice),
-    )
+    .filter((kos) => matchesKosFilter(kos, filter))
     .sort(COMPARE[filter.sort]);
 }
 

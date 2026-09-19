@@ -50,6 +50,9 @@ Butuh akses pemilik proyek Supabase. Menu **Authentication**:
 
 ## 2. Uji satu perbaikan yang belum diverifikasi (±10 menit)
 
+Kodenya sudah ditinjau dan sesuai pola; yang belum adalah uji manual dengan
+akun sungguhan (agen tidak boleh membuat akun atau memasukkan kata sandi).
+
 - [ ] **Form review mempertahankan pilihan setelah error.** Masuk, buka kos
       yang sudah pernah kamu review lewat URL langsung — atau review satu kos,
       lalu kirim lagi dari tab lain yang masih memuat form. Server menolak
@@ -58,89 +61,42 @@ Butuh akses pemilik proyek Supabase. Menu **Authentication**:
       Jika gagal, lihat `ScoreInput` di `src/components/review/review-form.tsx`
       dan aturan "React 19 resets a form" di `06-conventions.md`.
 
-## 3. Audit tampilan HP — UI/UX 25% (±1–2 jam)
+## 3. Jalankan migrasi foto dan uji unggah (±20 menit)
 
-Uji di lebar **375px** (DevTools → mode perangkat, iPhone SE/12) dan 768px.
+Kodenya sudah selesai (lihat "Photo upload" di `01-overview.md`); tinggal
+databasenya. Butuh akses pemilik proyek Supabase.
 
-- [ ] Navbar + menu mobile (`mobile-nav.tsx`).
-- [ ] Hero: judul, form cari kota/budget, kartu hero.
-- [ ] `#dampak`, `#scoring`, `#trust`.
-- [ ] Peta: kotak pencarian tempat, petunjuk "klik peta", sidebar, tombol zoom.
-- [ ] Dialog "Tambah kos" — bisa di-scroll, keyboard HP tidak menutupi tombol.
-- [ ] Grid browse + filter.
-- [ ] Bagian login/daftar (`#login`).
-- [ ] Halaman detail `/kos/[id]`: banner ilustrasi, header, form review.
+- [ ] Tempel `supabase/migrations/0009_kos_photos.sql` ke **SQL Editor** dan
+      jalankan. Aman dijalankan dua kali.
+- [ ] Jalankan linter Supabase (Advisors → Security **dan** Performance).
+      Catat hasilnya di README bagian "Hasil audit database".
+- [ ] Masuk, buka satu kos, unggah foto JPG < 2 MB → foto muncul di banner,
+      kartu browse, dan hero (jika kos unggulan), berlabel "Foto pengguna".
+- [ ] Uji penolakan: berkas `.gif` atau > 2 MB → pesan galat berbahasa
+      Indonesia, tidak ada yang terunggah.
+- [ ] Setelah terverifikasi, hapus kalimat "not yet applied live" di
+      `03-data-model.md` dan `05-file-map.md`.
 
-Perbaiki yang rusak. Tidak boleh ada scroll horizontal di halaman.
+## 4. Sebelum submit (wajib — pengumpulan BATCH II ditutup 27 September 2026)
 
-## 4. Pertajam "masalah → solusi" — 20% (±1 jam, kebanyakan copywriting)
+- [ ] **Deploy.** Guidebook (bagian F, Lampiran proposal) meminta
+      "Link Website/Demo". Mis. Vercel: impor repo, isi dua env var, deploy.
+      `next.config.ts` membaca `NEXT_PUBLIC_SUPABASE_URL` saat build untuk
+      mengizinkan gambar dari bucket — env var harus ada **sebelum** build.
+- [ ] Uji alur penuh di URL live: daftar, masuk, tambah kos, tulis review,
+      unggah foto, cari tempat, filter, buka `/kos/salah` (harus 404 Indonesia).
+- [ ] README akar bagian **Tim**: isi nama ketua dan anggota (masih `—`).
+- [ ] `npm run lint`, `npx tsc --noEmit`, `npm run build` — terakhir bersih
+      pada 19 September 2026; ulangi setelah perubahan apa pun.
+- [ ] Siapkan skenario demo/presentasi: masalah (hero: "Iklan kos ditulis
+      pemiliknya") → solusi → tunjukkan bagian `#trust` dan panel "Dari mana
+      angka ini" sebagai jawaban atas tema.
 
-- [ ] Juri harus menangkap *masalahnya* dalam 10 detik pertama di halaman
-      utama. Tinjau hero dan bagian `#dampak` (`hero.tsx`, `impact.tsx`,
-      teks di `PROBLEMS` dan `SDG_GOALS` dalam `src/data/kos.ts`).
-- [ ] Pastikan setiap klaim di halaman benar dan bisa dibuktikan — lihat
-      "Claims about integrity" di `06-conventions.md`. Jangan menambah angka
-      statistik tanpa sumber.
+## Selesai 19 September 2026 (untuk konteks; hapus setelah dibaca)
 
-## 5. Bug kecil yang tersisa (±1 jam)
-
-- [ ] **Kos baru mengabaikan filter URL.** `mergeKos` di
-      `src/store/kos-store.ts` menambahkan kos hasil klik peta ke peta dan
-      sidebar walaupun tidak cocok dengan `?kota=` / `?harga=`. Terapkan
-      filter yang sama ke daftar `added`.
-- [ ] **Notifikasi simpan kedua hilang terlalu cepat.** `setTimeout` di
-      `handleSaved` (`src/components/map/kos-map.tsx`) tidak pernah di-clear;
-      simpan dua kos dalam 6 detik → notifikasi kedua ikut hilang. Simpan id
-      timer di `useRef`, clear sebelum memasang yang baru dan saat unmount.
-- [ ] **Link 404 dalam mode tanpa Supabase.** Kos yang dibuat tanpa
-      kredensial ber-id `local-…`; link-nya di sidebar menuju 404. Jangan
-      jadikan link untuk id `local-`.
-
-## 6. Upload foto lewat Supabase Storage — UI/UX + Fitur (±1 hari)
-
-Saat ini setiap kos memakai ilustrasi SVG berlabel "Ilustrasi"
-(`src/components/ui/kos-photo.tsx`). Semua gambar kos lewat komponen itu, jadi
-tidak ada pemanggil yang perlu diubah.
-
-- [ ] **Migrasi `0009_kos_photos.sql`** (ditulis di repo, dijalankan manual di
-      SQL Editor):
-      - bucket Storage `kos-photos`, publik untuk dibaca;
-      - kolom `kos.photo_path text` — atau tabel `kos_photos` kalau ingin lebih
-        dari satu foto per kos;
-      - policy Storage: unggah hanya `authenticated`, batasi tipe (jpeg/png/
-        webp) dan ukuran (mis. 2 MB); tidak ada yang boleh menghapus foto
-        unggahan orang lain;
-      - hak kolom mengikuti pola 0006/0008 — `photo_path` hanya boleh diisi
-        lewat jalur yang disengaja, bukan update bebas.
-- [ ] Form unggah — di dialog tambah kos dan/atau halaman detail.
-- [ ] `KosPhoto`: tampilkan `<img>` / `next/image` jika `photo_path` ada;
-      ilustrasi tetap jadi cadangan. Label "Ilustrasi" hanya untuk ilustrasi.
-- [ ] `next.config.ts`: `images.remotePatterns` untuk domain
-      `lznureigcxhlpxfdynuu.supabase.co`.
-- [ ] Jalankan linter Supabase (security + performance) setelah migrasi.
-- [ ] Dokumentasikan 0009 di `03-data-model.md` dan tabel migrasi di
-      README; pindahkan "Real photos" di `01-overview.md` ke "works today".
-
-## 7. Polesan kecil (kerjakan hanya jika waktu cukup)
-
-- [ ] Aksesibilitas `AddKosDialog`: focus trap, dan fokus kembali ke peta
-      saat ditutup.
-- [ ] Header keamanan dasar di `next.config.ts` (`headers()`:
-      `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`). CSP
-      penuh tidak perlu — peta memuat tile dan Nominatim dari luar, CSP yang
-      salah justru merusak demo.
-- [ ] Halaman `src/app/error.tsx` berbahasa Indonesia. Sejak `fetchKos`
-      melempar error saat database gagal, pengunjung melihat halaman error
-      bawaan Next.
-
-## 8. Sebelum submit (wajib, ±1 jam)
-
-- [ ] `npm run lint`, `npx tsc --noEmit`, `npm run build` — semua bersih.
-- [ ] Cek guidebook: apakah butuh URL live? Jika ya, deploy (mis. Vercel),
-      isi dua env var di sana, lalu uji alur penuh di URL live: daftar, masuk,
-      tambah kos, tulis review, cari tempat, filter.
-- [ ] README akar: bagian setup, tabel migrasi, daftar fitur, dan bagian
-      **Tim** sudah benar.
-- [ ] `01-overview.md` → bagian "What does NOT exist yet" jujur dan terbaru.
-- [ ] Siapkan skenario demo/presentasi: masalah → solusi → tunjukkan bagian
-      `#trust` dan panel "Dari mana angka ini" sebagai jawaban atas tema.
+Audit HP 375/768px (map fit di bawah kotak cari, tinggi peta HP 440px, harga
+tidak terpotong, titik pemisah CTA), hero dibuka dengan masalahnya dan klaim
+"mahasiswa yang benar-benar membayar sewanya" dihapus karena tidak
+terverifikasi, tiga bug kecil di peta, fitur foto (kode + 0009), focus trap
+dialog, header keamanan, halaman error & 404 berbahasa Indonesia. Semua
+tercatat di `01-overview.md`.

@@ -37,6 +37,12 @@ export const isSupabaseConfigured = Boolean(
 const SELECT =
   "id, name, area, city, campus, price, distance_m, lat, lng, score, reviews";
 
+/** SELECT plus the newest photo, embedded from `kos_photos` (0009). */
+const SELECT_WITH_PHOTO = `${SELECT}, kos_photos(path, created_at)`;
+
+/** The storage bucket 0009 creates. Only this file and kos-photo-repository.ts name it. */
+export const PHOTO_BUCKET = "kos-photos";
+
 type Row = {
   id: string;
   name: string;
@@ -49,6 +55,8 @@ type Row = {
   lng: number | null;
   score: number | string | null;
   reviews: number | null;
+  /** Absent when 0009 has not been run and the plain SELECT was used. */
+  kos_photos?: { path: string }[] | null;
 };
 
 const PHOTO_ACCENTS = ["amber", "sky", "rose", "blue"] as const satisfies Accent[];
@@ -77,8 +85,9 @@ export function toKosRow(input: NewKosInput) {
   };
 }
 
-function fromRow(row: Row): Kos {
+function fromRow(row: Row, supabase: SupabaseClient): Kos {
   const id = String(row.id);
+  const photoPath = row.kos_photos?.[0]?.path;
   return {
     id,
     name: row.name,
@@ -90,6 +99,10 @@ function fromRow(row: Row): Kos {
     score: Number(row.score ?? 0),
     reviews: row.reviews ?? 0,
     photoAccent: photoAccentFor(id),
+    photoUrl: photoPath
+      ? supabase.storage.from(PHOTO_BUCKET).getPublicUrl(photoPath).data
+          .publicUrl
+      : null,
     coords: [row.lat ?? 0, row.lng ?? 0],
     highlights: [],
   };
@@ -123,15 +136,28 @@ export async function fetchKosList(
     return { kos: KOS_LIST, source: "demo" };
   }
 
-  const { data, error } = await supabase
+  const withPhoto = await supabase
     .from("kos")
-    .select(SELECT)
-    .order("score", { ascending: false });
+    .select(SELECT_WITH_PHOTO)
+    .order("score", { ascending: false })
+    .order("created_at", { referencedTable: "kos_photos", ascending: false })
+    .limit(1, { referencedTable: "kos_photos" });
+
+  // Before 0009 the embed fails; the list must not vanish over a missing
+  // photo table, so retry without it — kos fall back to their illustrations.
+  const { data, error } = withPhoto.error
+    ? await supabase
+        .from("kos")
+        .select(SELECT)
+        .order("score", { ascending: false })
+    : withPhoto;
 
   if (error || !data) return { kos: [], source: "unavailable" };
   // An empty table is a real, honest state — not a reason to show demo data.
   return {
-    kos: (data as Row[]).filter(hasCoords).map((row) => fromRow(row)),
+    kos: (data as Row[])
+      .filter(hasCoords)
+      .map((row) => fromRow(row, supabase)),
     source: "database",
   };
 }
@@ -155,15 +181,23 @@ export async function fetchKos(
     return KOS_LIST.find((kos) => kos.id === id) ?? null;
   }
 
-  const { data, error } = await supabase
+  const withPhoto = await supabase
     .from("kos")
-    .select(SELECT)
+    .select(SELECT_WITH_PHOTO)
     .eq("id", id)
+    .order("created_at", { referencedTable: "kos_photos", ascending: false })
+    .limit(1, { referencedTable: "kos_photos" })
     .maybeSingle();
+
+  // Same fallback as fetchKosList: a missing 0009 costs the photo, not the page.
+  const { data, error } =
+    withPhoto.error && withPhoto.error.code !== INVALID_UUID
+      ? await supabase.from("kos").select(SELECT).eq("id", id).maybeSingle()
+      : withPhoto;
 
   if (error?.code === INVALID_UUID) return null;
   if (error) throw new Error(`Gagal memuat kos: ${error.message}`);
-  return data ? fromRow(data as Row) : null;
+  return data ? fromRow(data as Row, supabase) : null;
 }
 
 export async function saveKos(
@@ -235,6 +269,7 @@ export function toKos(
     score: 0,
     reviews: 0,
     photoAccent: photoAccentFor(id),
+    photoUrl: null,
     coords: [input.lat, input.lng],
     highlights: [],
   };

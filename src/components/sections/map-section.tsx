@@ -1,17 +1,20 @@
 import { KosSidebar } from "@/components/map/kos-sidebar";
 import { MapFrame } from "@/components/map/map-frame";
 import type { Kos } from "@/data/kos";
+import { isNarrowed, type KosFilter } from "@/lib/kos-browse";
 
 export function MapSection({
   kos,
   signedIn,
-  narrowed,
+  filter,
 }: {
   kos: Kos[];
   signedIn: boolean;
-  /** The URL filter removed some kos — say so, or the map looks half-empty. */
-  narrowed: boolean;
+  /** The URL filter; the map also applies it to kos added this session. */
+  filter: KosFilter;
 }) {
+  // The URL filter removed some kos — say so, or the map looks half-empty.
+  const narrowed = isNarrowed(filter);
   return (
     <section
       id="reviews"
@@ -41,11 +44,11 @@ export function MapSection({
         </div>
 
         <div className="mt-14 grid gap-7 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="h-[380px] overflow-hidden rounded-[var(--radius-panel)] shadow-[var(--shadow-float)] sm:h-[460px] lg:h-[520px]">
-            <MapFrame kos={kos} signedIn={signedIn} />
+          <div className="h-[440px] overflow-hidden rounded-[var(--radius-panel)] shadow-[var(--shadow-float)] sm:h-[460px] lg:h-[520px]">
+            <MapFrame kos={kos} signedIn={signedIn} filter={filter} />
           </div>
 
-          <KosSidebar kos={kos} />
+          <KosSidebar kos={kos} filter={filter} />
         </div>
       </div>
     </section>

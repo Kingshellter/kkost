@@ -2,7 +2,9 @@
 
 ## Page composition
 
-Two routes: `/` and `/kos/[id]`.
+Two routes: `/` and `/kos/[id]`. `app/error.tsx` (client — error boundaries
+must be) and `app/not-found.tsx` replace Next's English defaults; the error
+page is what a visitor sees when `fetchKos` throws on a database failure.
 
 [`src/app/page.tsx`](../src/app/page.tsx) is an async Server Component. It
 loads the kos list, the session and `searchParams` in parallel, derives the
@@ -34,7 +36,9 @@ hero form or browse form  (plain <form action="/#browse">, GET)
        · parseKosFilter(params)   zod with .catch — bad input means "no filter"
        · applyKosFilter(all, f)   in memory: city (id-ID, case-insensitive),
                                   price ≤ budget, sort by skor / harga / jarak
-  → <MapSection kos={filtered} narrowed/>  map pins + sidebar
+  → <MapSection kos={filtered} filter/>  map pins + sidebar; the filter is
+                                        passed down so mergeKos applies it to
+                                        kos added this session too
   → <Browse kos={filtered} total={all.length}/>  grid, count, reset link
   → <Hero stats={summarizeKos(all)}/>  unaffected by the filter
 ```
@@ -62,6 +66,8 @@ Almost everything is a Server Component. These files carry `"use client"`:
 | `components/map/add-kos-dialog.tsx` | react-hook-form, `useEffect`, DOM writes |
 | `components/auth/auth-card.tsx` | `useActionState`, sign-in/sign-up tab state |
 | `components/review/review-form.tsx` | `useActionState`, radio-group state |
+| `components/photo/photo-upload.tsx` | File input, browser Supabase client uploads straight to Storage, `router.refresh()` |
+| `app/error.tsx` | Error boundaries must be client components |
 | `components/sections/mobile-nav.tsx` | Disclosure state for the mobile menu |
 | `store/kos-store.ts` | zustand |
 
@@ -108,7 +114,9 @@ user clicks map
        · saved → router.refresh(); mergeKos drops the optimistic copy
          once the server list carries the same id
        · close dialog + clear draft
-       · toast notice for 6s (wording differs for "saved" vs "unconfigured")
+       · toast notice for 6s (wording differs for "saved" vs "unconfigured");
+         the timer id lives in a ref, so a second save restarts the countdown
+       · the dialog's cleanup returns focus to the map (`returnFocusRef`)
   → new pin renders (dark "Baru" badge, because reviews === 0)
     and the sidebar count/list updates from the same store
 ```
@@ -133,9 +141,12 @@ The zustand store, [`src/store/kos-store.ts`](../src/store/kos-store.ts), holds
 { added: Kos[], addKos: (kos: Kos) => void }
 ```
 
-`KosMap` and `KosSidebar` each merge through `mergeKos(added, fromServer)`,
+`KosMap` and `KosSidebar` each merge through `mergeKos(added, fromServer, filter)`,
 which drops an added kos the server list already carries — without that, a
-saved kos renders twice after `router.refresh()`. The store
+saved kos renders twice after `router.refresh()` — and drops one that fails
+the URL filter (`matchesKosFilter`), since the server list is already
+filtered and the store is not. A `local-` kos is a plain row in the sidebar,
+not a link: it has no detail page. The store
 exists because those two are siblings under a Server Component parent, so props
 cannot be threaded between them. It is session-only — a refresh drops anything
 not persisted to Supabase.
@@ -205,6 +216,23 @@ Three things that flow needs:
 Nominatim is keyless, like the tiles, so search survives a checkout with no
 environment variables. Its usage policy caps callers at roughly one request a
 second, which is the debounce's real reason.
+
+## The "upload a photo" flow
+
+```
+/kos/[id] (server) — signed in and Supabase configured → <PhotoUpload kosId>
+  → user picks a file → checkPhotoFile (type, 2 MB) — early error only
+  → submit → uploadKosPhoto(browserClient, kosId, file)  [lib/kos-photo-repository.ts]
+       1. storage.upload("kos-photos", "<kosId>/<uuid>.<ext>", upsert: false)
+            bucket limits + kos_photos_upload policy are the boundary
+       2. insert kos_photos { kos_id, path }
+            trigger checks the object exists and is owned by the same user
+  → saved → router.refresh() → fetchKos embeds the newest photo → KosPhoto
+```
+
+It runs in the browser, not a Server Action, so the file never passes through
+the Next server. Identity still comes from the session: `uploaded_by` and the
+object's `owner_id` are both set by Supabase, never sent by the client.
 
 ## Supabase clients — three of them, do not mix
 

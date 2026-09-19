@@ -47,9 +47,15 @@ export function Hero({ featured, reviews, stats, cities, filter }: Props) {
           </h1>
 
           <p className="mt-7 max-w-[34ch] text-lg leading-relaxed text-ink-soft sm:max-w-[48ch]">
-            Enam fasilitas, dinilai satu per satu oleh mahasiswa yang benar-benar
-            membayar sewanya, di seluruh Indonesia. Tidak ada yang bisa menghapus
-            review orang lain — termasuk pemilik kos.
+            {/* The problem first: a judge should get it in the first ten
+                seconds. No claim that reviewers are verified tenants — only
+                a .ac.id address is checked, and that is not proof of rent. */}
+            <strong className="font-extrabold text-ink">
+              Iklan kos ditulis pemiliknya.
+            </strong>{" "}
+            Di kkost, penghuni menilai enam fasilitas satu per satu — air, WiFi,
+            kamar mandi, sampai parkir — di seluruh Indonesia. Tidak ada yang
+            bisa menghapus review orang lain, termasuk pemilik kos.
           </p>
 
           {/* Same GET contract as the browse filter: lands on /?kota=…#browse. */}
@@ -138,6 +144,7 @@ function HeroCard({ kos, reviews }: { kos: Kos; reviews: Review[] }) {
           <KosPhoto
             kos={kos}
             showLabel={false}
+            sizes="68px"
             className="h-[68px] w-[68px] shrink-0 rounded-full"
           />
           <div className="min-w-0 flex-1">
