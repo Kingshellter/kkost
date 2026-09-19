@@ -20,6 +20,7 @@ import {
 } from "@/lib/kos-repository";
 import { fetchReviews } from "@/lib/review-repository";
 import { createClient } from "@/utils/supabase/server";
+import type { ConfirmOutcome } from "./auth/confirm/route";
 
 export default async function Home(props: PageProps<"/">) {
   const supabase = isSupabaseConfigured ? await createClient() : null;
@@ -28,6 +29,8 @@ export default async function Home(props: PageProps<"/">) {
     getSessionUser(),
     props.searchParams,
   ]);
+
+  const confirm = parseConfirmOutcome(params.konfirmasi);
 
   // The map and the browse grid follow the URL filter; the hero's numbers and
   // the city dropdown describe everything, filtered or not.
@@ -48,6 +51,7 @@ export default async function Home(props: PageProps<"/">) {
       <Navbar />
       <main className="flex-1">
         <DataNotice source={source} />
+        {confirm && <ConfirmNotice outcome={confirm} />}
         <Hero
           featured={featured}
           reviews={featuredReviews}
@@ -99,6 +103,39 @@ function DataNotice({ source }: { source: KosSource }) {
             menggantinya dengan angka karangan.
           </>
         )}
+      </p>
+    </div>
+  );
+}
+
+const CONFIRM_TEXT: Record<ConfirmOutcome, string> = {
+  berhasil: "Email terkonfirmasi — kamu sudah masuk.",
+  masuk:
+    "Email sudah terkonfirmasi. Silakan masuk dengan email dan password kamu.",
+  gagal:
+    "Link konfirmasi tidak valid atau sudah kedaluwarsa. Coba masuk; jika belum bisa, daftar ulang untuk mendapat link baru.",
+};
+
+/** `?konfirmasi=` as set by /auth/confirm; anything else is ignored. */
+function parseConfirmOutcome(
+  value: string | string[] | undefined,
+): ConfirmOutcome | null {
+  return typeof value === "string" && value in CONFIRM_TEXT
+    ? (value as ConfirmOutcome)
+    : null;
+}
+
+/** The result of clicking the link in the sign-up confirmation email. */
+function ConfirmNotice({ outcome }: { outcome: ConfirmOutcome }) {
+  return (
+    <div className="px-4 pt-5 sm:px-6 lg:px-10">
+      <p
+        role="status"
+        className={`mx-auto max-w-[1240px] rounded-[22px] px-5 py-3.5 text-sm font-bold ${
+          outcome === "gagal" ? "bg-rose/10 text-rose" : "bg-blue/10 text-blue"
+        }`}
+      >
+        {CONFIRM_TEXT[outcome]}
       </p>
     </div>
   );

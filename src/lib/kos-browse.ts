@@ -72,9 +72,11 @@ export function hasFilter(filter: KosFilter) {
 
 const collator = new Intl.Collator("id-ID", { sensitivity: "base" });
 
-/** A kos with no campus has no meaningful distance, so it sorts last. */
+/** A kos with no campus, or no measured distance to it, sorts last. */
 function distanceRank(kos: Kos) {
-  return kos.campus ? kos.distance : Number.MAX_SAFE_INTEGER;
+  return kos.campus && kos.distance !== null
+    ? kos.distance
+    : Number.MAX_SAFE_INTEGER;
 }
 
 const COMPARE: Record<SortKey, (a: Kos, b: Kos) => number> = {

@@ -1,48 +1,25 @@
-import Image from "next/image";
 import type { Accent, Kos } from "@/data/kos";
 import { ACCENT_BG } from "./accent";
 
 /**
  * The picture slot for a kos — the only component that draws one.
  *
- * A kos with an uploaded photo (0009, `photoUrl`) shows the newest one,
- * captioned as sent in by a user — kkost does not vouch for what it shows.
- * Otherwise it gets a flat illustration in the brand palette, labelled
- * "Ilustrasi": a drawing that looked like a photo of the actual room would be
- * a small lie on a site whose argument is honesty.
+ * Every kos gets a flat illustration in the brand palette, labelled
+ * "Ilustrasi". Real photos belong to reviews (0010, `ReviewPhotos`), where
+ * they are one tenant's evidence, not a picture kkost presents as the kos. A
+ * drawing that looked like a photo of the actual room would be a small lie on
+ * a site whose argument is honesty.
  */
 export function KosPhoto({
   kos,
   className = "",
   showLabel = true,
-  sizes = "(min-width: 1024px) 400px, 100vw",
 }: {
-  kos: Pick<Kos, "name" | "photoAccent" | "photoUrl">;
+  kos: Pick<Kos, "name" | "photoAccent">;
   className?: string;
   /** Off only where the slot is too small for a chip, e.g. the hero avatar. */
   showLabel?: boolean;
-  /** Forwarded to next/image so a card does not download a banner-sized file. */
-  sizes?: string;
 }) {
-  if (kos.photoUrl) {
-    return (
-      <div className={`relative overflow-hidden bg-cream-deep ${className}`}>
-        <Image
-          src={kos.photoUrl}
-          alt={`Foto ${kos.name}, kiriman pengguna`}
-          fill
-          sizes={sizes}
-          className="object-cover"
-        />
-        {showLabel && (
-          <span className="absolute bottom-3 left-3 rounded-full bg-white/90 px-3 py-1 text-[11px] font-extrabold tracking-[0.04em] text-ink">
-            Foto pengguna
-          </span>
-        )}
-      </div>
-    );
-  }
-
   const Scene = SCENES[kos.photoAccent];
 
   return (

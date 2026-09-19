@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { KosScoreBadge } from "@/components/ui/kos-score-badge";
+import { SectionLink } from "@/components/ui/section-link";
 import type { Kos } from "@/data/kos";
 import { formatRupiah } from "@/lib/format";
 import type { KosFilter } from "@/lib/kos-browse";
@@ -18,13 +19,13 @@ export function KosSidebar({
   const kosList = mergeKos(added, fromServer, filter);
 
   return (
-    <aside className="flex flex-col rounded-[var(--radius-panel)] bg-white p-7">
+    <aside className="flex flex-col rounded-[var(--radius-panel)] bg-white p-7 lg:min-h-0">
       <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-muted">
         {kosList.length} kos di peta
       </p>
 
       {kosList.length > 0 ? (
-        <ul className="mt-6 max-h-[360px] flex-1 space-y-6 overflow-y-auto lg:max-h-[400px]">
+        <ul className="mt-6 max-h-[360px] min-h-0 flex-1 space-y-6 overflow-y-auto lg:max-h-none">
           {kosList.map((kos) => (
             <li key={kos.id}>
               {/* A `local-` kos never reached the database, so it has no
@@ -50,12 +51,12 @@ export function KosSidebar({
         </p>
       )}
 
-      <Link
-        href="#browse"
+      <SectionLink
+        href="/#browse"
         className="mt-8 rounded-full bg-ink py-4 text-center text-[15px] font-extrabold text-white transition-transform hover:-translate-y-0.5"
       >
         Lihat daftar lengkap
-      </Link>
+      </SectionLink>
     </aside>
   );
 }

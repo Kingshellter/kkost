@@ -14,7 +14,17 @@ export type AuthState = {
 
 export const AUTH_INITIAL: AuthState = { error: null, notice: null };
 
-export type ReviewState = { error: string | null; ok: boolean };
+export type ReviewState = {
+  error: string | null;
+  ok: boolean;
+  /** Set by `submitReview` on success — the photos are attached to it next. */
+  reviewId?: string;
+  /**
+   * Set in the browser when the review saved but a photo did not. The review
+   * stands either way; this only tells the user which part failed.
+   */
+  photoError?: string | null;
+};
 
 export const REVIEW_INITIAL: ReviewState = { error: null, ok: false };
 

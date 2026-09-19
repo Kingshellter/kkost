@@ -27,10 +27,10 @@ is the kos score.
 Two routes: `/` (five sections plus an interactive Leaflet map where clicking
 anywhere opens a form to add a kos) and `/kos/[id]` (per-facility averages, the
 review list, and the review form). Every kos carries its own city and, if
-someone supplied one, the campus its walking distance is measured against —
+someone supplied one, a nearby campus (walking distance only on seeded kos) —
 there is no single national reference point. Auth is Supabase email + password;
 a `.ac.id`
-address marks a reviewer as a verified tenant. Scores are recomputed by a
+address, confirmed by email, marks a reviewer as a verified student. Scores are recomputed by a
 database trigger, never written by the app. Everything degrades gracefully when
 Supabase env vars are missing or the migrations have not been run.
 

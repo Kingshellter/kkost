@@ -4,6 +4,11 @@ import {
   type FacilityKey,
   type Review,
 } from "@/data/kos";
+import {
+  photoUrls,
+  REVIEW_PHOTOS_EMBED,
+  type PhotoRow,
+} from "@/lib/review-photo-repository";
 
 /**
  * ─── THE ONLY PLACE THAT KNOWS THE `reviews` COLUMN NAMES ───
@@ -31,7 +36,10 @@ const COLUMNS = `id, kos_id, author_id, average, body, created_at,
   ${FACILITY_KEYS.join(", ")}`;
 
 /** The columns a Review is built from, including the joined author profile. */
-const SELECT = `${COLUMNS}, profiles ( display_name, is_student, is_demo )`;
+const SELECT_BEFORE_0010 = `${COLUMNS}, profiles ( display_name, is_student, is_demo )`;
+
+/** Plus the attached photos (0010). */
+const SELECT = `${SELECT_BEFORE_0010}, ${REVIEW_PHOTOS_EMBED}`;
 
 /**
  * The same minus `is_demo`, for a database that has not run
@@ -52,9 +60,11 @@ type Row = {
     is_student: boolean;
     is_demo?: boolean;
   } | null;
+  /** Absent when an older SELECT was used. */
+  review_photos?: PhotoRow[] | null;
 } & Record<FacilityKey, number>;
 
-function toReview(row: Row): Review {
+function toReview(row: Row, supabase: SupabaseClient): Review {
   return {
     id: row.id,
     kosId: row.kos_id,
@@ -67,6 +77,7 @@ function toReview(row: Row): Review {
     ) as Record<FacilityKey, number>,
     average: Number(row.average),
     body: row.body,
+    photos: photoUrls(supabase, row.review_photos),
     createdAt: row.created_at,
   };
 }
@@ -82,11 +93,14 @@ export async function fetchReviews(
       .eq("kos_id", kosId)
       .order("created_at", { ascending: false });
 
+  // Each fallback drops what a later migration added, so a database behind on
+  // migrations loses photos or demo labels — never the reviews themselves.
   let { data, error } = await query(SELECT);
+  if (error) ({ data, error } = await query(SELECT_BEFORE_0010));
   if (error) ({ data, error } = await query(SELECT_BEFORE_0007));
 
   if (error || !data) return [];
-  return (data as unknown as Row[]).map(toReview);
+  return (data as unknown as Row[]).map((row) => toReview(row, supabase));
 }
 
 export async function saveReview(

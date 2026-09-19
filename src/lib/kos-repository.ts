@@ -7,8 +7,6 @@ export type NewKosInput = {
   city: string;
   campus: string | null;
   price: number;
-  /** Metres to `campus`. Typed in by the user — kkost has no single origin. */
-  distance: number;
   lat: number;
   lng: number;
 };
@@ -37,12 +35,6 @@ export const isSupabaseConfigured = Boolean(
 const SELECT =
   "id, name, area, city, campus, price, distance_m, lat, lng, score, reviews";
 
-/** SELECT plus the newest photo, embedded from `kos_photos` (0009). */
-const SELECT_WITH_PHOTO = `${SELECT}, kos_photos(path, created_at)`;
-
-/** The storage bucket 0009 creates. Only this file and kos-photo-repository.ts name it. */
-export const PHOTO_BUCKET = "kos-photos";
-
 type Row = {
   id: string;
   name: string;
@@ -55,8 +47,6 @@ type Row = {
   lng: number | null;
   score: number | string | null;
   reviews: number | null;
-  /** Absent when 0009 has not been run and the plain SELECT was used. */
-  kos_photos?: { path: string }[] | null;
 };
 
 const PHOTO_ACCENTS = ["amber", "sky", "rose", "blue"] as const satisfies Accent[];
@@ -79,30 +69,24 @@ export function toKosRow(input: NewKosInput) {
     city: input.city,
     campus: input.campus,
     price: input.price,
-    distance_m: input.distance,
     lat: input.lat,
     lng: input.lng,
   };
 }
 
-function fromRow(row: Row, supabase: SupabaseClient): Kos {
+function fromRow(row: Row): Kos {
   const id = String(row.id);
-  const photoPath = row.kos_photos?.[0]?.path;
   return {
     id,
     name: row.name,
     area: row.area ?? "—",
     city: row.city ?? "—",
     campus: row.campus,
-    distance: row.distance_m ?? 0,
+    distance: row.distance_m,
     price: row.price ?? 0,
     score: Number(row.score ?? 0),
     reviews: row.reviews ?? 0,
     photoAccent: photoAccentFor(id),
-    photoUrl: photoPath
-      ? supabase.storage.from(PHOTO_BUCKET).getPublicUrl(photoPath).data
-          .publicUrl
-      : null,
     coords: [row.lat ?? 0, row.lng ?? 0],
     highlights: [],
   };
@@ -136,28 +120,15 @@ export async function fetchKosList(
     return { kos: KOS_LIST, source: "demo" };
   }
 
-  const withPhoto = await supabase
+  const { data, error } = await supabase
     .from("kos")
-    .select(SELECT_WITH_PHOTO)
-    .order("score", { ascending: false })
-    .order("created_at", { referencedTable: "kos_photos", ascending: false })
-    .limit(1, { referencedTable: "kos_photos" });
-
-  // Before 0009 the embed fails; the list must not vanish over a missing
-  // photo table, so retry without it — kos fall back to their illustrations.
-  const { data, error } = withPhoto.error
-    ? await supabase
-        .from("kos")
-        .select(SELECT)
-        .order("score", { ascending: false })
-    : withPhoto;
+    .select(SELECT)
+    .order("score", { ascending: false });
 
   if (error || !data) return { kos: [], source: "unavailable" };
   // An empty table is a real, honest state — not a reason to show demo data.
   return {
-    kos: (data as Row[])
-      .filter(hasCoords)
-      .map((row) => fromRow(row, supabase)),
+    kos: (data as Row[]).filter(hasCoords).map((row) => fromRow(row)),
     source: "database",
   };
 }
@@ -181,23 +152,15 @@ export async function fetchKos(
     return KOS_LIST.find((kos) => kos.id === id) ?? null;
   }
 
-  const withPhoto = await supabase
+  const { data, error } = await supabase
     .from("kos")
-    .select(SELECT_WITH_PHOTO)
+    .select(SELECT)
     .eq("id", id)
-    .order("created_at", { referencedTable: "kos_photos", ascending: false })
-    .limit(1, { referencedTable: "kos_photos" })
     .maybeSingle();
-
-  // Same fallback as fetchKosList: a missing 0009 costs the photo, not the page.
-  const { data, error } =
-    withPhoto.error && withPhoto.error.code !== INVALID_UUID
-      ? await supabase.from("kos").select(SELECT).eq("id", id).maybeSingle()
-      : withPhoto;
 
   if (error?.code === INVALID_UUID) return null;
   if (error) throw new Error(`Gagal memuat kos: ${error.message}`);
-  return data ? fromRow(data as Row, supabase) : null;
+  return data ? fromRow(data as Row) : null;
 }
 
 export async function saveKos(
@@ -264,12 +227,11 @@ export function toKos(
     area: input.area,
     city: input.city,
     campus: input.campus,
-    distance: input.distance,
+    distance: null,
     price: input.price,
     score: 0,
     reviews: 0,
     photoAccent: photoAccentFor(id),
-    photoUrl: null,
     coords: [input.lat, input.lng],
     highlights: [],
   };

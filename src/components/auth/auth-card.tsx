@@ -70,7 +70,7 @@ export function AuthCard() {
           </Field>
         )}
 
-        <Field label="Email kampus">
+        <Field label="Email">
           <input
             type="email"
             name="email"
@@ -78,7 +78,7 @@ export function AuthCard() {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
-            placeholder="rina.a@mail.ugm.ac.id"
+            placeholder="rina@email.com"
             className={inputClass}
           />
         </Field>
@@ -129,8 +129,8 @@ export function AuthCard() {
       </button>
 
       <p className="mx-auto mt-5 max-w-[38ch] text-center text-sm font-medium text-muted">
-        Email kampus (.ac.id) menandai review kamu sebagai penghuni
-        terverifikasi.
+        Email apa pun bisa dipakai. Alamat berakhiran .ac.id menandai review
+        kamu sebagai mahasiswa terverifikasi.
       </p>
     </form>
   );

@@ -106,3 +106,82 @@ function toBounds(box: NominatimPlace["boundingbox"]) {
     [north, east],
   ] as [[number, number], [number, number]];
 }
+
+/** The area and city a map point falls in, for pre-filling the add-kos form. */
+export type PointAddress = { area: string | null; city: string | null };
+
+/** The parts of a `jsonv2` reverse result this module reads. */
+type NominatimAddress = Partial<
+  Record<
+    | "neighbourhood"
+    | "quarter"
+    | "village"
+    | "suburb"
+    | "city_district"
+    | "city"
+    | "town"
+    | "municipality"
+    | "county"
+    | "state_district",
+    string
+  >
+>;
+
+/**
+ * "Kota Semarang" → "Semarang", "Kabupaten Sleman" → "Sleman" — the form the
+ * seeded kos and the city filter already use, so a new kos lands in the same
+ * dropdown entry instead of a near-duplicate.
+ */
+function stripAdminPrefix(name: string) {
+  return name.replace(/^(Kota|Kabupaten|Kab\.)\s+/i, "").trim();
+}
+
+/**
+ * Look up the area (kelurahan/kecamatan) and city of a point. Null on any
+ * failure — the form then simply stays empty for the user to type, which is
+ * what it did before this existed.
+ *
+ * One request per dialog opening, well inside Nominatim's usage policy.
+ */
+export async function reverseGeocode(
+  [lat, lng]: [number, number],
+  options: { signal?: AbortSignal } = {},
+): Promise<PointAddress | null> {
+  const url = new URL("https://nominatim.openstreetmap.org/reverse");
+  url.searchParams.set("lat", String(lat));
+  url.searchParams.set("lon", String(lng));
+  url.searchParams.set("format", "jsonv2");
+  // Neighbourhood-level detail: enough for an area, without snapping to a
+  // single building's address.
+  url.searchParams.set("zoom", "16");
+  url.searchParams.set("accept-language", "id");
+
+  try {
+    const response = await fetch(url, { signal: options.signal });
+    if (!response.ok) return null;
+    const { address }: { address?: NominatimAddress } = await response.json();
+    if (!address) return null;
+
+    const area =
+      address.suburb ??
+      address.village ??
+      address.city_district ??
+      address.quarter ??
+      address.neighbourhood ??
+      null;
+    const city =
+      address.city ??
+      address.town ??
+      address.municipality ??
+      address.county ??
+      address.state_district ??
+      null;
+
+    return {
+      area: area?.trim() || null,
+      city: city ? stripAdminPrefix(city) || null : null,
+    };
+  } catch {
+    return null;
+  }
+}

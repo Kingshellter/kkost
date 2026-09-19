@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { FacilityBar } from "@/components/ui/facility-bar";
 import { ScoreBadge } from "@/components/ui/score-badge";
 import { accentForScore } from "@/components/ui/accent";
@@ -41,7 +42,7 @@ export function ReviewList({ reviews }: { reviews: Review[] }) {
                 </span>
                 {review.isStudent && (
                   <span className="rounded-full bg-blue/10 px-3 py-1 text-xs font-extrabold text-blue">
-                    Penghuni terverifikasi
+                    Mahasiswa terverifikasi
                   </span>
                 )}
                 {review.isDemo && (
@@ -65,6 +66,10 @@ export function ReviewList({ reviews }: { reviews: Review[] }) {
             </p>
           )}
 
+          {review.photos.length > 0 && (
+            <ReviewPhotos photos={review.photos} author={review.authorName} />
+          )}
+
           <div className="mt-6 grid gap-3.5 sm:grid-cols-2 sm:gap-x-8">
             {CRITERIA.map((c) => (
               <FacilityBar
@@ -75,6 +80,35 @@ export function ReviewList({ reviews }: { reviews: Review[] }) {
               />
             ))}
           </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * The author's photos, as evidence for this review only — never promoted to
+ * the kos banner or card. Each opens full size in a new tab.
+ */
+function ReviewPhotos({ photos, author }: { photos: string[]; author: string }) {
+  return (
+    <ul className="mt-5 grid grid-cols-3 gap-2.5 sm:max-w-[420px]">
+      {photos.map((src, index) => (
+        <li key={src}>
+          <a
+            href={src}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative block aspect-square overflow-hidden rounded-2xl bg-cream-deep transition-opacity hover:opacity-85"
+          >
+            <Image
+              src={src}
+              alt={`Foto ${index + 1} dari review ${author}`}
+              fill
+              sizes="140px"
+              className="object-cover"
+            />
+          </a>
         </li>
       ))}
     </ul>

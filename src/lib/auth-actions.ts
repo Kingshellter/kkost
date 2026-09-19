@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { z } from "zod";
 import { createClient } from "@/utils/supabase/server";
 import { isCampusEmail } from "@/lib/auth";
@@ -64,13 +65,21 @@ export async function signUp(
 
   const { email, password, displayName } = parsed.data;
   const supabase = await createClient();
+  // The confirmation link must come back to whichever host the user signed up
+  // on — localhost or the live site. Supabase ignores it unless the URL is in
+  // Authentication → URL Configuration → Redirect URLs, and falls back to the
+  // Site URL.
+  const origin = (await headers()).get("origin");
 
   // `display_name` lands in raw_user_meta_data, which the on_auth_user_created
   // trigger copies into public.profiles (see 0002_reviews.sql).
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { display_name: displayName } },
+    options: {
+      data: { display_name: displayName },
+      emailRedirectTo: origin ? `${origin}/auth/confirm` : undefined,
+    },
   });
   if (error) return { error: explain(error.message), notice: null };
 
@@ -86,7 +95,7 @@ export async function signUp(
   return {
     error: null,
     notice: isCampusEmail(email)
-      ? "Akun dibuat. Email kampus terdeteksi — review kamu akan bertanda penghuni terverifikasi."
+      ? "Akun dibuat. Email kampus terdeteksi — review kamu akan bertanda mahasiswa terverifikasi."
       : "Akun dibuat.",
   };
 }

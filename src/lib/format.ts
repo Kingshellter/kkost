@@ -12,6 +12,17 @@ export function formatDistance(meters: number) {
   })} km`;
 }
 
+/**
+ * The campus line under a kos: "700 m ke UGM" when the distance is known,
+ * "Dekat UGM" when only the campus is. Null when there is no campus.
+ */
+export function formatCampus(campus: string | null, distance: number | null) {
+  if (!campus) return null;
+  return distance === null
+    ? `Dekat ${campus}`
+    : `${formatDistance(distance)} ke ${campus}`;
+}
+
 /** 11907 -> "11.907" */
 export function formatNumber(value: number) {
   return value.toLocaleString("id-ID");

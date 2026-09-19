@@ -5,7 +5,10 @@ export type SessionUser = {
   id: string;
   email: string;
   displayName: string;
-  /** Signed up with a .ac.id address — earns the "verified tenant" badge. */
+  /**
+   * Signed up with a .ac.id address — earns the "mahasiswa terverifikasi"
+   * badge. It proves a campus inbox, not that the person ever lived in the kos.
+   */
   isStudent: boolean;
 };
 

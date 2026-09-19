@@ -65,5 +65,5 @@ export async function submitReview(
   // detail page and the landing page need refreshing.
   revalidatePath(`/kos/${kosId}`);
   revalidatePath("/");
-  return { error: null, ok: true };
+  return { error: null, ok: true, reviewId: result.id };
 }

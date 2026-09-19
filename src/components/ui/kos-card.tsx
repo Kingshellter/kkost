@@ -2,7 +2,7 @@ import Link from "next/link";
 import { KosPhoto } from "./kos-photo";
 import { KosScoreBadge } from "./kos-score-badge";
 import type { Kos } from "@/data/kos";
-import { formatDistance, formatRupiah } from "@/lib/format";
+import { formatCampus, formatRupiah } from "@/lib/format";
 
 export function KosCard({ kos }: { kos: Kos }) {
   return (
@@ -10,7 +10,7 @@ export function KosCard({ kos }: { kos: Kos }) {
       href={`/kos/${kos.id}`}
       className="flex flex-col rounded-[var(--radius-panel)] bg-white p-4 shadow-[var(--shadow-lift)] transition-transform hover:-translate-y-1"
     >
-      <KosPhoto kos={kos} className="h-[190px] rounded-[22px]" />
+      <KosPhoto kos={kos} className="h-[190px] rounded-[22px] short:h-[140px]" />
 
       <div className="flex flex-1 flex-col px-3 pb-2 pt-6">
         <div className="flex items-start gap-4">
@@ -23,7 +23,7 @@ export function KosCard({ kos }: { kos: Kos }) {
             </p>
             {kos.campus && (
               <p className="mt-0.5 text-sm font-medium text-muted">
-                {formatDistance(kos.distance)} ke {kos.campus}
+                {formatCampus(kos.campus, kos.distance)}
               </p>
             )}
           </div>

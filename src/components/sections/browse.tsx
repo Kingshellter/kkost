@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { BoundaryCircle, SEAMS } from "@/components/ui/boundary-circle";
 import { KosCard } from "@/components/ui/kos-card";
+import { KosCarousel } from "@/components/ui/kos-carousel";
 import type { Kos } from "@/data/kos";
 import { formatRupiah } from "@/lib/format";
 import { BUDGETS, SORTS, hasFilter, type KosFilter } from "@/lib/kos-browse";
@@ -22,13 +24,19 @@ export function Browse({ kos, total, cities, filter }: Props) {
   const filtered = hasFilter(filter);
 
   return (
-    <section id="browse" className="px-4 py-24 sm:px-6 lg:px-10 lg:py-32">
-      <div className="mx-auto max-w-[1240px]">
+    <section
+      id="browse"
+      className="relative overflow-hidden px-4 py-24 sm:px-6 lg:flex lg:min-h-svh lg:flex-col lg:justify-center lg:px-10 lg:py-12 short:py-7"
+    >
+      <BoundaryCircle edge="top" circle={SEAMS.mapBrowse} />
+      <BoundaryCircle edge="bottom" circle={SEAMS.browseCta} />
+
+      <div className="reveal relative mx-auto w-full max-w-[1240px]">
         <p className="eyebrow bg-white text-rose">Se-Indonesia</p>
-        <h2 className="mt-6 text-[clamp(2.25rem,5vw,3.5rem)] font-extrabold leading-[1.02] tracking-[-0.03em] text-ink">
+        <h2 className="mt-6 text-[clamp(2.25rem,5vw,3.5rem)] font-extrabold leading-[1.02] tracking-[-0.03em] text-ink lg:mt-5 lg:text-[3rem] short:mt-4 short:text-[2.5rem]">
           Cari kos yang cocok
         </h2>
-        <p className="mt-4 text-lg font-medium text-ink-soft" aria-live="polite">
+        <p className="mt-4 text-lg font-medium text-ink-soft lg:mt-3" aria-live="polite">
           {kos.length === total
             ? `${total} kos, diurutkan dari ${sortLabel(filter).toLowerCase()}.`
             : `${kos.length} dari ${total} kos cocok dengan filter.`}
@@ -36,7 +44,7 @@ export function Browse({ kos, total, cities, filter }: Props) {
 
         <form
           action="/#browse"
-          className="mt-10 grid gap-4 rounded-[var(--radius-panel)] bg-white p-5 shadow-[var(--shadow-lift)] sm:grid-cols-2 lg:grid-cols-[repeat(3,minmax(0,1fr))_auto] lg:items-end"
+          className="mt-10 grid gap-4 rounded-[var(--radius-panel)] bg-white p-5 lg:mt-7 short:mt-5 short:p-4 shadow-[var(--shadow-lift)] sm:grid-cols-2 lg:grid-cols-[repeat(3,minmax(0,1fr))_auto] lg:items-end"
         >
           <Field label="Kota">
             <select
@@ -97,10 +105,12 @@ export function Browse({ kos, total, cities, filter }: Props) {
         </form>
 
         {kos.length > 0 ? (
-          <div className="mt-12 grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
-            {kos.map((item) => (
-              <KosCard key={item.id} kos={item} />
-            ))}
+          <div className="mt-10 lg:mt-7 short:mt-5">
+            <KosCarousel label={`${kos.length} kos`}>
+              {kos.map((item) => (
+                <KosCard key={item.id} kos={item} />
+              ))}
+            </KosCarousel>
           </div>
         ) : (
           <div className="mt-12 rounded-[var(--radius-panel)] bg-white p-10 text-center shadow-[var(--shadow-lift)]">

@@ -63,10 +63,9 @@ Almost everything is a Server Component. These files carry `"use client"`:
 | `components/map/kos-map.tsx` | Leaflet, `useState`, map event handlers |
 | `components/map/map-search.tsx` | Debounced fetch, input state, keyboard handlers |
 | `components/map/kos-sidebar.tsx` | Subscribes to the zustand store |
-| `components/map/add-kos-dialog.tsx` | react-hook-form, `useEffect`, DOM writes |
+| `components/map/add-kos-dialog.tsx` | react-hook-form, `useEffect`, DOM writes, reverse-geocode fetch |
 | `components/auth/auth-card.tsx` | `useActionState`, sign-in/sign-up tab state |
-| `components/review/review-form.tsx` | `useActionState`, radio-group state |
-| `components/photo/photo-upload.tsx` | File input, browser Supabase client uploads straight to Storage, `router.refresh()` |
+| `components/review/review-form.tsx` | `useActionState`, radio-group state, photo picker; uploads photos from the browser after the action returns |
 | `app/error.tsx` | Error boundaries must be client components |
 | `components/sections/mobile-nav.tsx` | Disclosure state for the mobile menu |
 | `store/kos-store.ts` | zustand |
@@ -103,7 +102,9 @@ user clicks map
        signed in  → "Tambahkan kos di titik ini?"
   → user clicks "+ Tambah kos" → setFormAt(draft)
   → <AddKosDialog position={formAt}/>
-       · zod validates name / area / city / campus (optional) / price / distance
+       · on open: reverseGeocode(position) [lib/geocode.ts] pre-fills area + city
+         (only fields still empty; always editable; stays empty on failure)
+       · zod validates name / area / city / campus (optional) / price
        · submit → saveKos(browserClient, input)  [lib/kos-repository.ts]
             ├─ no env vars   → { status: "unconfigured" }
             ├─ insert ok     → { status: "saved", id }
@@ -217,22 +218,31 @@ Nominatim is keyless, like the tiles, so search survives a checkout with no
 environment variables. Its usage policy caps callers at roughly one request a
 second, which is the debounce's real reason.
 
-## The "upload a photo" flow
+## The "review with photos" flow
 
 ```
-/kos/[id] (server) — signed in and Supabase configured → <PhotoUpload kosId>
-  → user picks a file → checkPhotoFile (type, 2 MB) — early error only
-  → submit → uploadKosPhoto(browserClient, kosId, file)  [lib/kos-photo-repository.ts]
-       1. storage.upload("kos-photos", "<kosId>/<uuid>.<ext>", upsert: false)
-            bucket limits + kos_photos_upload policy are the boundary
-       2. insert kos_photos { kos_id, path }
-            trigger checks the object exists and is owned by the same user
-  → saved → router.refresh() → fetchKos embeds the newest photo → KosPhoto
+/kos/[id] → <ReviewForm kosId>  — scores, note, and up to 3 photos
+  picking: checkPhotoFile (type, 2 MB) + max 3 — early errors only; the files
+           live in component state, not the input (React 19 resets the form)
+  submit → submitWithPhotos (client wrapper around the Server Action)
+    1. submitReview(formData)            — the file input has no `name`, so no
+                                           file reaches the action (1 MB limit)
+         → saves the review, returns { ok, reviewId }
+    2. uploadReviewPhotos(browserClient, reviewId, files)
+                                          [lib/review-photo-repository.ts]
+         per file: storage.upload("review-photos", "<reviewId>/<uuid>.<ext>")
+                     bucket limits + review_photos_upload policy (own review
+                     folder only) are the boundary
+                   insert review_photos { review_id, path }
+                     trigger: object exists, owned by the same user, ≤ 3
+    3. router.refresh() → fetchReviews embeds review_photos → <ReviewPhotos>
 ```
 
-It runs in the browser, not a Server Action, so the file never passes through
-the Next server. Identity still comes from the session: `uploaded_by` and the
-object's `owner_id` are both set by Supabase, never sent by the client.
+Photos must come after the review: the Storage policy only accepts a folder
+named after a review the uploader authored. If a photo fails, the review
+still stands and the success panel says which part failed (`photoError`).
+Identity comes from the session throughout — `uploaded_by` and the object's
+`owner_id` are set by Supabase, never sent by the client.
 
 ## Supabase clients — three of them, do not mix
 
@@ -260,9 +270,22 @@ a `useActionState` form rendered by the CTA section.
 - `getSessionUser()` in [`src/lib/auth.ts`](../src/lib/auth.ts) is the only way
   to read the current user. Call it from Server Components. **Never** take a
   user id from the client.
-- A `.ac.id` address sets `profiles.is_student` — the "penghuni terverifikasi"
-  badge. The flag is computed by a database trigger on sign-up, not by the app,
-  and 0006 leaves the user no UPDATE privilege on it.
+- A `.ac.id` address sets `profiles.is_student` — the "mahasiswa
+  terverifikasi" badge. It proves a campus inbox, **not** that the person lived
+  in the kos, so the copy never says "penghuni". The flag is computed by a
+  database trigger on sign-up, not by the app, and 0006 leaves the user no
+  UPDATE privilege on it.
+- **Sign-up requires email confirmation** (Supabase "Confirm email" on, custom
+  SMTP). `signUp` passes `emailRedirectTo: <origin>/auth/confirm`, taken from
+  the request's `Origin` header so localhost and the live site each get their
+  own link back — Supabase honours it only if it matches *Redirect URLs*.
+  [`src/app/auth/confirm/route.ts`](../src/app/auth/confirm/route.ts) handles
+  both link shapes (`?code=` from the default template, `?token_hash=&type=`
+  from a custom one) and redirects to `/?konfirmasi=berhasil|masuk|gagal#login`,
+  which `ConfirmNotice` in `page.tsx` renders. A failed `code` exchange maps to
+  `masuk`, not `gagal`: Supabase confirms the address before redirecting, and
+  the exchange only fails because the PKCE cookie is missing (link opened in
+  another browser).
 - A `"use server"` module may only export **async functions**. The
   `useActionState` initial objects therefore live in
   [`src/lib/action-state.ts`](../src/lib/action-state.ts), not next to the

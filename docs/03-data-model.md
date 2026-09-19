@@ -12,12 +12,11 @@ type Kos = {
   area: string;          // neighbourhood, e.g. "Tembalang"
   city: string;          // city or regency, e.g. "Semarang"
   campus: string | null; // the campus `distance` is measured against, if any
-  distance: number;      // walking distance to `campus`, in METRES
+  distance: number | null; // walking distance to `campus`, in METRES; null for kos added via the form
   price: number;         // rupiah per month, plain integer (950_000)
   score: number;         // 0–5, one decimal
   reviews: number;       // count; 0 means "Baru" (new) everywhere in the UI
-  photoAccent: Accent;   // picks the fallback KosPhoto illustration + tint
-  photoUrl: string | null; // public URL of the newest uploaded photo (0009), else null
+  photoAccent: Accent;   // picks the KosPhoto illustration + tint (kos have no photos)
   coords: [number, number];   // [lat, lng] — Leaflet order, not GeoJSON order
   highlights: FacilityScore[];
 };
@@ -42,6 +41,7 @@ type Review = {
   scores: Record<FacilityKey, number>;   // each 1–5
   average: number;                       // mean of the six, computed by the DB
   body: string | null;
+  photos: string[];      // public URLs, oldest first, ≤ 3 (0010); [] before 0010
   createdAt: string;
 };
 ```
@@ -52,10 +52,11 @@ the form fields, the zod schema, the insert payload, and the display order.
 
 Three conventions worth burning in:
 
-- **`distance` is metres**, and it is **typed in by whoever adds the kos** —
-  kkost is nationwide, so there is no single origin to compute it from.
-  `formatDistance` renders `700 m` / `1.1 km`. Only show it when `campus` is
-  set; a distance without a reference point means nothing.
+- **`distance` is metres, and usually null.** kkost is nationwide, so there
+  is no single origin to compute it from, and the add-kos form stopped asking
+  for it (19 Sep 2026) — only seeded kos carry one. Render the campus line with
+  `formatCampus(campus, distance)`: `700 m ke UGM` when known, `Dekat UGM` when
+  not, nothing without a campus. "Terdekat ke kampus" sorts null last.
 - **`coords` is `[lat, lng]`**, matching Leaflet. Do not swap to `[lng, lat]`.
 - **`city` is the unit of geography**, not the campus. A kos with no nearby
   campus is still a valid kos.
@@ -71,7 +72,7 @@ Three conventions worth burning in:
 | `KOS_LIST` | 4 demo kos with **invented** scores — shown only when Supabase is not configured, never on a database error (see [Reads](#reads)) |
 | `CRITERIA` | The six scoring criteria (`key`, number, title, description, accent) |
 | `TRUST_GUARANTEES` | The four claims rendered by the `#trust` section, each naming where it is enforced. **Keep honest** — if a guarantee stops being true in `supabase/migrations/`, remove it here the same day |
-| `NAV_LINKS` | Navbar anchors, in page order |
+| `NAV_LINKS` | Navbar anchors, in page order, rooted at `/` (`/#dampak`, not `#dampak`) so they work from `/kos/[id]` too. `as const` — `SectionLink` requires the `/#…` literal type |
 | `PROBLEMS` | Three problem cards for `#dampak`. Qualitative on purpose — no unsourced figures |
 | `SDG_GOALS` | The four SDGs (number, name, real target id, detail, accent, `primary`) shown on `#dampak`; mirrored in the root README |
 
@@ -101,7 +102,7 @@ there is no migration runner wired up.
 | `city` | text | nullable — from 0003 |
 | `campus` | text | nullable — from 0003 |
 | `price` | integer | nullable |
-| `distance_m` | integer | nullable — **note the `_m` suffix**. Metres to `campus`, supplied by the user |
+| `distance_m` | integer | nullable — **note the `_m` suffix**. Metres to `campus`. Set on seeded rows only; `toKosRow` no longer writes it |
 | `lat` | double precision | nullable |
 | `lng` | double precision | nullable |
 | `score` | numeric(2,1) | `not null default 0` |
@@ -194,11 +195,6 @@ privilege on — after 0006, sending `score` or `reviews` fails that way. Fix a
   same illustration on its card, in the hero and on its detail page (fetched alone)
 - `highlights` — not stored; the detail page computes per-facility averages from
   the review rows instead
-- `photoUrl` — the newest `kos_photos` row, embedded in the same query
-  (`kos_photos(path, created_at)`, ordered and limited to 1 per kos), turned
-  into a public URL with `storage.getPublicUrl`. **If the embed errors (0009
-  not run), both fetches retry the plain SELECT** — kos lose their photo, not
-  the page. `KOS_LIST` and `toKos` set `photoUrl: null`
 
 Two behaviours worth knowing:
 
@@ -247,40 +243,46 @@ the same six strings, so they cannot drift.
 author lives here. Rows are created by the `on_auth_user_created` trigger — the
 app never inserts a profile.
 
-## `public.kos_photos` and the `kos-photos` bucket — from 0009_kos_photos.sql
+## `public.review_photos` and the `review-photos` bucket — from 0010_review_photos.sql
+
+Photos are **evidence attached to one review**, not pictures of the kos.
+0009 had made them belong to the kos (anyone signed in could attach one to
+any kos, shown as its banner); 0010 drops `kos_photos` and its upload policy.
+The old `kos-photos` bucket was then deleted by hand from the dashboard
+(19 Sep 2026) — Supabase forbids deleting Storage rows from SQL.
 
 | Column | Type | Notes |
 |---|---|---|
 | `id` | uuid | `default gen_random_uuid()` |
-| `kos_id` | uuid | → `kos(id)`, cascade delete |
-| `path` | text | unique. Object name in the bucket, `<kos_id>/<uuid>.<ext>`. CHECK `kos_photos_path_in_kos_folder`: must start with its own `kos_id/`, ≤ 200 chars |
+| `review_id` | uuid | → `reviews(id)`, cascade delete |
+| `path` | text | unique. Object name, `<review_id>/<uuid>.<ext>`. CHECK `review_photos_path_in_review_folder`: must start with its own `review_id/`, ≤ 200 chars |
 | `uploaded_by` | uuid | → `profiles(id)`. `default auth.uid()`, **not client-writable** |
-| `created_at` | timestamptz | newest is the one shown |
+| `created_at` | timestamptz | photos display oldest first |
 
-Repository: [`src/lib/kos-photo-repository.ts`](../src/lib/kos-photo-repository.ts)
-(`uploadKosPhoto`, `checkPhotoFile`). `PHOTO_BUCKET` is exported from
-`kos-repository.ts`, which reads the embed.
+Repository: [`src/lib/review-photo-repository.ts`](../src/lib/review-photo-repository.ts)
+— `REVIEW_PHOTO_BUCKET`, the limits, `checkPhotoFile`, `uploadReviewPhotos`,
+and `photoUrls`. `fetchReviews` embeds `review_photos ( path, created_at )`
+and falls back to the older selects when the table is missing.
 
 How a photo is protected, layer by layer:
 
-- **Bucket** `kos-photos`: public read, `file_size_limit` 2 MB,
+- **Bucket** `review-photos`: public read, `file_size_limit` 2 MB,
   `allowed_mime_types` jpeg/png/webp — enforced by Storage, mirrored by
   `checkPhotoFile` for an earlier error.
-- **Storage policy** `kos_photos_upload`: INSERT for `authenticated` only, and
-  the first folder must be the id of an existing kos. **No SELECT, UPDATE or
-  DELETE policy** — public URLs need no SELECT (and one would let anyone list
-  the bucket), and nobody can overwrite or delete a photo through the API.
-- **Table**: RLS select anyone, insert `authenticated` with
-  `auth.uid() = uploaded_by`; column grant INSERT `(kos_id, path)` only; no
-  UPDATE/DELETE grant.
-- **Trigger** `kos_photos_check_object` → `check_kos_photo_object()`
-  (SECURITY DEFINER, EXECUTE revoked): the row is rejected (`23514`) unless
-  `storage.objects` holds that path, in that bucket, with
-  `owner_id = uploaded_by`. So nobody can claim someone else's upload, or a
-  file that was never uploaded.
+- **Storage policy** `review_photos_upload`: INSERT for `authenticated` only,
+  and the first folder must be the id of a review **the uploader wrote**. No
+  SELECT, UPDATE or DELETE policy — public URLs need no SELECT (one would let
+  anyone list the bucket), and nobody can overwrite or delete a photo.
+- **Table**: RLS select anyone; insert `authenticated` with
+  `auth.uid() = uploaded_by` **and** the review's `author_id = auth.uid()`;
+  column grant INSERT `(review_id, path)` only; no UPDATE/DELETE grant.
+- **Trigger** `review_photos_check` → `check_review_photo()` (SECURITY
+  DEFINER, EXECUTE revoked): locks the review row, rejects (`23514`) a fourth
+  photo, and rejects a row unless `storage.objects` holds that path in that
+  bucket with `owner_id = uploaded_by`.
 
-The upload is two steps — object, then row — in that order. A failed row
-insert leaves an orphaned object that is never displayed.
+Each upload is two steps — object, then row. A failed row leaves an orphaned
+object that is never displayed.
 
 ## Derived scores — never write these
 
@@ -303,7 +305,7 @@ the client.
 
 ## Row Level Security
 
-Enabled on `kos`, `profiles`, `reviews`, and (after 0009) `kos_photos`.
+Enabled on `kos`, `profiles`, `reviews`, and (after 0010) `review_photos`.
 
 | Table | Policy |
 |---|---|
@@ -358,7 +360,7 @@ structural rather than a promise:
 
 - the accounts are flagged `profiles.is_demo`, which no client role can write;
 - their emails end in `.invalid` (reserved by RFC 2606), so none can earn the
-  verified-tenant badge;
+  "mahasiswa terverifikasi" badge;
 - `encrypted_password` is empty, so nobody can sign in as them;
 - `Review.isDemo` drives a "Review contoh" badge on every card, a count in the
   `ScoreProvenance` panel, and a "review contoh" caption on the hero quote.
@@ -383,10 +385,12 @@ SQL Editor**, in order:
 6. `supabase/migrations/0006_column_grants.sql`
 7. `supabase/migrations/0007_demo_profiles.sql`
 8. `supabase/migrations/0008_kos_constraints.sql`
-9. `supabase/migrations/0009_kos_photos.sql` — **written, not yet applied to
-   the live database** (as of 19 Sep 2026). The app runs without it
-10. `supabase/seed.sql`
-11. `supabase/seed_demo_reviews.sql` — optional, but the demo is empty without it
+9. `supabase/migrations/0009_kos_photos.sql` — applied live 19 Sep 2026;
+   superseded by 0010, which drops its table
+10. `supabase/migrations/0010_review_photos.sql` — applied live 19 Sep 2026.
+    The app still runs without it: `fetchReviews` retries without the embed
+11. `supabase/seed.sql`
+12. `supabase/seed_demo_reviews.sql` — optional, but the demo is empty without it
 
 An agent cannot do this — the Supabase connector is read-only. Write the
 migration, then ask the user to run it, then verify with `list_tables`.

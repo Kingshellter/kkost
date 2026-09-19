@@ -1,4 +1,5 @@
 import { ACCENT_BG, ACCENT_ON } from "@/components/ui/accent";
+import { BoundaryCircle, SEAMS } from "@/components/ui/boundary-circle";
 import { PROBLEMS, SDG_GOALS } from "@/data/kos";
 
 /**
@@ -9,88 +10,103 @@ import { PROBLEMS, SDG_GOALS } from "@/data/kos";
  * Deliberately free of statistics: nothing here cites a number the project
  * cannot source.
  */
+/**
+ * On a laptop each of the two halves fills exactly one screen: the problem
+ * with kkost's answer, then the SDGs. Below `lg` they simply stack.
+ */
+const SCREEN =
+  "relative overflow-hidden bg-white px-4 py-24 sm:px-6 lg:flex lg:min-h-svh lg:flex-col lg:justify-center lg:px-10 lg:py-16 short:py-10";
+
 export function Impact() {
   return (
-    <section id="dampak" className="bg-white px-4 py-24 sm:px-6 lg:px-10 lg:py-32">
-      <div className="mx-auto max-w-[1160px]">
-        <div className="text-center">
-          <p className="eyebrow bg-cream text-rose">Masalahnya</p>
-          <h2 className="mx-auto mt-7 max-w-[22ch] text-balance text-[clamp(2.25rem,5vw,3.5rem)] font-extrabold leading-[1.02] tracking-[-0.03em] text-ink">
-            Iklan kos ditulis oleh orang yang menyewakannya
-          </h2>
-          <p className="mx-auto mt-6 max-w-[58ch] text-lg leading-relaxed text-ink-soft">
-            Foto dipilih pemilik, deskripsi ditulis pemilik. Hal yang paling
-            menentukan setahun hidupmu justru tidak pernah tampil di sana.
-          </p>
-        </div>
+    <>
+      <section id="dampak" className={SCREEN}>
+        <BoundaryCircle edge="top" circle={SEAMS.heroImpact} />
 
-        <ul className="mt-16 grid gap-6 md:grid-cols-3">
-          {PROBLEMS.map((problem, index) => (
-            <li
-              key={problem.title}
-              className="rounded-[var(--radius-panel)] bg-cream p-7"
-            >
-              <span className="text-sm font-extrabold tabular-nums text-rose">
-                0{index + 1}
-              </span>
-              <h3 className="mt-3 text-xl font-extrabold leading-tight text-ink">
-                {problem.title}
-              </h3>
-              <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
-                {problem.detail}
-              </p>
-            </li>
-          ))}
-        </ul>
+        <div className="reveal relative mx-auto w-full max-w-[1160px]">
+          <div className="text-center">
+            <p className="eyebrow bg-cream text-rose">Masalahnya</p>
+            <h2 className="mx-auto mt-7 max-w-[22ch] text-balance text-[clamp(2.25rem,5vw,3.5rem)] font-extrabold leading-[1.02] tracking-[-0.03em] text-ink lg:mt-6">
+              Iklan kos ditulis oleh orang yang menyewakannya
+            </h2>
+            <p className="mx-auto mt-6 max-w-[58ch] text-lg leading-relaxed text-ink-soft lg:mt-5">
+              Foto dipilih pemilik, deskripsi ditulis pemilik. Hal yang paling
+              menentukan setahun hidupmu justru tidak pernah tampil di sana.
+            </p>
+          </div>
 
-        <p className="mx-auto mt-12 max-w-[60ch] text-balance text-center text-xl font-extrabold leading-snug text-ink">
-          kkost mengubah pengalaman penghuni menjadi skor enam fasilitas yang
-          terstruktur, bisa dibandingkan antarkota, dan dijaga database agar
-          tidak bisa dihapus pemilik kos.
-        </p>
-
-        <div className="mt-24 text-center">
-          <p className="eyebrow bg-cream text-blue">
-            Tujuan Pembangunan Berkelanjutan
-          </p>
-          <h2 className="mx-auto mt-7 max-w-[24ch] text-balance text-[clamp(2rem,4.5vw,3rem)] font-extrabold leading-[1.05] tracking-[-0.03em] text-ink">
-            Hunian layak dimulai dari informasi yang jujur
-          </h2>
-        </div>
-
-        <ul className="mt-14 grid gap-6 sm:grid-cols-2">
-          {SDG_GOALS.map((goal) => (
-            <li
-              key={goal.number}
-              className="flex gap-5 rounded-[var(--radius-panel)] bg-cream p-7"
-            >
-              <span
-                className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-2xl font-extrabold tabular-nums ${ACCENT_BG[goal.accent]} ${ACCENT_ON[goal.accent]}`}
+          <ul className="mt-16 grid gap-6 md:grid-cols-3 lg:mt-12">
+            {PROBLEMS.map((problem, index) => (
+              <li
+                key={problem.title}
+                className="rounded-[var(--radius-panel)] bg-cream p-7"
               >
-                {goal.number}
-              </span>
-              <div className="min-w-0">
-                <p className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full bg-white px-3 py-1 text-xs font-extrabold text-ink">
-                    Target {goal.target}
-                  </span>
-                  {goal.primary && (
-                    <span className="rounded-full bg-ink px-3 py-1 text-xs font-extrabold text-amber">
-                      Utama
-                    </span>
-                  )}
-                </p>
+                <span className="text-sm font-extrabold tabular-nums text-rose">
+                  0{index + 1}
+                </span>
                 <h3 className="mt-3 text-xl font-extrabold leading-tight text-ink">
-                  SDG {goal.number} · {goal.name}
+                  {problem.title}
                 </h3>
-                <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">
-                  {goal.detail}
+                <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
+                  {problem.detail}
                 </p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
+              </li>
+            ))}
+          </ul>
+
+          <p className="mx-auto mt-12 max-w-[60ch] text-balance text-center text-xl font-extrabold leading-snug text-ink lg:mt-10">
+            kkost mengubah pengalaman penghuni menjadi skor enam fasilitas yang
+            terstruktur, bisa dibandingkan antarkota, dan dijaga database agar
+            tidak bisa dihapus pemilik kos.
+          </p>
+        </div>
+      </section>
+
+      <section id="sdg" className={SCREEN}>
+        <div className="reveal relative mx-auto w-full max-w-[1160px]">
+          <div className="text-center">
+            <p className="eyebrow bg-cream text-blue">
+              Tujuan Pembangunan Berkelanjutan
+            </p>
+            <h2 className="mx-auto mt-7 max-w-[24ch] text-balance text-[clamp(2rem,4.5vw,3rem)] font-extrabold leading-[1.05] tracking-[-0.03em] text-ink">
+              Hunian layak dimulai dari informasi yang jujur
+            </h2>
+          </div>
+
+          <ul className="mt-14 grid gap-6 sm:grid-cols-2 lg:mt-12">
+            {SDG_GOALS.map((goal) => (
+              <li
+                key={goal.number}
+                className="flex gap-5 rounded-[var(--radius-panel)] bg-cream p-7"
+              >
+                <span
+                  className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-2xl font-extrabold tabular-nums ${ACCENT_BG[goal.accent]} ${ACCENT_ON[goal.accent]}`}
+                >
+                  {goal.number}
+                </span>
+                <div className="min-w-0">
+                  <p className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-white px-3 py-1 text-xs font-extrabold text-ink">
+                      Target {goal.target}
+                    </span>
+                    {goal.primary && (
+                      <span className="rounded-full bg-ink px-3 py-1 text-xs font-extrabold text-amber">
+                        Utama
+                      </span>
+                    )}
+                  </p>
+                  <h3 className="mt-3 text-xl font-extrabold leading-tight text-ink">
+                    SDG {goal.number} · {goal.name}
+                  </h3>
+                  <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">
+                    {goal.detail}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    </>
   );
 }

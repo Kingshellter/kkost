@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
+import { SectionLink } from "@/components/ui/section-link";
 import { NAV_LINKS } from "@/data/kos";
 
 /**
@@ -58,24 +58,24 @@ export function MobileNav({ signedIn }: { signedIn: boolean }) {
           <ul className="space-y-1">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
-                <Link
+                <SectionLink
                   href={link.href}
                   onClick={() => setOpen(false)}
                   className="block rounded-full px-4 py-3 text-[15px] font-bold text-ink hover:bg-cream"
                 >
                   {link.label}
-                </Link>
+                </SectionLink>
               </li>
             ))}
             {!signedIn && (
               <li>
-                <Link
-                  href="#login"
+                <SectionLink
+                  href="/#login"
                   onClick={() => setOpen(false)}
                   className="mt-1 block rounded-full bg-ink px-4 py-3 text-center text-[15px] font-bold text-white"
                 >
                   Masuk
-                </Link>
+                </SectionLink>
               </li>
             )}
           </ul>

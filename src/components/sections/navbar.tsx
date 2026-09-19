@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionLink } from "@/components/ui/section-link";
 import { Logo } from "@/components/ui/logo";
 import { NAV_LINKS } from "@/data/kos";
 import { getSessionUser } from "@/lib/auth";
@@ -21,12 +22,12 @@ export async function Navbar() {
         <ul className="hidden flex-1 items-center gap-7 lg:flex">
           {NAV_LINKS.map((link) => (
             <li key={link.href}>
-              <Link
+              <SectionLink
                 href={link.href}
                 className="text-[15px] font-bold text-ink transition-colors hover:text-rose"
               >
                 {link.label}
-              </Link>
+              </SectionLink>
             </li>
           ))}
         </ul>
@@ -39,10 +40,10 @@ export async function Navbar() {
               </span>
               {user.isStudent && (
                 <span
-                  title="Penghuni terverifikasi lewat email kampus"
+                  title="Mahasiswa — email kampus (.ac.id) terkonfirmasi"
                   className="hidden rounded-full bg-blue/10 px-3 py-1.5 text-xs font-extrabold text-blue sm:block"
                 >
-                  Terverifikasi
+                  Mahasiswa
                 </span>
               )}
               <form action={signOut}>
@@ -55,12 +56,12 @@ export async function Navbar() {
               </form>
             </>
           ) : (
-            <Link
-              href="#login"
+            <SectionLink
+              href="/#login"
               className="hidden rounded-full bg-ink px-6 py-2.5 text-[15px] font-bold text-white transition-transform hover:-translate-y-0.5 sm:block"
             >
               Masuk
-            </Link>
+            </SectionLink>
           )}
 
           <MobileNav signedIn={Boolean(user)} />

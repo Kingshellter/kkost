@@ -46,12 +46,12 @@ antarmuka. Antarmuka bisa dilewati; kebijakan database tidak.
 | **Jendela penyuntingan 30 hari** | Policy RLS `UPDATE` mensyaratkan `created_at > now() - interval '30 days'`; `created_at` dan `kos_id` tidak dapat diubah klien, sehingga jendela tidak bisa di-reset | `0002_reviews.sql`, `0006_column_grants.sql` |
 | **Identitas penulis tidak berasal dari klien** | Server Action membaca ulang pengguna dari sesi (`getSessionUser()`); formulir hanya mengirim *kos mana* dan penilaiannya | `review-actions.ts` |
 | **Data kos dibatasi di database** | CHECK constraint untuk panjang teks, harga, jarak, dan koordinat di dalam Indonesia; `created_by` diisi dari sesi dan tidak dapat ditulis klien, sehingga setiap kos tercatat penambahnya | `0008_kos_constraints.sql` |
-| **Foto tidak bisa ditimpa atau dihapus lewat API** | Bucket `kos-photos` hanya menerima jpeg/png/webp ≤ 2 MB, unggah hanya untuk pengguna terautentikasi ke folder kos yang ada, dan tidak ada policy UPDATE/DELETE. Baris `kos_photos` diperiksa trigger: berkasnya harus ada dan diunggah akun yang sama | `0009_kos_photos.sql` |
+| **Foto adalah bukti milik review, bukan milik kos** | Foto hanya bisa ditempelkan penulis ke review-nya sendiri (maks. 3), ditegakkan policy Storage dan RLS. Bucket `review-photos` hanya menerima jpeg/png/webp ≤ 2 MB, dan tidak ada policy UPDATE/DELETE — foto tidak bisa ditimpa atau dihapus lewat API. Trigger memeriksa berkasnya ada, diunggah akun yang sama, dan jumlahnya tidak lebih dari tiga | `0010_review_photos.sql` |
 | **Tidak ada angka karangan saat database gagal** | Data contoh hanya muncul tanpa kredensial Supabase, dengan penanda "Mode contoh". Jika database gagal dihubungi, daftar dikosongkan — skor contoh tidak pernah menggantikan data asli | `kos-repository.ts` |
 | **Setiap masukan divalidasi di server** | Skema Zod di dalam Server Action. `FormData` diperlakukan sebagai data tidak tepercaya | `review-actions.ts`, `auth-actions.ts` |
 | **Row Level Security aktif di semua tabel** | `kos`, `profiles`, `reviews` — akses ditentukan kebijakan eksplisit, bukan default terbuka | `0002_reviews.sql` |
 | **Menulis wajib identitas, membaca tetap terbuka** | Menambah kos dan menulis review hanya untuk pengguna terautentikasi, ditegakkan policy RLS. Melihat peta, daftar kos, halaman detail, dan seluruh review tidak memerlukan akun | `0004_kos_insert_requires_login.sql` |
-| **Penghuni terverifikasi** | Pendaftaran dengan surel kampus (`.ac.id`); status `is_student` ditetapkan trigger database saat pendaftaran, tidak dapat diubah pengguna (hak UPDATE hanya untuk `display_name`) | `0002_reviews.sql`, `0006_column_grants.sql` |
+| **Mahasiswa terverifikasi** | Pendaftaran dengan surel kampus (`.ac.id`) yang **wajib dikonfirmasi lewat tautan di surel** — membuktikan pemilik kotak masuk kampus, bukan sekadar mengetik alamatnya. Status `is_student` ditetapkan trigger database saat pendaftaran, tidak dapat diubah pengguna (hak UPDATE hanya untuk `display_name`) | `0002_reviews.sql`, `0006_column_grants.sql` |
 
 Prinsipnya satu: **klien tidak pernah dipercaya, dan antarmuka bukan batas
 keamanan.** Setiap klaim yang ditampilkan kkost kepada pengunjung dapat
@@ -79,6 +79,10 @@ Pemeriksaan ulang setelah perbaikan: **nol temuan keamanan.** Sisa laporan
 performa hanya berupa catatan `unused_index` bertingkat INFO — wajar untuk
 index yang baru dibuat pada basis data yang belum menerima lalu lintas.
 
+Pemeriksaan kembali setelah `0008`, `0009`, dan `0010` (19 September 2026): **nol
+temuan skema baru.** Satu-satunya peringatan keamanan adalah pengaturan Auth
+*leaked password protection*, yang diaktifkan dari dashboard, bukan dari skema.
+
 Linter tidak memeriksa **hak tingkat kolom**. Audit manual berikutnya menemukan
 bahwa policy RLS membatasi *baris*, sementara peran klien masih memegang hak
 INSERT/UPDATE atas *semua kolom*: skor kos bisa diisi saat insert, `is_student`
@@ -105,8 +109,8 @@ Pemetaan yang sama ditampilkan di situs sendiri, pada bagian **Dampak**
 
 - **Penilaian enam fasilitas** — 1–5 per kriteria, dengan seluruh jaminan
   integritas di tabel atas
-- **Autentikasi** — pendaftaran dan masuk lewat Supabase Auth, penanda penghuni
-  terverifikasi untuk surel kampus. **Berkontribusi perlu akun; menjelajah
+- **Autentikasi** — pendaftaran dan masuk lewat Supabase Auth, konfirmasi surel, dan
+  penanda mahasiswa terverifikasi untuk surel kampus. **Berkontribusi perlu akun; menjelajah
   tidak** — seluruh isi kkost dapat dibaca tanpa mendaftar
 - **Peta interaktif** — pin skor di seluruh Indonesia, tampilan menyesuaikan
   sendiri ke sebaran data; klik peta untuk menambahkan kos baru
@@ -114,9 +118,9 @@ Pemetaan yang sama ditampilkan di situs sendiri, pada bagian **Dampak**
   landmark; peta terbang ke sana dan menandainya. Memakai Nominatim
   (OpenStreetMap), tanpa kunci API
 - **Halaman detail kos** — rata-rata per fasilitas, seluruh review, form penilaian
-- **Foto kos** — pengguna yang masuk dapat mengunggah foto (JPG/PNG/WebP,
-  maks. 2 MB) lewat Supabase Storage. Foto diberi label "Foto pengguna";
-  kos tanpa foto tetap memakai ilustrasi berlabel "Ilustrasi"
+- **Foto dalam review** — saat menulis review, penulis dapat melampirkan
+  hingga 3 foto (JPG/PNG/WebP, maks. 2 MB) sebagai bukti. Foto tampil di kartu
+  review itu saja; gambar kos selalu ilustrasi berlabel "Ilustrasi"
 - **Cari dan saring kos** — kota, budget, dan urutan (skor, harga, jarak ke
   kampus). Filter tersimpan di URL, jadi hasilnya bisa dibagikan dan tetap
   berjalan tanpa JavaScript
@@ -170,12 +174,22 @@ Jalankan skrip database lewat **Supabase Dashboard → SQL Editor**, berurutan:
 | 6 | `supabase/migrations/0006_column_grants.sql` | Hak tulis per kolom; skor, `is_student`, dan `created_at` tidak bisa ditulis klien |
 | 7 | `supabase/migrations/0007_demo_profiles.sql` | Penanda akun contoh (`profiles.is_demo`) |
 | 8 | `supabase/migrations/0008_kos_constraints.sql` | Batas isi kos di database (panjang teks, harga, jarak, wilayah Indonesia) dan `created_by` |
-| 9 | `supabase/migrations/0009_kos_photos.sql` | Bucket Storage `kos-photos`, tabel `kos_photos`, policy unggah |
-| 10 | `supabase/seed.sql` | Data awal lintas kota |
-| 11 | `supabase/seed_demo_reviews.sql` | Review contoh berlabel dari empat akun demo |
+| 9 | `supabase/migrations/0009_kos_photos.sql` | Foto kos (digantikan 0010) |
+| 10 | `supabase/migrations/0010_review_photos.sql` | Foto pindah ke review: bucket `review-photos`, tabel `review_photos`, maks. 3 per review |
+| 11 | `supabase/seed.sql` | Data awal lintas kota |
+| 12 | `supabase/seed_demo_reviews.sql` | Review contoh berlabel dari empat akun demo |
 
-Terakhir, matikan **Authentication → Providers → Email → Confirm email** agar
-pendaftaran tidak memerlukan konfirmasi lewat surel.
+Terakhir, di **Authentication** pada dashboard Supabase:
+
+1. **Sign In / Providers → Email → Confirm email**: nyalakan. Lencana
+   "mahasiswa terverifikasi" hanya bermakna jika pemilik alamat `.ac.id`
+   membuktikan bisa membuka kotak masuknya.
+2. **Emails → SMTP Settings**: isi SMTP sendiri (mis. Gmail + sandi aplikasi,
+   `smtp.gmail.com:465`). Layanan surel bawaan Supabase hanya mengirim ke
+   anggota tim proyek, sehingga pendaftar lain tidak akan menerima tautan.
+3. **URL Configuration**: *Site URL* diisi alamat situs, dan tambahkan
+   `http://localhost:3000/**` serta URL live ke *Redirect URLs* agar tautan
+   konfirmasi kembali ke `/auth/confirm`.
 
 ```bash
 npm run dev

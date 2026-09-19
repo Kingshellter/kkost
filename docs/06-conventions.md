@@ -137,6 +137,11 @@ input is not lost. No `alert()`, no `console.error` as the user-facing path.
   and `ReviewForm`: keep the field uncontrolled, mirror it into `useState` via
   `onChange`, and pass that state as `defaultValue` / `defaultChecked` — the
   reset then restores the user's input. Never keep a password this way.
+- **Files never go through a Server Action** (1 MB body limit). Give the
+  file input no `name`, keep the files in component state, and upload them
+  from the browser straight to Storage after the action returns the id they
+  belong to — `ReviewForm`'s `submitWithPhotos` is the reference. The action's
+  result stands even if an upload fails; report that part separately.
 
 ## Supabase
 
@@ -172,10 +177,10 @@ input is not lost. No `alert()`, no `console.error` as the user-facing path.
   the bucket; policies grant INSERT only; no UPDATE/DELETE policy for anything
   a user contributes; no SELECT policy on a public bucket (it enables listing).
   A table row that points at an object is checked by a trigger against
-  `storage.objects` (`owner_id`). 0009 is the reference.
+  `storage.objects` (`owner_id`). 0010 is the reference.
 - **A new embed must not take the page down before its migration runs.**
-  Retry the plain query when the embedded select errors, as `fetchKosList`
-  does for `kos_photos` and `fetchReviews` does for `is_demo`.
+  Retry the plain query when the embedded select errors, as `fetchReviews`
+  does for `review_photos` (0010) and `is_demo` (0007).
 - **Writes need an identity, reads never do.** New tables get
   `select using (true)` and writes `to authenticated`. Browsing kkost must stay
   possible without an account; contributing must not.
@@ -259,7 +264,8 @@ docs stay in English.
 
 The brand is **kkost**, lowercase, everywhere. Copy must not assume a city or a
 campus: kkost covers all of Indonesia, and each kos carries its own `city` and
-optional `campus`. Show a distance only when that kos has a `campus`.
+optional `campus`. Render the campus line with `formatCampus` — "700 m ke X" or
+"Dekat X" when the distance is unknown, which is the norm for new kos.
 
 ## Git — manual only, agents must not run it
 

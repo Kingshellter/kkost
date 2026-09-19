@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { reverseGeocode } from "@/lib/geocode";
 import { createClient } from "@/utils/supabase/client";
 import {
   isSupabaseConfigured,
@@ -42,11 +43,6 @@ const schema = z.object({
     .int("Harga harus bilangan bulat")
     .min(1, "Harga harus lebih dari 0")
     .max(100_000_000, "Harga maksimal Rp100.000.000"),
-  distance: z
-    .number({ message: "Jarak harus berupa angka" })
-    .int("Jarak harus bilangan bulat")
-    .min(0, "Jarak tidak boleh negatif")
-    .max(50_000, "Jarak maksimal 50.000 m"),
 });
 
 /** Same box as the kos_in_indonesia constraint. */
@@ -82,11 +78,35 @@ export function AddKosDialog({
   const {
     register,
     handleSubmit,
+    getValues,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", area: "", city: "", campus: "", price: 0, distance: 0 },
+    defaultValues: { name: "", area: "", city: "", campus: "", price: 0 },
   });
+
+  /** "loading" while the clicked point is being looked up; "done" after. */
+  const [locating, setLocating] = useState<"loading" | "done">("loading");
+
+  // Pre-fill area and city from the point that was clicked. Only into fields
+  // still empty — someone who started typing keeps what they typed — and
+  // always editable, because a geocoder's idea of an "area" is not always the
+  // name people use for it.
+  useEffect(() => {
+    const controller = new AbortController();
+    reverseGeocode(position, { signal: controller.signal }).then((found) => {
+      if (controller.signal.aborted) return;
+      for (const key of ["area", "city"] as const) {
+        const value = found?.[key]?.slice(0, key === "city" ? 80 : 120);
+        if (value && !getValues(key).trim()) {
+          setValue(key, value, { shouldValidate: true });
+        }
+      }
+      setLocating("done");
+    });
+    return () => controller.abort();
+  }, [position, getValues, setValue]);
 
   // Escape closes the dialog, like any modal; Tab cycles inside it, so a
   // keyboard user cannot wander onto the page that aria-modal says is inert.
@@ -226,6 +246,11 @@ export function AddKosDialog({
               />
             </Field>
           </div>
+          <p className="-mt-2 text-xs font-medium text-muted" aria-live="polite">
+            {locating === "loading"
+              ? "Mendeteksi area dan kota dari titik di peta…"
+              : "Area dan kota diisi dari titik di peta — ubah bila kurang tepat."}
+          </p>
 
           <Field
             label="Kampus terdekat"
@@ -239,35 +264,17 @@ export function AddKosDialog({
             />
           </Field>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Harga per bulan (Rp)" error={errors.price?.message}>
-              <input
-                {...register("price", { valueAsNumber: true })}
-                type="number"
-                inputMode="numeric"
-                min={0}
-                step={50000}
-                placeholder="950000"
-                className={inputClass}
-              />
-            </Field>
-
-            <Field
-              label="Jarak ke kampus (m)"
-              hint="jalan kaki"
-              error={errors.distance?.message}
-            >
-              <input
-                {...register("distance", { valueAsNumber: true })}
-                type="number"
-                inputMode="numeric"
-                min={0}
-                step={50}
-                placeholder="700"
-                className={inputClass}
-              />
-            </Field>
-          </div>
+          <Field label="Harga per bulan (Rp)" error={errors.price?.message}>
+            <input
+              {...register("price", { valueAsNumber: true })}
+              type="number"
+              inputMode="numeric"
+              min={0}
+              step={50000}
+              placeholder="950000"
+              className={inputClass}
+            />
+          </Field>
         </div>
 
         {serverError && (

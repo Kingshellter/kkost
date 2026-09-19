@@ -33,7 +33,7 @@ export type Review = {
    */
   authorId: string;
   authorName: string;
-  /** Signed up with a .ac.id address — shown as a "verified tenant" badge. */
+  /** Signed up with a .ac.id address — shown as a "mahasiswa terverifikasi" badge. */
   isStudent: boolean;
   /**
    * Written by one of the seeded demo accounts (`profiles.is_demo`). Always
@@ -44,6 +44,11 @@ export type Review = {
   /** Mean of the six scores, one decimal. Computed by the database. */
   average: number;
   body: string | null;
+  /**
+   * Public URLs of the photos the author attached (0010), oldest first, at
+   * most three. Empty before 0010 or when there are none.
+   */
+  photos: string[];
   createdAt: string;
 };
 
@@ -62,15 +67,17 @@ export type Kos = {
   city: string;
   /** The campus this kos is measured against. Null when nobody supplied one. */
   campus: string | null;
-  /** Walking distance to `campus`, in metres. Supplied by whoever added the kos. */
-  distance: number;
+  /**
+   * Walking distance to `campus`, in metres. Only the seeded kos have one:
+   * the add-kos form no longer asks, so a new kos is null — shown as
+   * "Dekat <campus>" and sorted last by "Terdekat ke kampus".
+   */
+  distance: number | null;
   price: number;
   score: number;
   reviews: number;
-  /** Picks the fallback illustration and its tint when there is no photo. */
+  /** Picks the kos illustration and its tint. Photos belong to reviews, not kos. */
   photoAccent: Accent;
-  /** Public URL of the newest uploaded photo (0009), or null — then the illustration shows. */
-  photoUrl: string | null;
   coords: [number, number];
   highlights: FacilityScore[];
 };
@@ -93,7 +100,6 @@ export const KOS_LIST: Kos[] = [
     score: 4.8,
     reviews: 64,
     photoAccent: "amber",
-    photoUrl: null,
     coords: [-6.369, 106.827],
     highlights: [
       { label: "Air & listrik", score: 4.9, accent: "blue" },
@@ -111,7 +117,6 @@ export const KOS_LIST: Kos[] = [
     score: 4.6,
     reviews: 88,
     photoAccent: "sky",
-    photoUrl: null,
     coords: [-6.889, 107.61],
     highlights: [
       { label: "Parkir", score: 4.9, accent: "amber" },
@@ -129,7 +134,6 @@ export const KOS_LIST: Kos[] = [
     score: 4.5,
     reviews: 41,
     photoAccent: "rose",
-    photoUrl: null,
     coords: [-7.559, 110.856],
     highlights: [
       { label: "Dapur", score: 4.9, accent: "ink" },
@@ -147,7 +151,6 @@ export const KOS_LIST: Kos[] = [
     score: 3.9,
     reviews: 27,
     photoAccent: "blue",
-    photoUrl: null,
     coords: [-7.952, 112.615],
     highlights: [
       { label: "Parkir", score: 4.2, accent: "amber" },
@@ -206,13 +209,17 @@ export const CRITERIA = [
   },
 ];
 
-/** In page order, so the menu reads top to bottom like the page does. */
+/**
+ * In page order, so the menu reads top to bottom like the page does. Rooted at
+ * `/`: the navbar is on every page, and a bare `#dampak` on `/kos/[id]` would
+ * only append a hash to the detail page's URL.
+ */
 export const NAV_LINKS = [
-  { label: "Dampak", href: "#dampak" },
-  { label: "Cara menilai", href: "#scoring" },
-  { label: "Kenapa terpercaya", href: "#trust" },
-  { label: "Cari kos", href: "#browse" },
-];
+  { label: "Dampak", href: "/#dampak" },
+  { label: "Cara menilai", href: "/#scoring" },
+  { label: "Kenapa terpercaya", href: "/#trust" },
+  { label: "Cari kos", href: "/#browse" },
+] as const;
 
 /**
  * The problem statement on the `#dampak` section. Qualitative on purpose: no

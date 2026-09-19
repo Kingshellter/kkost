@@ -11,8 +11,8 @@ Indonesia**. The pitch, verbatim from the page metadata:
 > review.
 
 The description used to say reviewers were students "who actually pay the
-rent". Nothing verifies that (see ⚠️ `is_student` below), so the claim was
-dropped in favour of stating the problem first.
+rent". Nothing verifies tenancy — a confirmed `.ac.id` address proves a
+campus inbox, not a rental — so the claim was dropped in favour of stating the problem first.
 
 The scoring model is the product's core idea: every reviewer rates **six fixed
 facilities** 1–5, and the kos score is the plain unweighted average.
@@ -57,12 +57,13 @@ enforced.
 
 ## What actually works today
 
-- ✅ Landing page at `/` — navbar, hero, impact (`#dampak`), scoring, trust,
+- ✅ Landing page at `/` — navbar, hero, impact (`#dampak` + `#sdg`), scoring, trust,
   map, browse, CTA
 - ✅ **Kos detail page at `/kos/[id]`** — per-facility averages, review list,
   review form
 - ✅ **Nationwide scope** — every kos stores its own `city` and optional
-  `campus`; distance is entered by whoever adds the kos
+  `campus`. Distance to campus exists only on seeded kos; new ones show
+  "Dekat <kampus>"
 - ✅ **Reads from Supabase.** The hardcoded `KOS_LIST` is shown only on a
   checkout without credentials, under a "Mode contoh" notice. A database
   error shows an empty list and a notice — never the invented demo scores
@@ -76,7 +77,9 @@ enforced.
 - ✅ **Place search on the map** — type a street, neighbourhood, campus or
   landmark and the view flies there, with a blue pin marking it. Geocoded by
   Nominatim (OpenStreetMap), keyless like the tiles
-- ✅ "Add kos" dialog: validated form → Supabase insert → pin appears
+- ✅ "Add kos" dialog: area and city pre-filled from the clicked point
+  (Nominatim reverse geocoding, editable) → validated form → Supabase insert →
+  pin appears. No distance field
 - ✅ **Responsive navbar** with a mobile menu
 - ✅ **Filter & sort** — city, budget ceiling and sort order (score, price,
   distance to campus) live in the URL: `/?kota=&harga=&urut=#browse`. The hero
@@ -93,7 +96,7 @@ enforced.
   panel
 - ✅ **Migrations applied and the database live** — 11 kos across 9 cities, and
   Supabase's own security linter reports no schema findings (one Auth
-  setting warning — see ⚠️ below). 0001–0008, `seed.sql` and
+  setting warning — see ⚠️ below). 0001–0010, `seed.sql` and
   `seed_demo_reviews.sql` are applied (17 labelled demo reviews over 8 kos,
   3 kos left unreviewed),
   so the column-level grants are live too (verified via
@@ -109,17 +112,28 @@ enforced.
 - ✅ Graceful degradation with no Supabase credentials (demo data under a
   "Mode contoh" notice, session-scoped)
 - ✅ Supabase session refresh in `src/proxy.ts`
-- ✅ **Photo upload (code)** — signed-in users upload a JPG/PNG/WebP ≤ 2 MB
-  on `/kos/[id]`; `KosPhoto` shows the newest one, labelled "Foto pengguna",
-  with the illustration as fallback. **Needs `0009_kos_photos.sql` run by
-  hand** — until then reads fall back to the illustrations and an upload
-  says the feature is not active yet. Only one photo is shown per kos; there
-  is no gallery
+- ✅ **Review photos (code)** — while writing a review, the author may attach
+  up to 3 JPG/PNG/WebP photos (≤ 2 MB each) as evidence. They appear only in
+  that review's card, never as the kos banner — every kos picture is the
+  labelled illustration. `0010_review_photos.sql` replaces 0009's kos photos
+  and is **applied live** (19 Sep 2026; bucket, policies, grants and trigger
+  verified; linter shows no new findings). A real upload by a signed-in user
+  has not been tested yet — see `08-roadmap.md`
+- ✅ **Email confirmation** — "Confirm email" is on and custom SMTP (Gmail app
+  password) sends the link, so an `.ac.id` badge now requires owning the
+  inbox. The link lands on `/auth/confirm`, which signs the user in and shows a
+  `?konfirmasi=` notice on `/`. The account label is **"Mahasiswa"** or
+  **"Publik"** (navbar, CTA card); review cards say "Mahasiswa terverifikasi".
+  It proves a campus inbox, not tenancy. Tested end to end with a real inbox
+  on 19 Sep 2026
 - ✅ **Indonesian error and 404 pages** (`app/error.tsx`, `app/not-found.tsx`)
   and basic security headers in `next.config.ts`
 - ✅ **Map respects the URL filter for kos added this session**, the toast
   timer restarts on a second save, and a `local-` kos is not a dead link
 - ✅ **`AddKosDialog` traps focus** and returns it to the map on close
+- ✅ **One section per screen on a laptop** — every landing section is one
+  screen tall from `lg` up (verified at 1440×900, 1280×800, 1366×768); the
+  kos list is a swipeable carousel. Phones keep natural heights
 
 ## What does NOT exist yet
 
@@ -130,17 +144,16 @@ enforced.
 - ❌ **Editing a review.** The 30-day window exists as an RLS policy; no UI uses it.
 - ❌ **Photo moderation.** Nobody can delete a photo through the API — by
   design, like reviews — so removing an inappropriate one means the project
-  owner deleting it (object and `kos_photos` row) from the Supabase dashboard.
-- ❌ **Photo in the add-kos dialog.** Upload lives only on the detail page.
-- ⚠️ **`is_student` is forgeable.** The flag is set from an `.ac.id` suffix
-  alone. 0006 stops users editing it afterwards, but with Supabase's "Confirm
-  email" turned off, anyone can still sign up with a campus address they do not
-  own — which contradicts the verified-tenant badge and the
-  trust section. Unresolved product decision.
+  owner deleting it (object and `review_photos` row) from the Supabase
+  dashboard. Deleting a review removes its photo rows (cascade) but not the
+  objects.
+- ❌ **Adding photos to an existing review.** Photos are chosen in the review
+  form only; there is no "add photos later".
 - ⚠️ **Leaked password protection is off.** The only Supabase security
   advisor finding (WARN, `auth_leaked_password_protection`) is an Auth setting,
   not a schema problem: sign-up does not check passwords against
-  HaveIBeenPwned. It is toggled in the Supabase dashboard, not in a migration.
+  HaveIBeenPwned. It is toggled in the Supabase dashboard, not in a migration
+  — and only on the Pro plan; this project is on FREE, so it stays off.
 - ❌ **Tests.** No test runner configured.
 - ❌ **Live deployment.** The guidebook's proposal asks for a "Link
   Website/Demo"; none exists yet (see `08-roadmap.md` step 8).

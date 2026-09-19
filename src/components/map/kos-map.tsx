@@ -15,6 +15,7 @@ import {
   useMapEvents,
 } from "react-leaflet";
 import { ACCENT_HEX, accentForScore } from "@/components/ui/accent";
+import { SectionLink } from "@/components/ui/section-link";
 import { INDONESIA, type Accent, type Kos } from "@/data/kos";
 import { formatRupiah } from "@/lib/format";
 import type { Place } from "@/lib/geocode";
@@ -215,12 +216,12 @@ export default function KosMap({
   /** Same point, once "Tambah kos" opens the form. */
   const [formAt, setFormAt] = useState<[number, number] | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  /** The map's box — where focus returns when the add-kos dialog closes. */
+  const mapBox = useRef<HTMLDivElement>(null);
   /**
    * The toast's pending hide. Kept so a second save restarts the countdown —
    * otherwise the first save's timer hides the second toast early.
    */
-  /** The map's box — where focus returns when the add-kos dialog closes. */
-  const mapBox = useRef<HTMLDivElement>(null);
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(
@@ -254,7 +255,7 @@ export default function KosMap({
     setDraft(null);
     setNotice(
       saved
-        ? `"${input.name}" tersimpan ke Supabase.`
+        ? `"${input.name}" berhasil ditambahkan.`
         : `"${input.name}" ditambahkan ke peta (belum tersimpan ke database).`,
     );
     if (noticeTimer.current) clearTimeout(noticeTimer.current);
@@ -351,13 +352,13 @@ export default function KosMap({
                   + Tambah kos
                 </button>
               ) : (
-                <a
-                  href="#login"
+                <SectionLink
+                  href="/#login"
                   onClick={() => setDraft(null)}
                   className="mt-2.5 block w-full rounded-full bg-ink px-4 py-2 text-center text-[13px] font-extrabold text-white"
                 >
                   Masuk atau daftar
-                </a>
+                </SectionLink>
               )}
             </Popup>
           </>

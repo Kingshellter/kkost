@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { BoundaryCircle, SEAMS } from "@/components/ui/boundary-circle";
 import { FacilityBar } from "@/components/ui/facility-bar";
 import { KosPhoto } from "@/components/ui/kos-photo";
 import { KosScoreBadge } from "@/components/ui/kos-score-badge";
 import { CRITERIA, type Kos, type Review } from "@/data/kos";
-import { formatDistance, formatNumber, formatRupiah } from "@/lib/format";
+import { formatCampus, formatNumber, formatRupiah } from "@/lib/format";
 import { BUDGETS, type KosFilter } from "@/lib/kos-browse";
 import { averageFor } from "@/lib/scores";
 
@@ -18,19 +19,17 @@ type Props = {
 };
 
 export function Hero({ featured, reviews, stats, cities, filter }: Props) {
+  // On a laptop hero + navbar fill exactly one screen; 5.5rem is the navbar.
   return (
-    <section className="relative overflow-hidden px-4 pb-24 pt-14 sm:px-6 lg:px-10 lg:pb-32 lg:pt-20">
+    <section className="relative overflow-hidden px-4 pb-24 pt-14 sm:px-6 lg:flex lg:min-h-[calc(100svh-5.5rem)] lg:flex-col lg:justify-center lg:px-10 lg:py-12">
       {/* Decorative blobs from the deck */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-28 -top-48 h-[300px] w-[300px] rounded-full bg-amber lg:-right-10 lg:-top-40 lg:h-[620px] lg:w-[620px]"
+        className="drift pointer-events-none absolute -right-40 top-10 h-[300px] w-[300px] rounded-full bg-amber lg:-right-44 lg:top-10 lg:h-[540px] lg:w-[540px]"
       />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-56 -left-40 h-[420px] w-[420px] rounded-full bg-lavender"
-      />
+      <BoundaryCircle edge="bottom" circle={SEAMS.heroImpact} />
 
-      <div className="relative mx-auto grid max-w-[1240px] items-center gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,480px)] lg:gap-10">
+      <div className="relative mx-auto grid w-full max-w-[1240px] items-center gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,480px)] lg:gap-10">
         <div>
           <p className="eyebrow bg-white text-rose shadow-[var(--shadow-lift)]">
             <span className="h-2 w-2 rounded-full bg-rose" />
@@ -80,11 +79,6 @@ export function Hero({ featured, reviews, stats, cities, filter }: Props) {
                 ))}
               </select>
             </label>
-
-            <span
-              aria-hidden
-              className="hidden h-7 w-px shrink-0 bg-cream-deep sm:block"
-            />
 
             <label className="flex min-w-0 flex-1 items-center gap-3 px-3 sm:px-5">
               <span className="shrink-0 text-[15px] font-bold text-muted">
@@ -144,7 +138,6 @@ function HeroCard({ kos, reviews }: { kos: Kos; reviews: Review[] }) {
           <KosPhoto
             kos={kos}
             showLabel={false}
-            sizes="68px"
             className="h-[68px] w-[68px] shrink-0 rounded-full"
           />
           <div className="min-w-0 flex-1">
@@ -155,7 +148,7 @@ function HeroCard({ kos, reviews }: { kos: Kos; reviews: Review[] }) {
             </h2>
             <p className="mt-1 text-[15px] font-medium text-muted">
               {kos.area}, {kos.city}
-              {kos.campus && ` · ${formatDistance(kos.distance)} ke ${kos.campus}`}
+              {kos.campus && ` · ${formatCampus(kos.campus, kos.distance)}`}
             </p>
           </div>
           <KosScoreBadge kos={kos} size="lg" />

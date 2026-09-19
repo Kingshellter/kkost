@@ -5,13 +5,18 @@ import type { NextConfig } from "next";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
 const nextConfig: NextConfig = {
+  // The "N" badge `next dev` draws in the bottom-left corner. Hidden because it
+  // sits over the page during demos; compile and runtime errors still show.
+  // It never appears in a production build either way.
+  devIndicators: false,
+
   images: {
-    // Kos photos uploaded to the public `kos-photos` bucket (0009). Only that
+    // Review photos uploaded to the public `review-photos` bucket (0010). Only that
     // bucket's public path is allowed, not the whole Supabase domain.
     remotePatterns: URL.canParse(supabaseUrl ?? "")
       ? [
           new URL(
-            "/storage/v1/object/public/kos-photos/**",
+            "/storage/v1/object/public/review-photos/**",
             supabaseUrl,
           ),
         ]
