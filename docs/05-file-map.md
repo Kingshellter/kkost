@@ -9,8 +9,8 @@ map exists so you can read *only the right one*.
 | File | ~n | Owns |
 |---|---|---|
 | [`src/app/layout.tsx`](../src/app/layout.tsx) | 25 | Root layout. `lang="id"`, Jakarta font variable, `bg-cream text-ink`, site `metadata` (title/description) |
-| [`src/app/page.tsx`](../src/app/page.tsx) | 100 | Route `/`. Renders `ConfirmNotice` for `?konfirmasi=`. Loads the kos list (and its `source`), session and `searchParams`; renders `DataNotice` when not showing the real database; parses the URL filter; fetches the featured kos's reviews; stacks Navbar + 7 sections |
-| [`src/app/kos/[id]/page.tsx`](../src/app/kos/[id]/page.tsx) | 210 | Route `/kos/[id]`. Kos header with a `KosPhoto` banner, `ScoreProvenance` panel, per-facility averages, review list, and either the review form, a sign-in prompt, or "sudah menilai" |
+| [`src/app/page.tsx`](../src/app/page.tsx) | 140 | Route `/`. Renders `ConfirmNotice` for `?konfirmasi=`. Loads the kos list (and its `source`), session and `searchParams`; renders `DataNotice` when not showing the real database; parses the URL filter; fetches the featured kos's reviews; stacks Navbar + 6 sections |
+| [`src/app/kos/[id]/page.tsx`](../src/app/kos/[id]/page.tsx) | 218 | Route `/kos/[id]`. Kos header with a `KosPhoto` banner, `ScoreProvenance` panel, per-facility averages, review list, and either the review form, a sign-in prompt, or "sudah menilai" |
 | [`src/app/globals.css`](../src/app/globals.css) | 125 | Tailwind v4 `@theme inline` tokens, `eyebrow` utility, motion (`.reveal` fade-up, `.drift` / `.drift-page` circle parallax — all scroll-driven, all off for reduced motion), all Leaflet overrides |
 | [`src/app/error.tsx`](../src/app/error.tsx) | 55 | Client error boundary in Indonesian — "Coba lagi" (`retry()`, the Next 16 prop name) and a home link. Shown when `fetchKos` throws |
 | [`src/app/auth/confirm/route.ts`](../src/app/auth/confirm/route.ts) | 55 | `GET` handler for the sign-up confirmation link: `verifyOtp` (`token_hash`) or `exchangeCodeForSession` (`code`), then redirects to `/?konfirmasi=berhasil\|masuk\|gagal#login`. Exports the `ConfirmOutcome` type |
@@ -21,7 +21,7 @@ map exists so you can read *only the right one*.
 
 | File | ~n | Owns |
 |---|---|---|
-| [`src/data/kos.ts`](../src/data/kos.ts) | 330 | Domain types — `Accent`, `FacilityScore`, `Kos`, `FACILITY_KEYS`, `FacilityKey`, `Review` (incl. `isDemo`) — plus static Indonesian copy (`INDONESIA`, `CRITERIA`, `NAV_LINKS`, `PROBLEMS`, `SDG_GOALS`, `TRUST_GUARANTEES`) and the `KOS_LIST` fallback |
+| [`src/data/kos.ts`](../src/data/kos.ts) | 243 | Domain types — `Accent`, `FacilityScore`, `Kos`, `FACILITY_KEYS`, `FacilityKey`, `Review` (incl. `isDemo`) — plus static Indonesian copy (`INDONESIA`, `CRITERIA`, `NAV_LINKS`, `PROBLEMS`) and the `KOS_LIST` fallback |
 | [`src/lib/kos-repository.ts`](../src/lib/kos-repository.ts) | 215 | **The only file that knows `kos` column names.** `isSupabaseConfigured`, `KosSource`, `fetchKosList` (returns `{ kos, source }`), `fetchKos` (throws on a DB error), `photoAccentFor` (id hash), `saveKos`, `toKosRow`, `explain`, `toKos` (takes the saved uuid when there is one) |
 | [`src/lib/review-photo-repository.ts`](../src/lib/review-photo-repository.ts) | 115 | **The only file that knows `review_photos` columns and the `review-photos` bucket.** Limits (`PHOTO_MAX_BYTES`, `PHOTO_MAX_COUNT` = 3, `PHOTO_TYPES`), `checkPhotoFile`, `REVIEW_PHOTOS_EMBED`, `photoUrls`, `uploadReviewPhotos` (browser; object then row, per file) |
 | [`src/lib/review-repository.ts`](../src/lib/review-repository.ts) | 135 | **The only file that knows `reviews` column names.** `fetchReviews` (embeds `review_photos`; retries without it before 0010 and without `is_demo` before 0007), `saveReview` |
@@ -59,9 +59,8 @@ map exists so you can read *only the right one*.
 | [`navbar.tsx`](../src/components/sections/navbar.tsx) | 78 | — | Pill navbar. Reads the session: name + "Mahasiswa" badge (students only) + sign-out form, else a "Masuk" link. Desktop links hidden below `lg` |
 | [`mobile-nav.tsx`](../src/components/sections/mobile-nav.tsx) | 88 | — | **Client.** Disclosure menu for `< lg`. Without it the site has no navigation on a phone |
 | [`hero.tsx`](../src/components/sections/hero.tsx) | 200 | — | Headline, live stats eyebrow, city + budget GET form to `/#browse`, `HeroCard` (featured kos with its real per-facility averages and newest review as the quote, captioned when demo), decorative blobs |
-| [`impact.tsx`](../src/components/sections/impact.tsx) | 110 | `#dampak`, `#sdg` | Two one-screen sections: problem statement (`PROBLEMS`) + one-line solution, then `SDG_GOALS` cards |
+| [`impact.tsx`](../src/components/sections/impact.tsx) | 59 | `#dampak` | One-screen problem statement (`PROBLEMS`) + one-line solution |
 | [`scoring.tsx`](../src/components/sections/scoring.tsx) | 41 | `#scoring` | The six `CRITERIA` as numbered circles in a 1/2/3-col grid |
-| [`trust.tsx`](../src/components/sections/trust.tsx) | 62 | `#trust` | The competition theme argued on the page — `TRUST_GUARANTEES` as 2×2 cards, each naming where it is enforced |
 | [`map-section.tsx`](../src/components/sections/map-section.tsx) | 60 | `#reviews` | Dark ink band; says how many kos match when the filter narrows; passes the filtered kos list and the `filter` to `<MapFrame/>` + `<KosSidebar/>`; fixes the map's height (440/460/520px) |
 | [`browse.tsx`](../src/components/sections/browse.tsx) | 170 | `#browse` | Filter bar (kota / budget / urutkan) as a GET form, result count, reset link, every filtered kos as a `KosCard` in a `KosCarousel`, empty state |
 | [`cta.tsx`](../src/components/sections/cta.tsx) | 105 | `#login` | Amber band; copy + either `<AuthCard/>` or a signed-in summary with the verification badge |

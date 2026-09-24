@@ -238,13 +238,13 @@ state. `src/lib/kos-browse.ts` is the reference.
 
 ## Claims about integrity
 
-The `#trust` section and the `ScoreProvenance` panel state, in public, what the
+The `ScoreProvenance` panel and the root `README.md` state, in public, what the
 database enforces. Treat them as part of the schema's contract:
 
 - Never add a claim there that a constraint, policy, or trigger does not back.
 - If you weaken a policy in `supabase/migrations/`, remove the matching claim in
-  the same change — `TRUST_GUARANTEES` in `src/data/kos.ts` and the table in the
-  root `README.md`.
+  the same change — the `ScoreProvenance` copy and the table in the root
+  `README.md`.
 - A false claim here is worse than no claim: the competition theme is
   trustworthiness, and a judge can read the migrations.
 - **No typed-in statistics, anywhere on the site.** Counts are computed from

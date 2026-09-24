@@ -200,10 +200,7 @@ function ScoreProvenance({
       )}
 
       <p className="mt-3 text-sm font-medium text-muted">
-        Satu review per orang per kos.{" "}
-        <Link href="/#trust" className="font-bold text-ink underline">
-          Bagaimana ini ditegakkan
-        </Link>
+        Satu review per orang per kos.
       </p>
     </aside>
   );

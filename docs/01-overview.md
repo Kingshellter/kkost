@@ -57,8 +57,8 @@ enforced.
 
 ## What actually works today
 
-- ✅ Landing page at `/` — navbar, hero, impact (`#dampak` + `#sdg`), scoring, trust,
-  map, browse, CTA
+- ✅ Landing page at `/` — navbar, hero, impact (`#dampak`), scoring, map,
+  browse, CTA
 - ✅ **Kos detail page at `/kos/[id]`** — per-facility averages, review list,
   review form
 - ✅ **Nationwide scope** — every kos stores its own `city` and optional
@@ -88,7 +88,9 @@ enforced.
 - ✅ **Honest headline numbers** — the hero's review / kos / city counts are
   counted from the data, and the hero card shows the featured kos's real
   per-facility averages and its newest written review
-- ✅ **Problem statement and SDG mapping on the page** — the `#dampak` section
+- ✅ **Problem statement on the page** — the `#dampak` section. The SDG
+  mapping lives only in the root `README.md` (the on-page `#sdg` section was
+  removed 24 Sep 2026 at the team's request)
 - ✅ **All copy in Indonesian**, numbers formatted `id-ID`
 - ✅ **Labelled demo reviews** — `supabase/seed_demo_reviews.sql` seeds four
   accounts flagged `profiles.is_demo` (no password, `.invalid` email); every
@@ -106,9 +108,10 @@ enforced.
   `kos.created_by`. Applied and verified live (constraints, `auth.uid()`
   default, insert policy, no client grant on `created_by`); linter shows no
   new findings
-- ✅ **The theme, argued on the page** — a `#trust` section listing each
-  integrity guarantee and where it is enforced, plus a "dari mana angka ini"
-  panel on every kos detail page
+- ✅ **The theme, argued on the page** — a "dari mana angka ini" panel on
+  every kos detail page. The landing page's `#trust` section (four guarantee
+  cards) was removed 24 Sep 2026 at the team's request; the guarantees are
+  still listed in the root `README.md`
 - ✅ Graceful degradation with no Supabase credentials (demo data under a
   "Mode contoh" notice, session-scoped)
 - ✅ Supabase session refresh in `src/proxy.ts`
@@ -135,6 +138,13 @@ enforced.
   screen tall from `lg` up (verified at 1440×900, 1280×800, 1366×768); the
   kos list is a swipeable carousel. Phones keep natural heights
 
+- ✅ **Live at <https://kkost.vercel.app>** — Vercel project `kkost` (team
+  ATOM), deployed from branch `ui-h-1`; both Supabase env vars set for
+  Production before the build. Checked 24 Sep 2026: `/` reads live data (no
+  "Mode contoh"), `/kos/[id]` 200, `/kos/salah` 404, security headers
+  present, no runtime or console errors. Preview deployments have **no** env
+  vars (Production only)
+
 ## What does NOT exist yet
 
 - ❌ **Owner replies.** The pitch says owners can reply but never delete; the
@@ -155,8 +165,6 @@ enforced.
   HaveIBeenPwned. It is toggled in the Supabase dashboard, not in a migration
   — and only on the Pro plan; this project is on FREE, so it stays off.
 - ❌ **Tests.** No test runner configured.
-- ❌ **Live deployment.** The guidebook's proposal asks for a "Link
-  Website/Demo"; none exists yet (see `08-roadmap.md` step 8).
 
 ## Environment
 

@@ -17,9 +17,8 @@ RootLayout (app/layout.tsx)  — html lang="id", Jakarta font, bg-cream
     ├── <Navbar/>                       server
     └── <main>
         ├── <Hero/>          #(top)     server  ← all kos: live stats, featured kos
-        ├── <Impact/>        #dampak    server  ← problem statement + SDGs
+        ├── <Impact/>        #dampak    server  ← problem statement
         ├── <Scoring/>       #scoring   server
-        ├── <Trust/>         #trust     server
         ├── <MapSection/>    #reviews   server  ← filtered kos; hosts the client island
         ├── <Browse/>        #browse    server  ← filtered kos + filter form
         └── <Cta/>           #login     server
@@ -50,7 +49,8 @@ the list is large enough for that to matter.
 
 Within `/`, anchor ids are the navigation, and every entry in `NAV_LINKS` now
 resolves — the old "For owners" link pointed at `#owners`, which no section
-defined, and was replaced by "Kenapa terpercaya" → `#trust`. Kos cards and the map
+defined, and was replaced by "Kenapa terpercaya" → `#trust`, which was itself
+removed with that section on 24 Sep 2026. Kos cards and the map
 sidebar link out to `/kos/[id]`.
 
 ## Server / client boundary

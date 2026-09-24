@@ -217,7 +217,6 @@ export const CRITERIA = [
 export const NAV_LINKS = [
   { label: "Dampak", href: "/#dampak" },
   { label: "Cara menilai", href: "/#scoring" },
-  { label: "Kenapa terpercaya", href: "/#trust" },
   { label: "Cari kos", href: "/#browse" },
 ] as const;
 
@@ -240,89 +239,5 @@ export const PROBLEMS = [
     title: "Mahasiswa baru memilih dari jauh",
     detail:
       "Banyak yang harus menyewa sebelum pernah melihat kotanya, justru saat informasi yang mereka punya paling sedikit.",
-  },
-];
-
-/**
- * SDG contribution, shown on the page and mirrored in the root README. Each
- * target number is a real SDG target; keep the two in sync.
- */
-export const SDG_GOALS = [
-  {
-    number: 11,
-    name: "Kota dan Permukiman Berkelanjutan",
-    target: "11.1",
-    detail:
-      "Akses ke hunian yang layak, aman, dan terjangkau. Kamar, kamar mandi, dan parkir dinilai sebagai indikator kelayakan, berdampingan dengan harga.",
-    accent: "amber" as Accent,
-    primary: true,
-  },
-  {
-    number: 6,
-    name: "Air Bersih dan Sanitasi",
-    target: "6.2",
-    detail:
-      "Dua dari enam kriteria — air dan kamar mandi — adalah indikator sanitasi langsung yang selama ini tidak terdokumentasi.",
-    accent: "sky" as Accent,
-    primary: false,
-  },
-  {
-    number: 4,
-    name: "Pendidikan Berkualitas",
-    target: "4.3",
-    detail:
-      "Akses setara ke pendidikan tinggi juga soal tempat tinggal yang terjangkau. Filter budget dan jarak ke kampus membantu menemukannya.",
-    accent: "rose" as Accent,
-    primary: false,
-  },
-  {
-    number: 9,
-    name: "Industri, Inovasi, dan Infrastruktur",
-    target: "9.c",
-    detail:
-      "Akses internet diperlakukan sebagai kebutuhan belajar, bukan fasilitas tambahan: WiFi diukur di kamar, bukan di lobi.",
-    accent: "blue" as Accent,
-    primary: false,
-  },
-];
-
-/**
- * The competition theme is "NextGen Secure: Building the Future of Trusted Web
- * Ecosystems", and these are kkost's answer to it. Every claim here is enforced
- * by a database constraint, policy, trigger, or privilege — never by the
- * interface.
- *
- * Keep this list honest: if a guarantee stops being true in
- * supabase/migrations/, it comes out of here the same day. Nothing about owner
- * replies belongs here until replies exist.
- */
-export const TRUST_GUARANTEES = [
-  {
-    where: "Trigger database",
-    claim: "Skor dihitung, tidak pernah diketik",
-    detail:
-      "Skor setiap kos dihitung ulang database begitu ada review yang berubah. Tidak ada peran pengguna yang punya hak menulis kolom skor — lewat API sekalipun.",
-    accent: "rose" as Accent,
-  },
-  {
-    where: "Row level security",
-    claim: "Pemilik kos tidak bisa menghapus review",
-    detail:
-      "Hak menghapus review hanya dimiliki penulisnya. Bukan disembunyikan dari tampilan — haknya memang tidak pernah diberikan.",
-    accent: "amber" as Accent,
-  },
-  {
-    where: "Unique constraint",
-    claim: "Satu review per orang, per kos",
-    detail:
-      "Ditegakkan oleh tabelnya sendiri, jadi review kedua ditolak database, bukan oleh pengecekan yang bisa dilewati aplikasi.",
-    accent: "blue" as Accent,
-  },
-  {
-    where: "Server action",
-    claim: "Browser tidak pernah dipercaya",
-    detail:
-      "Formulir review hanya menyebut kos mana dan berapa skornya. Siapa penulisnya dibaca ulang dari sesi di server, dan setiap isian divalidasi di sana.",
-    accent: "sky" as Accent,
   },
 ];

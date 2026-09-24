@@ -113,7 +113,7 @@ Both in [`globals.css`](../src/app/globals.css), both disabled under
   `entry 40%`). Behind `@supports`, so a browser without scroll timelines shows
   the content untouched rather than hidden. Put it on a section's inner
   container, not on the coloured `<section>` itself, and not on the hero —
-  it is above the fold. Currently on `#dampak`, `#scoring`, `#trust`, the map
+  it is above the fold. Currently on `#dampak`, `#scoring`, the map
   band, `#browse` and `#login`.
 - **`.drift`** — a circle inside one section moves from +40px to −40px while
   that section crosses the screen (`view()` timeline).
@@ -147,9 +147,6 @@ z-index: the hint pill and toast are `z-[500]`, and `AddKosDialog` is `z-[1000]`
 Indonesian app copy; UI/UX is 25% of the competition score and the mix read as
 unfinished, so it was unified.
 
-- The only English left is the name of where a guarantee is enforced on the
-  trust cards (`Row level security`, `Unique constraint`, `Server action`) —
-  those are the terms a reader would look up.
 - Numbers go through `lib/format.ts`, which formats with `id-ID`:
   `Rp950.000`, `1,1 km`, `11.907`.
 - `<html lang="id">`
@@ -164,7 +161,6 @@ a phone cannot hold six criteria or a card grid in one screen.
 
 Measured to fit at 1440×900, 1280×800 and 1366×768. What made that possible:
 
-- **`#dampak` is two screens**: `#dampak` (problem + solution) and `#sdg`.
 - **`#browse` is one swipeable row** — `KosCarousel`
   ([`kos-carousel.tsx`](../src/components/ui/kos-carousel.tsx)): snap
   scrolling, three cards visible on `lg`, two on `sm`, 85% width on a phone
@@ -177,8 +173,7 @@ Measured to fit at 1440×900, 1280×800 and 1366×768. What made that possible:
 - **`short:`** — a custom variant in `globals.css`,
   `(width >= 64rem) and (height <= 860px)`. Registered after the breakpoints,
   so it overrides `lg:`. Only the dense sections use it: `#scoring` (smaller
-  number circles), `#trust` (tighter cards, footnote hidden), `#browse`
-  (140px card images), `#dampak`/`#sdg` (less padding).
+  number circles), `#browse` (140px card images), `#dampak` (less padding).
 
 After changing any section's content, re-measure: every `main > section`
 should be `innerHeight` tall at those three sizes (hero: `innerHeight − 87`).

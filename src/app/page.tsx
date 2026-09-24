@@ -5,7 +5,6 @@ import { Impact } from "@/components/sections/impact";
 import { MapSection } from "@/components/sections/map-section";
 import { Navbar } from "@/components/sections/navbar";
 import { Scoring } from "@/components/sections/scoring";
-import { Trust } from "@/components/sections/trust";
 import { getSessionUser } from "@/lib/auth";
 import {
   applyKosFilter,
@@ -61,7 +60,6 @@ export default async function Home(props: PageProps<"/">) {
         />
         <Impact />
         <Scoring />
-        <Trust />
         <MapSection
           kos={kos}
           signedIn={Boolean(user)}

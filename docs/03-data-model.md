@@ -71,13 +71,10 @@ Three conventions worth burning in:
 | `INDONESIA` | `{ center: [-2.5, 118], zoom: 5 }` — the map's fallback view when there is nothing to fit to |
 | `KOS_LIST` | 4 demo kos with **invented** scores — shown only when Supabase is not configured, never on a database error (see [Reads](#reads)) |
 | `CRITERIA` | The six scoring criteria (`key`, number, title, description, accent) |
-| `TRUST_GUARANTEES` | The four claims rendered by the `#trust` section, each naming where it is enforced. **Keep honest** — if a guarantee stops being true in `supabase/migrations/`, remove it here the same day |
 | `NAV_LINKS` | Navbar anchors, in page order, rooted at `/` (`/#dampak`, not `#dampak`) so they work from `/kos/[id]` too. `as const` — `SectionLink` requires the `/#…` literal type |
 | `PROBLEMS` | Three problem cards for `#dampak`. Qualitative on purpose — no unsourced figures |
-| `SDG_GOALS` | The four SDGs (number, name, real target id, detail, accent, `primary`) shown on `#dampak`; mirrored in the root README |
 
-`INDONESIA`, `CRITERIA`, `NAV_LINKS`, `PROBLEMS`, `SDG_GOALS` and
-`TRUST_GUARANTEES` are static copy, all in Indonesian. `KOS_LIST` exists only
+`INDONESIA`, `CRITERIA`, `NAV_LINKS` and `PROBLEMS` are static copy, all in Indonesian. `KOS_LIST` exists only
 for a checkout without credentials — the real list comes from Supabase.
 
 The hero's headline numbers are **not** static: `summarizeKos` in

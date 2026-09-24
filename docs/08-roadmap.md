@@ -91,7 +91,8 @@ digantikan `0010`.
 
 ## 4. Sebelum submit (wajib — pengumpulan BATCH II ditutup 27 September 2026)
 
-- [ ] **Deploy.** Guidebook (bagian F, Lampiran proposal) meminta
+- [x] **Deploy.** *(Selesai 24 Sep 2026: <https://kkost.vercel.app>, dari
+      branch `ui-h-1`.)* Guidebook (bagian F, Lampiran proposal) meminta
       "Link Website/Demo". Mis. Vercel: impor repo, isi dua env var, deploy.
       `next.config.ts` membaca `NEXT_PUBLIC_SUPABASE_URL` saat build untuk
       mengizinkan gambar dari bucket — env var harus ada **sebelum** build.
@@ -101,8 +102,8 @@ digantikan `0010`.
 - [ ] `npm run lint`, `npx tsc --noEmit`, `npm run build` — terakhir bersih
       pada 19 September 2026; ulangi setelah perubahan apa pun.
 - [ ] Siapkan skenario demo/presentasi: masalah (hero: "Iklan kos ditulis
-      pemiliknya") → solusi → tunjukkan bagian `#trust` dan panel "Dari mana
-      angka ini" sebagai jawaban atas tema.
+      pemiliknya") → solusi → tunjukkan panel "Dari mana angka ini" di halaman
+      detail kos sebagai jawaban atas tema (bagian `#trust` sudah dihapus).
 
 ## Selesai 19 September 2026 (untuk konteks; hapus setelah dibaca)
 
