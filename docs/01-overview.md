@@ -53,12 +53,16 @@ enforced.
 | Geocoding | **Nominatim** (OpenStreetMap), called over `fetch` | No SDK, no key, no env var — the place search keeps working on a bare checkout. Its usage policy is why the search box debounces; see [`src/lib/geocode.ts`](../src/lib/geocode.ts) |
 | Forms | react-hook-form + zod 4 + `@hookform/resolvers` | |
 | Client state | zustand 5 | One tiny store |
-| Icons | lucide-react | Installed; **not yet imported anywhere** |
+| Icons | lucide-react | Used since Fase 4a for the six criteria in `HowItWorks`; the only icon family |
 
 ## What actually works today
 
-- ✅ Landing page at `/` — navbar, hero, impact (`#dampak`), scoring, map,
-  browse, CTA
+- ✅ Landing page at `/` — navbar, hero, **Cara kerja** (`#cara-kerja`:
+  the problem on the left, the six criteria on the right), map (`#peta`),
+  browse (`#browse`), sign-in (`#login`), footer. Redesigned in UI-revamp
+  Fase 4a (25 Sep 2026): the old `#dampak` and `#scoring` sections were merged
+  so the kos list starts at ±4,500px on a phone instead of ±6,800px (page
+  9,254px → ±6,750px); both old anchors still land, on the two halves
 - ✅ **Kos detail page at `/kos/[id]`** — per-facility averages, review list,
   review form
 - ✅ **Nationwide scope** — every kos stores its own `city` and optional
@@ -80,7 +84,9 @@ enforced.
 - ✅ "Add kos" dialog: area and city pre-filled from the clicked point
   (Nominatim reverse geocoding, editable) → validated form → Supabase insert →
   pin appears. No distance field
-- ✅ **Responsive navbar** with a mobile menu
+- ✅ **Responsive navbar** with a mobile menu — **sticky below `lg`** (the
+  phone page is long; from `lg` it scrolls away with the one-screen sections).
+  Links: Cara kerja, Peta, Cari kos
 - ✅ **Filter & sort** — city, budget ceiling and sort order (score, price,
   distance to campus) live in the URL: `/?kota=&harga=&urut=#browse`. The hero
   search and the browse filter are plain GET forms, so it works without
@@ -88,7 +94,8 @@ enforced.
 - ✅ **Honest headline numbers** — the hero's review / kos / city counts are
   counted from the data, and the hero card shows the featured kos's real
   per-facility averages and its newest written review
-- ✅ **Problem statement on the page** — the `#dampak` section. The SDG
+- ✅ **Problem statement on the page** — the left half of `#cara-kerja`
+  (anchor `#dampak`). The SDG
   mapping lives only in the root `README.md` (the on-page `#sdg` section was
   removed 24 Sep 2026 at the team's request)
 - ✅ **All copy in Indonesian**, numbers formatted `id-ID`
@@ -129,6 +136,7 @@ enforced.
   **"Publik"** (navbar, CTA card); review cards say "Mahasiswa terverifikasi".
   It proves a campus inbox, not tenancy. Tested end to end with a real inbox
   on 19 Sep 2026
+- ✅ **Footer** on `/` — tagline, nav links, OpenStreetMap data credit
 - ✅ **Indonesian error and 404 pages** (`app/error.tsx`, `app/not-found.tsx`)
   and basic security headers in `next.config.ts`
 - ✅ **Map respects the URL filter for kos added this session**, the toast

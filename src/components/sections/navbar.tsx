@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { buttonClass } from "@/components/ui/controls";
 import { SectionLink } from "@/components/ui/section-link";
 import { Logo } from "@/components/ui/logo";
 import { NAV_LINKS } from "@/data/kos";
@@ -9,11 +10,15 @@ import { MobileNav } from "./mobile-nav";
 export async function Navbar() {
   const user = await getSessionUser();
 
+  // Sticky below lg only: on a phone the page runs 7,000px+ and the menu is
+  // the way around it. From lg up every section is one screen and the page
+  // is short enough to scroll back; a pinned bar there would also cover the
+  // top of each one-screen section.
   return (
-    <header className="relative z-30 px-4 pt-5 sm:px-6 lg:px-10">
+    <header className="sticky top-0 z-(--z-nav) px-4 pt-5 sm:px-6 lg:relative lg:px-10">
       <nav
         aria-label="Utama"
-        className="relative mx-auto flex max-w-[1240px] items-center gap-6 rounded-full bg-white px-5 py-3 shadow-[var(--shadow-lift)] sm:px-6"
+        className="relative mx-auto flex max-w-page items-center gap-6 rounded-full bg-white px-5 py-3 shadow-lift sm:px-6"
       >
         <Link href="/" className="shrink-0">
           <Logo />
@@ -24,7 +29,7 @@ export async function Navbar() {
             <li key={link.href}>
               <SectionLink
                 href={link.href}
-                className="text-[15px] font-bold text-ink transition-colors hover:text-rose"
+                className="text-base font-bold text-ink transition-colors hover:text-action"
               >
                 {link.label}
               </SectionLink>
@@ -47,10 +52,7 @@ export async function Navbar() {
                 </span>
               )}
               <form action={signOut}>
-                <button
-                  type="submit"
-                  className="rounded-full bg-cream px-5 py-2.5 text-[15px] font-bold text-ink transition-colors hover:bg-cream-deep"
-                >
+                <button type="submit" className={buttonClass("soft", "sm")}>
                   Keluar
                 </button>
               </form>
@@ -58,7 +60,7 @@ export async function Navbar() {
           ) : (
             <SectionLink
               href="/#login"
-              className="hidden rounded-full bg-ink px-6 py-2.5 text-[15px] font-bold text-white transition-transform hover:-translate-y-0.5 sm:block"
+              className={buttonClass("dark", "sm", "max-sm:hidden")}
             >
               Masuk
             </SectionLink>

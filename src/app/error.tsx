@@ -1,6 +1,7 @@
 "use client"; // Error boundaries must be Client Components
 
 import Link from "next/link";
+import { buttonClass } from "@/components/ui/controls";
 import { Logo } from "@/components/ui/logo";
 
 /**
@@ -17,7 +18,7 @@ export default function Error({
 }) {
   return (
     <main className="flex flex-1 items-center justify-center px-4 py-24 sm:px-6">
-      <div className="w-full max-w-[520px] rounded-[var(--radius-panel)] bg-white p-8 text-center shadow-[var(--shadow-float)] sm:p-10">
+      <div className="w-full max-w-[520px] rounded-panel bg-white p-8 text-center shadow-float sm:p-10">
         <div className="flex justify-center">
           <Logo />
         </div>
@@ -37,13 +38,13 @@ export default function Error({
           <button
             type="button"
             onClick={() => retry()}
-            className="flex-1 rounded-full bg-rose py-3.5 text-[15px] font-extrabold text-white transition-transform hover:-translate-y-0.5"
+            className={buttonClass("primary", "md", "flex-1")}
           >
             Coba lagi
           </button>
           <Link
             href="/"
-            className="flex-1 rounded-full bg-cream py-3.5 text-[15px] font-extrabold text-ink transition-colors hover:bg-cream-deep"
+            className={buttonClass("soft", "md", "flex-1")}
           >
             Ke beranda
           </Link>

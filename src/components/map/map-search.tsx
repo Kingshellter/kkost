@@ -154,7 +154,7 @@ export function MapSearch({ onPick, onClear }: Props) {
         <label htmlFor={`${listId}-input`} className="sr-only">
           Cari jalan atau tempat
         </label>
-        <div className="flex items-center gap-2 rounded-full bg-white/95 py-2 pl-4 pr-2 shadow-[var(--shadow-lift)] focus-within:ring-2 focus-within:ring-blue">
+        <div className="flex items-center gap-2 rounded-full bg-white/95 py-1.5 pl-4 pr-1.5 shadow-lift focus-within:ring-2 focus-within:ring-focus">
           <SearchIcon />
           <input
             id={`${listId}-input`}
@@ -174,14 +174,14 @@ export function MapSearch({ onPick, onClear }: Props) {
             onKeyDown={onKeyDown}
             // The last variant hides WebKit's own clear button, which would
             // otherwise sit next to ours doing the same job.
-            className="min-w-0 flex-1 bg-transparent py-1 text-[13px] font-bold text-ink outline-none placeholder:font-semibold placeholder:text-muted [&::-webkit-search-cancel-button]:hidden"
+            className="min-w-0 flex-1 bg-transparent py-1.5 text-base font-bold text-ink outline-none placeholder:font-medium placeholder:text-muted [&::-webkit-search-cancel-button]:hidden"
           />
           {query && (
             <button
               type="button"
               onClick={clear}
               aria-label="Hapus pencarian"
-              className="shrink-0 rounded-full bg-cream px-2.5 py-1 text-[13px] font-extrabold leading-5 text-muted transition-colors hover:bg-cream-deep hover:text-ink"
+              className="grid size-9 shrink-0 place-items-center rounded-full bg-cream text-base font-extrabold text-muted transition-[background-color,color,scale] duration-(--duration-fast) ease-out hover:bg-cream-deep hover:text-ink active:scale-(--press-scale) active:duration-(--duration-press)"
             >
               ×
             </button>
@@ -194,22 +194,22 @@ export function MapSearch({ onPick, onClear }: Props) {
           id={listId}
           role="listbox"
           aria-label="Hasil pencarian tempat"
-          className="absolute left-0 right-0 top-[calc(100%+0.5rem)] max-h-64 overflow-y-auto rounded-[var(--radius-card)] bg-white p-2 shadow-[var(--shadow-float)]"
+          className="absolute left-0 right-0 top-[calc(100%+0.5rem)] max-h-64 overflow-y-auto rounded-media bg-white p-2 shadow-float"
         >
           {loading && (
-            <li className="px-3 py-2.5 text-[13px] font-bold text-muted">
+            <li className="px-3 py-2.5 text-sm font-bold text-muted">
               Mencari…
             </li>
           )}
 
           {!loading && error && (
-            <li className="px-3 py-2.5 text-[13px] font-bold text-rose">
+            <li className="px-3 py-2.5 text-sm font-bold text-danger">
               {error}
             </li>
           )}
 
           {!loading && !error && places.length === 0 && (
-            <li className="px-3 py-2.5 text-[13px] font-bold text-muted">
+            <li className="px-3 py-2.5 text-sm font-bold text-muted">
               Tidak ada tempat yang cocok.
             </li>
           )}
@@ -227,15 +227,15 @@ export function MapSearch({ onPick, onClear }: Props) {
                   onMouseEnter={() => setActive(index)}
                   className={
                     index === active
-                      ? "block w-full rounded-2xl bg-cream px-3 py-2.5 text-left"
-                      : "block w-full rounded-2xl px-3 py-2.5 text-left"
+                      ? "block w-full rounded-box bg-cream px-3 py-2.5 text-left transition-colors"
+                      : "block w-full rounded-box px-3 py-2.5 text-left transition-colors"
                   }
                 >
-                  <span className="block truncate text-[13px] font-extrabold text-ink">
+                  <span className="block truncate text-sm font-extrabold text-ink">
                     {place.name}
                   </span>
                   {place.detail && (
-                    <span className="mt-0.5 block truncate text-[12px] font-medium text-muted">
+                    <span className="mt-0.5 block truncate text-xs font-medium text-muted">
                       {place.detail}
                     </span>
                   )}

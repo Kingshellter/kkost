@@ -11,7 +11,7 @@ import type { KosFilter } from "@/lib/kos-browse";
 const KosMap = dynamic(() => import("./kos-map"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-full w-full items-center justify-center bg-[#eee9e1] text-sm font-bold text-muted">
+    <div className="flex h-full w-full items-center justify-center bg-map text-sm font-bold text-muted">
       Memuat peta…
     </div>
   ),

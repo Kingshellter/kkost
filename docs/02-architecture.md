@@ -14,14 +14,14 @@ sections inside a `<main>`:
 ```
 RootLayout (app/layout.tsx)  — html lang="id", Jakarta font, bg-cream
 └── page.tsx
-    ├── <Navbar/>                       server
-    └── <main>
-        ├── <Hero/>          #(top)     server  ← all kos: live stats, featured kos
-        ├── <Impact/>        #dampak    server  ← problem statement
-        ├── <Scoring/>       #scoring   server
-        ├── <MapSection/>    #reviews   server  ← filtered kos; hosts the client island
-        ├── <Browse/>        #browse    server  ← filtered kos + filter form
-        └── <Cta/>           #login     server
+    ├── <Navbar/>                       server  ← sticky below lg
+    ├── <main>
+    │   ├── <Hero/>          #(top)     server  ← all kos: live stats, featured kos
+    │   ├── <HowItWorks/>    #cara-kerja server ← problem (#dampak) + six criteria (#scoring)
+    │   ├── <MapSection/>    #peta      server  ← filtered kos; hosts the client island
+    │   ├── <Browse/>        #browse    server  ← filtered kos + filter form
+    │   └── <Cta/>           #login     server
+    └── <Footer/>                       server
 ```
 
 ## The URL filter
@@ -67,7 +67,7 @@ Almost everything is a Server Component. These files carry `"use client"`:
 | `components/auth/auth-card.tsx` | `useActionState`, sign-in/sign-up tab state |
 | `components/review/review-form.tsx` | `useActionState`, radio-group state, photo picker; uploads photos from the browser after the action returns |
 | `app/error.tsx` | Error boundaries must be client components |
-| `components/sections/mobile-nav.tsx` | Disclosure state for the mobile menu |
+| `components/sections/mobile-nav.tsx` | Disclosure state for the mobile menu; closes on Escape, on a link, and on a tap outside it |
 | `store/kos-store.ts` | zustand |
 
 The repositories in `lib/` are **not** client modules any more. Every function

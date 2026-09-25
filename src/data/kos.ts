@@ -223,17 +223,17 @@ export const CRITERIA = [
 
 /**
  * In page order, so the menu reads top to bottom like the page does. Rooted at
- * `/`: the navbar is on every page, and a bare `#dampak` on `/kos/[id]` would
+ * `/`: the navbar is on every page, and a bare `#peta` on `/kos/[id]` would
  * only append a hash to the detail page's URL.
  */
 export const NAV_LINKS = [
-  { label: "Dampak", href: "/#dampak" },
-  { label: "Cara menilai", href: "/#scoring" },
+  { label: "Cara kerja", href: "/#cara-kerja" },
+  { label: "Peta", href: "/#peta" },
   { label: "Cari kos", href: "/#browse" },
 ] as const;
 
 /**
- * The problem statement on the `#dampak` section. Qualitative on purpose: no
+ * The problem statement, left half of `#cara-kerja` (anchor `#dampak`). Qualitative on purpose: no
  * figure appears here that the project cannot source.
  */
 export const PROBLEMS = [
@@ -245,7 +245,7 @@ export const PROBLEMS = [
   {
     title: "Ulasan tercecer dan bisa hilang",
     detail:
-      "Pengalaman penghuni tersebar di grup chat dan kolom komentar — tanpa struktur, tidak bisa dibandingkan, dan bisa dihapus pengelolanya.",
+      "Pengalaman penghuni tersebar di grup chat dan kolom komentar: tanpa struktur, tidak bisa dibandingkan, dan bisa dihapus pengelolanya.",
   },
   {
     title: "Mahasiswa baru memilih dari jauh",

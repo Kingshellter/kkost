@@ -34,7 +34,7 @@ export function BoundaryCircle({
  * as literals so Tailwind sees every class.
  */
 export const SEAMS = {
-  /** Hero (cream) → Dampak (white). */
+  /** Hero (cream) → Cara kerja (white). */
   heroImpact:
     "-left-28 h-[260px] w-[260px] bg-lavender lg:-left-24 lg:h-[380px] lg:w-[380px]",
   /** Map band (ink) → Cari kos (cream). */

@@ -38,7 +38,7 @@ export function KosPhoto({
       </svg>
 
       {showLabel && (
-        <span className="absolute bottom-3 left-3 rounded-full bg-white/90 px-3 py-1 text-[11px] font-extrabold tracking-[0.04em] text-ink">
+        <span className="absolute bottom-3 left-3 rounded-full bg-white/90 px-3 py-1 text-xs font-extrabold tracking-wide text-ink">
           Ilustrasi
         </span>
       )}

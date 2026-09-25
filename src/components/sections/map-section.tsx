@@ -18,8 +18,8 @@ export function MapSection({
   const narrowed = isNarrowed(filter);
   return (
     <section
-      id="reviews"
-      className="relative overflow-hidden bg-ink px-4 py-24 sm:px-6 lg:flex lg:min-h-svh lg:flex-col lg:justify-center lg:px-10 lg:py-14"
+      id="peta"
+      className="relative scroll-mt-24 overflow-hidden bg-ink px-4 py-section sm:px-6 lg:scroll-mt-0 lg:flex lg:min-h-svh lg:flex-col lg:justify-center lg:px-10 lg:py-14"
     >
       {/* Decorative ring + blob from the deck */}
       <div
@@ -33,10 +33,9 @@ export function MapSection({
       <BoundaryCircle edge="bottom" circle={SEAMS.mapBrowse}
       />
 
-      <div className="reveal relative mx-auto w-full max-w-[1240px]">
+      <div className="reveal relative mx-auto w-full max-w-page">
         <div className="text-center">
-          <p className="eyebrow bg-white/10 text-amber">Di mana saja</p>
-          <h2 className="mt-7 text-[clamp(2.25rem,5vw,3.5rem)] font-extrabold leading-[1.02] tracking-[-0.03em] text-white lg:mt-6 lg:text-[3rem]">
+          <h2 className="font-extrabold text-white text-title">
             Semua kos di peta
           </h2>
           <p className="mx-auto mt-5 max-w-[52ch] text-lg text-white/70 lg:mt-4">
@@ -49,7 +48,7 @@ export function MapSection({
         {/* On a laptop the map row's height comes from the screen (everything
             else in the band is ~345px), and the sidebar scrolls inside it. */}
         <div className="mt-14 grid gap-7 lg:mt-10 lg:h-[clamp(360px,calc(100svh-345px),600px)] lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="h-[440px] overflow-hidden rounded-[var(--radius-panel)] shadow-[var(--shadow-float)] sm:h-[460px] lg:h-full">
+          <div className="h-[440px] overflow-hidden rounded-panel shadow-float sm:h-[460px] lg:h-full">
             <MapFrame kos={kos} signedIn={signedIn} filter={filter} />
           </div>
 

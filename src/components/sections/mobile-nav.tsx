@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { buttonClass } from "@/components/ui/controls";
 import { SectionLink } from "@/components/ui/section-link";
 import { NAV_LINKS } from "@/data/kos";
 
@@ -11,23 +12,33 @@ import { NAV_LINKS } from "@/data/kos";
  */
 export function MobileNav({ signedIn }: { signedIn: boolean }) {
   const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
 
-  // Escape closes, and the menu never survives a jump to a new anchor.
+  // Escape closes, a tap anywhere outside the menu closes, and the menu never
+  // survives a jump to a new anchor. Pointerdown rather than click, so the
+  // menu is already gone when the tap lands on whatever was under it.
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const onPointerDown = (e: PointerEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
   }, [open]);
 
   return (
-    <div className="lg:hidden">
+    <div ref={rootRef} className="lg:hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-controls="mobile-nav"
-        className="flex h-10 w-10 flex-col items-center justify-center gap-[5px] rounded-full bg-cream"
+        className="flex size-11 flex-col items-center justify-center gap-[5px] rounded-full bg-cream transition-[background-color,scale] duration-(--duration-fast) ease-out hover:bg-cream-deep active:scale-(--press-scale) active:duration-(--duration-press)"
       >
         <span className="sr-only">{open ? "Tutup menu" : "Buka menu"}</span>
         <span
@@ -53,7 +64,7 @@ export function MobileNav({ signedIn }: { signedIn: boolean }) {
       {open && (
         <div
           id="mobile-nav"
-          className="absolute left-4 right-4 top-[calc(100%+8px)] rounded-[var(--radius-panel)] bg-white p-4 shadow-[var(--shadow-float)] sm:left-6 sm:right-6"
+          className="absolute left-4 right-4 top-[calc(100%+8px)] rounded-panel bg-white p-4 shadow-float sm:left-6 sm:right-6"
         >
           <ul className="space-y-1">
             {NAV_LINKS.map((link) => (
@@ -61,7 +72,7 @@ export function MobileNav({ signedIn }: { signedIn: boolean }) {
                 <SectionLink
                   href={link.href}
                   onClick={() => setOpen(false)}
-                  className="block rounded-full px-4 py-3 text-[15px] font-bold text-ink hover:bg-cream"
+                  className="block rounded-full px-4 py-3 text-base font-bold text-ink transition-colors duration-(--duration-fast) hover:bg-cream active:bg-cream-deep"
                 >
                   {link.label}
                 </SectionLink>
@@ -72,7 +83,7 @@ export function MobileNav({ signedIn }: { signedIn: boolean }) {
                 <SectionLink
                   href="/#login"
                   onClick={() => setOpen(false)}
-                  className="mt-1 block rounded-full bg-ink px-4 py-3 text-center text-[15px] font-bold text-white"
+                  className={buttonClass("dark", "md", "mt-1 w-full")}
                 >
                   Masuk
                 </SectionLink>

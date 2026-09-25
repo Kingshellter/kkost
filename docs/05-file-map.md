@@ -11,7 +11,7 @@ map exists so you can read *only the right one*.
 | [`src/app/layout.tsx`](../src/app/layout.tsx) | 25 | Root layout. `lang="id"`, Jakarta font variable, `bg-cream text-ink`, site `metadata` (title/description) |
 | [`src/app/page.tsx`](../src/app/page.tsx) | 140 | Route `/`. Renders `ConfirmNotice` for `?konfirmasi=`. Loads the kos list (and its `source`), session and `searchParams`; renders `DataNotice` when not showing the real database; parses the URL filter; fetches the featured kos's reviews; stacks Navbar + 6 sections |
 | [`src/app/kos/[id]/page.tsx`](../src/app/kos/[id]/page.tsx) | 218 | Route `/kos/[id]`. Kos header with a `KosPhoto` banner, `ScoreProvenance` panel, per-facility averages, review list, and either the review form, a sign-in prompt, or "sudah menilai" |
-| [`src/app/globals.css`](../src/app/globals.css) | 125 | Tailwind v4 `@theme inline` tokens, `eyebrow` utility, motion (`.reveal` fade-up, `.drift` / `.drift-page` circle parallax — all scroll-driven, all off for reduced motion), all Leaflet overrides |
+| [`src/app/globals.css`](../src/app/globals.css) | 326 | Tailwind v4 `@theme inline` tokens, `eyebrow` utility, motion (`.reveal` fade-up, `.drift` / `.drift-page` circle parallax — all scroll-driven, all off for reduced motion), all Leaflet overrides |
 | [`src/app/error.tsx`](../src/app/error.tsx) | 55 | Client error boundary in Indonesian — "Coba lagi" (`retry()`, the Next 16 prop name) and a home link. Shown when `fetchKos` throws |
 | [`src/app/auth/confirm/route.ts`](../src/app/auth/confirm/route.ts) | 55 | `GET` handler for the sign-up confirmation link: `verifyOtp` (`token_hash`) or `exchangeCodeForSession` (`code`), then redirects to `/?konfirmasi=berhasil\|masuk\|gagal#login`. Exports the `ConfirmOutcome` type |
 | [`src/app/not-found.tsx`](../src/app/not-found.tsx) | 35 | Indonesian 404 with the navbar, for `notFound()` and unknown routes |
@@ -41,13 +41,15 @@ map exists so you can read *only the right one*.
 
 | File | ~n | Owns |
 |---|---|---|
-| [`accent.ts`](../src/components/ui/accent.ts) | 38 | `ACCENT_BG`, `ACCENT_ON`, `ACCENT_HEX`, `accentForScore` |
+| [`accent.ts`](../src/components/ui/accent.ts) | 56 | `ACCENT_BG`, `ACCENT_ON`, `ACCENT_HEX`, `accentForScore` + `SCORE_HIGH`/`SCORE_MID` |
+| [`controls.ts`](../src/components/ui/controls.ts) | 83 | `buttonClass()` and the field class strings (`INPUT_CLASS`, `SELECT_CLASS`, `TEXTAREA_CLASS`, `LABEL_CLASS`, `FIELD_ERROR_CLASS`, `NOTICE_CLASS`). Every button and form field takes its classes from here |
+| [`spinner.tsx`](../src/components/ui/spinner.tsx) | 14 | `Spinner` — the loading mark inside a busy button (with `aria-busy`) |
 | [`score-badge.tsx`](../src/components/ui/score-badge.tsx) | 42 | Circular score chip, 3 sizes, optional text label. Generic — knows nothing about kos |
 | [`kos-score-badge.tsx`](../src/components/ui/kos-score-badge.tsx) | 32 | `ScoreBadge` + the kos rule: `reviews === 0` renders a dark "Baru" chip instead of `0.0`. **Use this for any kos**, never `ScoreBadge` directly |
-| [`kos-card.tsx`](../src/components/ui/kos-card.tsx) | 57 | Kos card for the browse carousel; links to `/kos/[id]` |
+| [`kos-card.tsx`](../src/components/ui/kos-card.tsx) | 60 | Kos card for the browse carousel; links to `/kos/[id]` |
 | [`kos-carousel.tsx`](../src/components/ui/kos-carousel.tsx) | 110 | **Client.** `KosCarousel` — one snap-scrolling row of server-rendered cards with ◀ ▶ page buttons (from `sm`), so `#browse` fits one screen |
 | [`kos-photo.tsx`](../src/components/ui/kos-photo.tsx) | 150 | `KosPhoto` — labelled SVG illustration per kos (4 scenes keyed by `photoAccent`). Kos have no photos; photos belong to reviews |
-| [`facility-bar.tsx`](../src/components/ui/facility-bar.tsx) | 26 | Labelled 0–5 progress bar |
+| [`facility-bar.tsx`](../src/components/ui/facility-bar.tsx) | 23 | Labelled 0–5 progress bar |
 | [`logo.tsx`](../src/components/ui/logo.tsx) | 12 | Wordmark |
 | [`boundary-circle.tsx`](../src/components/ui/boundary-circle.tsx) | 45 | `BoundaryCircle` + `SEAMS` — a decorative circle drawn as two halves, one in each of two adjacent sections, so it sits whole across the seam |
 | [`section-link.tsx`](../src/components/ui/section-link.tsx) | 35 | **Client.** `SectionLink` — a `Link` to a `/#section` that scrolls itself on `/`, where `Link` ignores a click on the hash already in the URL. Used by the navbar and mobile menu |
@@ -57,11 +59,11 @@ map exists so you can read *only the right one*.
 | File | ~n | Anchor | Owns |
 |---|---|---|---|
 | [`navbar.tsx`](../src/components/sections/navbar.tsx) | 78 | — | Pill navbar. Reads the session: name + "Mahasiswa" badge (students only) + sign-out form, else a "Masuk" link. Desktop links hidden below `lg` |
-| [`mobile-nav.tsx`](../src/components/sections/mobile-nav.tsx) | 88 | — | **Client.** Disclosure menu for `< lg`. Without it the site has no navigation on a phone |
-| [`hero.tsx`](../src/components/sections/hero.tsx) | 200 | — | Headline, live stats eyebrow, city + budget GET form to `/#browse`, `HeroCard` (featured kos with its real per-facility averages and newest review as the quote, captioned when demo), decorative blobs |
-| [`impact.tsx`](../src/components/sections/impact.tsx) | 59 | `#dampak` | One-screen problem statement (`PROBLEMS`) + one-line solution |
-| [`scoring.tsx`](../src/components/sections/scoring.tsx) | 41 | `#scoring` | The six `CRITERIA` as numbered circles in a 1/2/3-col grid |
-| [`map-section.tsx`](../src/components/sections/map-section.tsx) | 60 | `#reviews` | Dark ink band; says how many kos match when the filter narrows; passes the filtered kos list and the `filter` to `<MapFrame/>` + `<KosSidebar/>`; fixes the map's height (440/460/520px) |
+| [`mobile-nav.tsx`](../src/components/sections/mobile-nav.tsx) | 97 | — | **Client.** Disclosure menu for `< lg`. Without it the site has no navigation on a phone |
+| [`hero.tsx`](../src/components/sections/hero.tsx) | 204 | — | Headline, live stats eyebrow, city + budget GET form to `/#browse`, `HeroCard` (featured kos with its real per-facility averages and newest review as the quote, captioned when demo), decorative blobs |
+| [`how-it-works.tsx`](../src/components/sections/how-it-works.tsx) | 107 | `#cara-kerja` (+ `#dampak`, `#scoring`) | One screen: the problem (`PROBLEMS` as a compact list) on the left, the six `CRITERIA` with lucide icons on the right, the one-line solution. Replaced `impact.tsx` + `scoring.tsx` in Fase 4a |
+| [`footer.tsx`](../src/components/sections/footer.tsx) | 50 | — | Logo + tagline, `NAV_LINKS`, OpenStreetMap data credit. Rendered on `/` only for now |
+| [`map-section.tsx`](../src/components/sections/map-section.tsx) | 60 | `#peta` | Dark ink band; says how many kos match when the filter narrows; passes the filtered kos list and the `filter` to `<MapFrame/>` + `<KosSidebar/>`; fixes the map's height (440/460/520px) |
 | [`browse.tsx`](../src/components/sections/browse.tsx) | 170 | `#browse` | Filter bar (kota / budget / urutkan) as a GET form, result count, reset link, every filtered kos as a `KosCard` in a `KosCarousel`, empty state |
 | [`cta.tsx`](../src/components/sections/cta.tsx) | 105 | `#login` | Amber band; copy + either `<AuthCard/>` or a signed-in summary with the verification badge |
 

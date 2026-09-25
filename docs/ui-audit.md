@@ -33,14 +33,44 @@ Kode masalah (`B-3`, `M-2`, dst.) dipakai lagi di tabel prioritas (bagian 4).
 | **G-5** | Sebagian | Skala skor baru sudah aktif: teal ≥ 4,3, amber ≥ 3,5, `rose-deep` di bawahnya. |
 | **M-1** | Token siap | Aturan minimal 16px sudah ada. |
 
+**Fase 3a (25 Sep 2026), komponen dasar pakai token:**
+
+| Kode | Status | Catatan |
+|---|---|---|
+| **G-1** | Selesai untuk kontrol | Semua tombol → `bg-action` (5,65:1). Teks error → `text-danger`. Border input → `border-field`. Sisa: eyebrow section masih `text-rose` (Fase 4). |
+| **G-3** | Selesai | Tidak ada lagi radius arbitrary di `src/`. `--radius-card` dihapus. |
+| **G-4** | Selesai | Hex sudah hilang dari komponen. Pin peta, `ScoreBadge`, dan `FacilityBar` sekarang memakai class token. |
+| **M-1** | Selesai | Semua input/select/textarea 16px, termasuk search peta. |
+| **M-2** | Sebagian | Tombol ≥ 44px (sm 44, md 48, lg 56), hamburger 44, tab masuk/daftar 44, select hero 48. Sisa: tombol zoom Leaflet 30px, link "← Semua kos", link teks di kartu hero (Fase 4/5). |
+| **B-7** | Sebagian | Lubang kosong di kartu (highlights kosong) sudah hilang. Ilustrasi dan skor fasilitas menunggu Fase 4. |
+| **G-2** | Sebagian | Komponen bebas `text-[Npx]`. Teks isi section dan judul section menunggu Fase 4. |
+
+**Fase 3b (25 Sep 2026), state komponen:**
+
+| Kode | Status | Catatan |
+|---|---|---|
+| **G-7** | Selesai | Ada satu aturan `:focus-visible` global (outline biru). Select di hero dan pill skor memakai `focus-ring-within`. Semua tombol, kartu, hamburger, tab, panah carousel, dan tombol × di search punya efek tekan (`:active`). Loading = spinner + `aria-busy`. Field sekarang punya state hover, fokus, `aria-invalid`, dan disabled. |
+| **M-7** | Sebagian | Menu HP sekarang tertutup saat diketuk di luar. Animasi buka/tutup menunggu Fase 6. |
+
+**Fase 4a Beranda (25 Sep 2026):**
+
+| Kode | Status | Catatan |
+|---|---|---|
+| **B-1 / M-5** | Selesai | Section Masalah dan Cara menilai digabung jadi satu section "Cara kerja" (`#cara-kerja`). Di 375px halaman turun dari 9.254px ke ±6.750px, dan `#browse` mulai di ±4.500px (sebelumnya ±6.800px). |
+| **B-3 / B-4** | Selesai | Tidak ada lagi 3 kartu kembar dan nomor 01–06. Masalah tampil sebagai daftar ringkas; tiap kriteria diwakili ikon lucide dengan warna kriterianya. Section Cara kerja setinggi 1.788px di 375px (sebelumnya 3.851px untuk dua section). |
+| **B-2** | Selesai | Subteks hero ±22 kata tanpa em-dash, judul tanpa `<br>`, eyebrow berupa kalimat tanpa titik dekoratif. |
+| **B-8** | Sebagian | Eyebrow dan label ganda di bagian Masuk dihapus, strip tagline pindah ke footer. Halaman login tersendiri + `?next=` (D-5) belum dikerjakan. |
+| **G-6** | Selesai | Eyebrow tinggal 1 (hero). |
+| **G-9** | Sebagian | Tidak ada lagi em-dash di teks yang tampil di `/`. Halaman detail menunggu pass-nya sendiri. |
+| **G-10** | Selesai (di `/`) | Footer: tagline, link nav, kredit data OpenStreetMap. |
+| **G-11 / M-6** | Selesai | Navbar sticky di bawah `lg`. Anchor diberi `scroll-mt`, z-index nav 1100 di atas peta, dan dialog tambah kos lewat portal. |
+| **B-5** | Sebagian | Navbar sekarang punya link "Peta" (`#peta`). Pin yang bisa diklik ke halaman detail menunggu pass Listing. |
+
 Yang masih harus dikerjakan:
-- **Fase 3:**
-  - G-1: tombol dan teks error masih memakai `bg-rose`/`text-rose`, jadi harus dipindah ke `action`/`danger`.
-  - G-2, G-3, G-4, M-1: komponen masih harus dimigrasi ke token barunya.
-  - G-4: hex di `kos-map.tsx`, `score-badge.tsx`, dan `map-frame.tsx` masih hardcode.
 - **Fase 4:**
   - G-5: legenda warna pin di peta.
-  - B-7: kartu kos.
+  - Eyebrow `text-rose`.
+  - Teks section (`text-[15px]`) dan judul section (`text-title`).
 
 Detail token lengkap ada di `04-design-system.md`.
 

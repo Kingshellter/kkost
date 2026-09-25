@@ -98,7 +98,7 @@ function ArrowButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={direction === 1 ? "Kos berikutnya" : "Kos sebelumnya"}
-      className={`absolute top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-ink text-xl font-extrabold text-white shadow-[var(--shadow-float)] transition-opacity hover:bg-ink-soft disabled:pointer-events-none disabled:opacity-0 sm:flex ${
+      className={`absolute top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-ink text-xl font-extrabold text-white shadow-float transition-[opacity,background-color,scale] duration-(--duration-fast) ease-out hover:bg-ink-soft active:scale-(--press-scale) active:duration-(--duration-press) disabled:pointer-events-none disabled:opacity-0 sm:flex ${
         direction === 1 ? "-right-4 lg:-right-6" : "-left-4 lg:-left-6"
       }`}
     >

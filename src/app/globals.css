@@ -55,9 +55,15 @@
    * text-base: iOS Safari zooms the page on any focused input under 16px.
    * These three add the display sizes, each with its own leading and tracking.
    */
-  --text-display: clamp(2.5rem, 6.5vw, 4.25rem);
+  /* 10.5vw keeps "orang yang pernah" on one line down to a 320px phone. */
+  --text-display: clamp(2rem, 10.5vw, 4.25rem);
   --text-display--line-height: 1;
   --text-display--letter-spacing: -0.035em;
+  /* The same headline sharing the row with the hero card (lg up), where the
+     text column is only ~500px wide at 1024. */
+  --text-display-split: clamp(3rem, 5.4vw, 4.25rem);
+  --text-display-split--line-height: 1;
+  --text-display-split--letter-spacing: -0.035em;
   --text-title: clamp(2rem, 4.5vw, 3rem);
   --text-title--line-height: 1.05;
   --text-title--letter-spacing: -0.03em;
@@ -79,8 +85,6 @@
   --radius-panel: 2rem;
   --radius-media: 1.25rem;
   --radius-box: 1rem;
-  /* Deprecated: one use left (the map search results). Replaced in Fase 3. */
-  --radius-card: 28px;
 
   /*
    * Shadows are tinted with ink, never black. The surfaces ones stack three
@@ -133,6 +137,9 @@
      pressable. Enter: popovers and dialogs start at --enter-scale with
      opacity 0 (never from scale 0); menus and toasts start --enter-y away. */
   --press-scale: 0.97;
+  /* A whole card shrinking 3% moves its edges ~10px; big surfaces press
+     less so the feedback reads the same. */
+  --press-scale-surface: 0.985;
   --enter-scale: 0.96;
   --enter-y: 8px;
 
@@ -141,10 +148,15 @@
   --focus-width: 2px;
   --focus-offset: 2px;
 
-  /* Leaflet panes stack up to ~400, hence the jump for map overlays. */
-  --z-nav: 30;
+  /*
+   * Leaflet panes stack up to 700 and its controls to 1000, and the map is
+   * not its own stacking context, so anything that must sit above a map —
+   * the sticky navbar on phones, a dialog — goes past 1000. Map overlays
+   * (search, hint, toast) only need to clear the tiles and markers.
+   */
   --z-map-overlay: 500;
-  --z-dialog: 1000;
+  --z-nav: 1100;
+  --z-dialog: 1200;
 }
 
 /*
@@ -155,6 +167,7 @@
 @media (prefers-reduced-motion: reduce) {
   :root {
     --press-scale: 1;
+    --press-scale-surface: 1;
     --enter-scale: 1;
     --enter-y: 0px;
   }
@@ -162,6 +175,30 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+}
+
+/*
+ * One focus style for everything focusable, set once here instead of per
+ * component: an outline, so it never fights a component's box-shadow and
+ * still shows in forced-colors mode. It is in the base layer, so a utility
+ * can still switch it off where a parent draws the ring instead (see
+ * focus-ring-within). Blue passes 3:1 on white, cream and amber.
+ */
+@layer base {
+  :focus-visible {
+    outline: var(--focus-width) solid var(--color-focus);
+    outline-offset: var(--focus-offset);
+  }
+}
+
+/* The same ring on a wrapper whose real control is invisible or borderless —
+   the sr-only radio behind a score pill, the bare select inside the hero's
+   search pill. Pair it with `focus-visible:outline-none` on the control. */
+@utility focus-ring-within {
+  &:has(:focus-visible) {
+    outline: var(--focus-width) solid var(--color-focus);
+    outline-offset: var(--focus-offset);
+  }
 }
 
 /*

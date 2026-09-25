@@ -1,10 +1,10 @@
 import { Browse } from "@/components/sections/browse";
 import { Cta } from "@/components/sections/cta";
+import { Footer } from "@/components/sections/footer";
 import { Hero } from "@/components/sections/hero";
-import { Impact } from "@/components/sections/impact";
+import { HowItWorks } from "@/components/sections/how-it-works";
 import { MapSection } from "@/components/sections/map-section";
 import { Navbar } from "@/components/sections/navbar";
-import { Scoring } from "@/components/sections/scoring";
 import { getSessionUser } from "@/lib/auth";
 import {
   applyKosFilter,
@@ -58,8 +58,7 @@ export default async function Home(props: PageProps<"/">) {
           cities={cities}
           filter={filter}
         />
-        <Impact />
-        <Scoring />
+        <HowItWorks />
         <MapSection
           kos={kos}
           signedIn={Boolean(user)}
@@ -68,6 +67,7 @@ export default async function Home(props: PageProps<"/">) {
         <Browse kos={kos} total={all.length} cities={cities} filter={filter} />
         <Cta />
       </main>
+      <Footer />
     </>
   );
 }
@@ -84,20 +84,20 @@ function DataNotice({ source }: { source: KosSource }) {
     <div className="px-4 pt-5 sm:px-6 lg:px-10">
       <p
         role="status"
-        className="mx-auto max-w-[1240px] rounded-[22px] bg-amber/15 px-5 py-3.5 text-sm font-medium text-ink"
+        className="mx-auto max-w-page rounded-media bg-amber/15 px-5 py-3.5 text-sm font-medium text-ink"
       >
         {source === "demo" ? (
           <>
             <strong className="font-extrabold">Mode contoh.</strong> Supabase
             belum dikonfigurasi, jadi kos dan skor di halaman ini adalah data
-            contoh — bukan review penghuni sungguhan.
+            contoh, bukan review penghuni sungguhan.
           </>
         ) : (
           <>
             <strong className="font-extrabold">
               Database sedang tidak bisa dihubungi.
             </strong>{" "}
-            Daftar kos dikosongkan sampai koneksi pulih — kkost tidak pernah
+            Daftar kos dikosongkan sampai koneksi pulih. kkost tidak pernah
             menggantinya dengan angka karangan.
           </>
         )}
@@ -107,7 +107,7 @@ function DataNotice({ source }: { source: KosSource }) {
 }
 
 const CONFIRM_TEXT: Record<ConfirmOutcome, string> = {
-  berhasil: "Email terkonfirmasi — kamu sudah masuk.",
+  berhasil: "Email terkonfirmasi, kamu sudah masuk.",
   masuk:
     "Email sudah terkonfirmasi. Silakan masuk dengan email dan password kamu.",
   gagal:
@@ -129,8 +129,8 @@ function ConfirmNotice({ outcome }: { outcome: ConfirmOutcome }) {
     <div className="px-4 pt-5 sm:px-6 lg:px-10">
       <p
         role="status"
-        className={`mx-auto max-w-[1240px] rounded-[22px] px-5 py-3.5 text-sm font-bold ${
-          outcome === "gagal" ? "bg-rose/10 text-rose" : "bg-blue/10 text-blue"
+        className={`mx-auto max-w-page rounded-media px-5 py-3.5 text-sm font-bold ${
+          outcome === "gagal" ? "bg-danger/10 text-danger" : "bg-blue/10 text-blue"
         }`}
       >
         {CONFIRM_TEXT[outcome]}

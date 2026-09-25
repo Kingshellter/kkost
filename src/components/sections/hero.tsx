@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BoundaryCircle, SEAMS } from "@/components/ui/boundary-circle";
+import { buttonClass } from "@/components/ui/controls";
 import { FacilityBar } from "@/components/ui/facility-bar";
 import { KosPhoto } from "@/components/ui/kos-photo";
 import { KosScoreBadge } from "@/components/ui/kos-score-badge";
@@ -21,7 +22,7 @@ type Props = {
 export function Hero({ featured, reviews, stats, cities, filter }: Props) {
   // On a laptop hero + navbar fill exactly one screen; 5.5rem is the navbar.
   return (
-    <section className="relative overflow-hidden px-4 pb-24 pt-14 sm:px-6 lg:flex lg:min-h-[calc(100svh-5.5rem)] lg:flex-col lg:justify-center lg:px-10 lg:py-12">
+    <section className="relative overflow-hidden px-4 pb-section pt-14 sm:px-6 lg:flex lg:min-h-[calc(100svh-5.5rem)] lg:flex-col lg:justify-center lg:px-10 lg:py-12">
       {/* Decorative blobs from the deck */}
       <div
         aria-hidden
@@ -29,41 +30,46 @@ export function Hero({ featured, reviews, stats, cities, filter }: Props) {
       />
       <BoundaryCircle edge="bottom" circle={SEAMS.heroImpact} />
 
-      <div className="relative mx-auto grid w-full max-w-[1240px] items-center gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,480px)] lg:gap-10">
+      <div className="relative mx-auto grid w-full max-w-page items-center gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:gap-10 xl:grid-cols-[minmax(0,1fr)_minmax(0,480px)]">
         <div>
-          <p className="eyebrow bg-white text-rose shadow-[var(--shadow-lift)]">
-            <span className="h-2 w-2 rounded-full bg-rose" />
-            {formatNumber(stats.reviews)} review · {formatNumber(stats.kos)} kos
-            · {formatNumber(stats.cities)} kota
+          {/* The page's only eyebrow. Real counts, as a sentence rather than
+              a dotted strip. */}
+          <p className="eyebrow bg-white text-action shadow-lift">
+            {formatNumber(stats.reviews)} review dari {formatNumber(stats.kos)}{" "}
+            kos di {formatNumber(stats.cities)} kota
           </p>
 
-          <h1 className="mt-8 text-[clamp(2.5rem,6.5vw,4.25rem)] font-extrabold leading-[1] tracking-[-0.035em] text-ink">
-            Pilih kos dari
-            <br />
-            orang yang pernah
-            <br />
-            <span className="text-rose">tinggal di sana</span>.
+          {/* Phrases kept whole instead of <br>s: the lines break where the
+              sentence does. The display sizes are set so "orang yang
+              pernah" fits from a 320px phone to the split layout at 1024. */}
+          <h1 className="mt-8 font-extrabold text-ink text-display lg:text-display-split">
+            Pilih kos dari{" "}
+            <span className="whitespace-nowrap">orang yang pernah</span>{" "}
+            <span className="whitespace-nowrap">
+              <span className="text-rose">tinggal di sana</span>.
+            </span>
           </h1>
 
           <p className="mt-7 max-w-[34ch] text-lg leading-relaxed text-ink-soft sm:max-w-[48ch]">
             {/* The problem first: a judge should get it in the first ten
                 seconds. No claim that reviewers are verified tenants — only
-                a .ac.id address is checked, and that is not proof of rent. */}
+                a .ac.id address is checked, and that is not proof of rent.
+                Short on purpose: a hero subline past ~20 words stops being
+                read. */}
             <strong className="font-extrabold text-ink">
               Iklan kos ditulis pemiliknya.
             </strong>{" "}
-            Di kkost, penghuni menilai enam fasilitas satu per satu — air, WiFi,
-            kamar mandi, sampai parkir — di seluruh Indonesia. Tidak ada yang
-            bisa menghapus review orang lain, termasuk pemilik kos.
+            Di kkost, penghuni menilai enam fasilitas satu per satu, dan tidak
+            ada yang bisa menghapus review orang lain.
           </p>
 
           {/* Same GET contract as the browse filter: lands on /?kota=…#browse. */}
           <form
             action="/#browse"
-            className="mt-10 flex max-w-[620px] flex-col gap-3 rounded-[32px] bg-white p-3 shadow-[var(--shadow-lift)] sm:flex-row sm:items-center sm:gap-0 sm:rounded-full sm:py-2.5 sm:pl-6 sm:pr-2.5"
+            className="mt-10 flex max-w-[620px] flex-col gap-3 rounded-panel bg-white p-3 shadow-lift sm:flex-row sm:items-center sm:gap-0 sm:rounded-full sm:py-2.5 sm:pl-3 sm:pr-2.5"
           >
-            <label className="flex min-w-0 flex-1 items-center gap-3 px-3 sm:px-0">
-              <span className="shrink-0 text-[15px] font-bold text-muted">
+            <label className={fieldClass}>
+              <span className="shrink-0 text-sm font-bold text-muted">
                 Kota
               </span>
               <select
@@ -80,8 +86,8 @@ export function Hero({ featured, reviews, stats, cities, filter }: Props) {
               </select>
             </label>
 
-            <label className="flex min-w-0 flex-1 items-center gap-3 px-3 sm:px-5">
-              <span className="shrink-0 text-[15px] font-bold text-muted">
+            <label className={fieldClass}>
+              <span className="shrink-0 text-sm font-bold text-muted">
                 Budget
               </span>
               <select
@@ -100,7 +106,7 @@ export function Hero({ featured, reviews, stats, cities, filter }: Props) {
 
             <button
               type="submit"
-              className="shrink-0 rounded-full bg-rose px-8 py-3.5 text-[15px] font-extrabold text-white transition-transform hover:-translate-y-0.5"
+              className={buttonClass("primary", "md", "shrink-0 px-8")}
             >
               Cari
             </button>
@@ -113,8 +119,13 @@ export function Hero({ featured, reviews, stats, cities, filter }: Props) {
   );
 }
 
+// Borderless on purpose: the whole pill is the field. 16px, or iOS zooms in.
+// The bare select would draw its focus ring tight around its text, so the
+// label draws it instead, round like the pill, and darkens a touch on hover.
+const fieldClass =
+  "focus-ring-within flex min-w-0 flex-1 items-center gap-3 rounded-full px-3 transition-colors duration-(--duration-fast) hover:bg-cream";
 const selectClass =
-  "min-w-0 flex-1 cursor-pointer bg-transparent py-2 text-[15px] font-bold text-ink outline-none";
+  "min-w-0 flex-1 cursor-pointer bg-transparent py-3 text-base font-bold text-ink focus-visible:outline-none";
 
 /**
  * The featured kos with its real per-facility averages and newest written
@@ -133,7 +144,7 @@ function HeroCard({ kos, reviews }: { kos: Kos; reviews: Review[] }) {
 
   return (
     <div className="relative mx-auto w-full max-w-[480px] lg:mx-0">
-      <article className="rounded-[var(--radius-panel)] bg-white p-7 shadow-[var(--shadow-float)]">
+      <article className="rounded-panel bg-white p-7 shadow-float">
         <div className="flex items-start gap-4">
           <KosPhoto
             kos={kos}
@@ -141,14 +152,14 @@ function HeroCard({ kos, reviews }: { kos: Kos; reviews: Review[] }) {
             className="h-[68px] w-[68px] shrink-0 rounded-full"
           />
           <div className="min-w-0 flex-1">
-            <h2 className="text-[22px] font-extrabold leading-tight text-ink">
-              <Link href={`/kos/${kos.id}`} className="hover:text-rose">
+            <h2 className="text-xl font-extrabold leading-tight text-ink sm:text-2xl">
+              <Link href={`/kos/${kos.id}`} className="transition-colors hover:text-action">
                 {kos.name}
               </Link>
             </h2>
-            <p className="mt-1 text-[15px] font-medium text-muted">
+            <p className="mt-1 text-sm font-medium text-muted">
               {kos.area}, {kos.city}
-              {kos.campus && ` · ${formatCampus(kos.campus, kos.distance)}`}
+              {kos.campus && `, ${formatCampus(kos.campus, kos.distance)}`}
             </p>
           </div>
           <KosScoreBadge kos={kos} size="lg" />
@@ -161,30 +172,30 @@ function HeroCard({ kos, reviews }: { kos: Kos; reviews: Review[] }) {
             ))}
           </div>
         ) : (
-          <p className="mt-7 text-[15px] font-medium text-muted">
+          <p className="mt-7 text-base font-medium text-muted">
             Belum ada review untuk kos ini.
           </p>
         )}
 
         <div className="mt-7 flex items-baseline justify-between border-t border-cream-deep pt-5">
-          <p className="text-[22px] font-extrabold text-ink">
+          <p className="text-2xl font-extrabold text-ink">
             {formatRupiah(kos.price)}
             <span className="text-base font-medium text-muted"> / bulan</span>
           </p>
-          <p className="text-[15px] font-medium text-muted">
+          <p className="text-sm font-medium text-muted">
             {kos.reviews} review
           </p>
         </div>
       </article>
 
       {quote?.body && (
-        <figure className="relative -mt-6 ml-2 w-fit max-w-[320px] rounded-[22px] bg-blue px-5 py-4 shadow-[var(--shadow-lift)] sm:-ml-6">
-          <blockquote className="line-clamp-3 text-[15px] font-bold leading-snug text-white">
+        <figure className="relative -mt-6 ml-2 w-fit max-w-[320px] rounded-media bg-blue px-5 py-4 shadow-lift sm:-ml-6">
+          <blockquote className="line-clamp-3 text-base font-bold leading-snug text-white">
             &ldquo;{quote.body}&rdquo;
           </blockquote>
           <figcaption className="mt-2 text-xs font-bold text-white/75">
             {quote.authorName}
-            {quote.isDemo && " · review contoh"}
+            {quote.isDemo && " (review contoh)"}
           </figcaption>
         </figure>
       )}

@@ -13,9 +13,9 @@ const dateFmt = new Intl.DateTimeFormat("id-ID", {
 export function ReviewList({ reviews }: { reviews: Review[] }) {
   if (!reviews.length) {
     return (
-      <div className="rounded-[var(--radius-panel)] bg-white p-8 text-center shadow-[var(--shadow-lift)]">
+      <div className="rounded-panel bg-white p-8 text-center shadow-lift">
         <p className="text-xl font-extrabold text-ink">Belum ada review</p>
-        <p className="mx-auto mt-2 max-w-[38ch] text-[15px] font-medium text-muted">
+        <p className="mx-auto mt-2 max-w-[38ch] text-base font-medium text-muted">
           Kos ini belum punya skor karena belum ada yang menilainya. Kalau kamu
           pernah tinggal di sini, kamu yang pertama.
         </p>
@@ -28,7 +28,7 @@ export function ReviewList({ reviews }: { reviews: Review[] }) {
       {reviews.map((review) => (
         <li
           key={review.id}
-          className="rounded-[var(--radius-panel)] bg-white p-7 shadow-[var(--shadow-lift)]"
+          className="rounded-panel bg-white p-7 shadow-lift"
         >
           <div className="flex items-start gap-4">
             <ScoreBadge
@@ -37,7 +37,7 @@ export function ReviewList({ reviews }: { reviews: Review[] }) {
             />
             <div className="min-w-0 flex-1">
               <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <span className="text-[17px] font-extrabold text-ink">
+                <span className="text-lg font-extrabold text-ink">
                   {review.authorName}
                 </span>
                 {review.isStudent && (
@@ -61,7 +61,7 @@ export function ReviewList({ reviews }: { reviews: Review[] }) {
           </div>
 
           {review.body && (
-            <p className="mt-5 text-[15px] leading-relaxed text-ink-soft">
+            <p className="mt-5 text-base leading-relaxed text-ink-soft">
               {review.body}
             </p>
           )}
@@ -99,7 +99,7 @@ function ReviewPhotos({ photos, author }: { photos: string[]; author: string }) 
             href={src}
             target="_blank"
             rel="noopener noreferrer"
-            className="relative block aspect-square overflow-hidden rounded-2xl bg-cream-deep transition-opacity hover:opacity-85"
+            className="relative block aspect-square overflow-hidden rounded-box bg-cream-deep transition-opacity hover:opacity-85"
           >
             <Image
               src={src}

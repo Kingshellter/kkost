@@ -1,6 +1,13 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import {
+  buttonClass,
+  INPUT_CLASS,
+  LABEL_CLASS,
+  NOTICE_CLASS,
+} from "@/components/ui/controls";
+import { Spinner } from "@/components/ui/spinner";
 import { AUTH_INITIAL, type AuthState } from "@/lib/action-state";
 import { signIn, signUp } from "@/lib/auth-actions";
 
@@ -27,7 +34,7 @@ export function AuthCard() {
   return (
     <form
       action={formAction}
-      className="rounded-[var(--radius-panel)] bg-white p-8 shadow-[var(--shadow-float)]"
+      className="rounded-panel bg-white p-8 shadow-float"
     >
       <div
         role="tablist"
@@ -41,7 +48,7 @@ export function AuthCard() {
             role="tab"
             aria-selected={mode === m}
             onClick={() => setMode(m)}
-            className={`flex-1 rounded-full py-2.5 text-sm font-extrabold transition-colors ${
+            className={`flex-1 select-none rounded-full py-3 text-sm font-extrabold transition-[background-color,color,scale] duration-(--duration-fast) ease-out active:scale-(--press-scale) active:duration-(--duration-press) ${
               mode === m ? "bg-ink text-white" : "text-muted hover:text-ink"
             }`}
           >
@@ -50,11 +57,8 @@ export function AuthCard() {
         ))}
       </div>
 
-      <p className="mt-6 text-xs font-extrabold uppercase tracking-[0.14em] text-muted">
-        {mode === "signin" ? "Masuk untuk menulis" : "Buat akun"}
-      </p>
 
-      <div className="mt-5 space-y-5">
+      <div className="mt-6 space-y-5">
         {mode === "signup" && (
           <Field label="Nama tampilan">
             <input
@@ -101,7 +105,7 @@ export function AuthCard() {
       {state.error && (
         <p
           role="alert"
-          className="mt-5 rounded-2xl bg-rose/10 px-4 py-3 text-sm font-bold text-rose"
+          className={`mt-5 ${NOTICE_CLASS.error}`}
         >
           {state.error}
         </p>
@@ -110,7 +114,7 @@ export function AuthCard() {
       {state.notice && (
         <p
           role="status"
-          className="mt-5 rounded-2xl bg-blue/10 px-4 py-3 text-sm font-bold text-blue"
+          className={`mt-5 ${NOTICE_CLASS.info}`}
         >
           {state.notice}
         </p>
@@ -119,8 +123,10 @@ export function AuthCard() {
       <button
         type="submit"
         disabled={pending}
-        className="mt-7 w-full rounded-full bg-rose py-4 text-[17px] font-extrabold text-white transition-transform hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0"
+        aria-busy={pending}
+        className={buttonClass("primary", "lg", "mt-7 w-full")}
       >
+        {pending && <Spinner />}
         {pending
           ? "Memproses…"
           : mode === "signin"
@@ -136,8 +142,7 @@ export function AuthCard() {
   );
 }
 
-const inputClass =
-  "mt-2.5 w-full rounded-full border border-cream-deep bg-cream px-6 py-4 text-[15px] font-bold text-ink outline-none transition-colors placeholder:text-muted focus:border-rose";
+const inputClass = INPUT_CLASS;
 
 function Field({
   label,
@@ -148,7 +153,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-[15px] font-extrabold text-ink">{label}</span>
+      <span className={LABEL_CLASS}>{label}</span>
       {children}
     </label>
   );

@@ -1,4 +1,4 @@
-import { ACCENT_HEX } from "./accent";
+import { ACCENT_BG } from "./accent";
 import type { FacilityScore } from "@/data/kos";
 
 /** One labelled 0–5 bar from the hero card's score breakdown. */
@@ -14,11 +14,8 @@ export function FacilityBar({ label, score, accent }: FacilityScore) {
         aria-label={`${label} ${score.toFixed(1)} dari 5`}
       >
         <span
-          className="absolute inset-y-0 left-0 rounded-full"
-          style={{
-            width: `${(score / 5) * 100}%`,
-            backgroundColor: ACCENT_HEX[accent],
-          }}
+          className={`absolute inset-y-0 left-0 rounded-full ${ACCENT_BG[accent]}`}
+          style={{ width: `${(score / 5) * 100}%` }}
         />
       </span>
     </div>

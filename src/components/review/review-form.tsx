@@ -2,6 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useActionState, useRef, useState } from "react";
+import {
+  buttonClass,
+  LABEL_CLASS,
+  NOTICE_CLASS,
+  TEXTAREA_CLASS,
+} from "@/components/ui/controls";
+import { Spinner } from "@/components/ui/spinner";
 import { CRITERIA, type FacilityKey } from "@/data/kos";
 import { REVIEW_INITIAL, type ReviewState } from "@/lib/action-state";
 import { isSupabaseConfigured } from "@/lib/kos-repository";
@@ -83,16 +90,16 @@ export function ReviewForm({ kosId }: { kosId: string }) {
     return (
       <div
         role="status"
-        className="rounded-[var(--radius-panel)] bg-white p-8 text-center shadow-[var(--shadow-lift)]"
+        className="rounded-panel bg-white p-8 text-center shadow-lift"
       >
         <p className="text-xl font-extrabold text-ink">Review kamu tersimpan.</p>
-        <p className="mt-2 text-[15px] font-medium text-muted">
+        <p className="mt-2 text-base font-medium text-muted">
           Skor kos langsung ikut berubah.
         </p>
         {state.photoError && (
           <p
             role="alert"
-            className="mx-auto mt-5 max-w-[46ch] rounded-2xl bg-rose/10 px-4 py-3 text-sm font-bold text-rose"
+            className={`mx-auto mt-5 max-w-[46ch] ${NOTICE_CLASS.error}`}
           >
             Tapi foto gagal diunggah: {state.photoError}
           </p>
@@ -104,14 +111,14 @@ export function ReviewForm({ kosId }: { kosId: string }) {
   return (
     <form
       action={formAction}
-      className="rounded-[var(--radius-panel)] bg-white p-7 shadow-[var(--shadow-lift)] sm:p-8"
+      className="rounded-panel bg-white p-7 shadow-lift sm:p-8"
     >
       <input type="hidden" name="kosId" value={kosId} />
 
-      <h2 className="text-[26px] font-extrabold leading-tight text-ink">
+      <h2 className="text-2xl font-extrabold leading-tight text-ink">
         Tulis penilaianmu
       </h2>
-      <p className="mt-2 text-[15px] font-medium text-muted">
+      <p className="mt-2 text-base font-medium text-muted">
         Nilai keenam fasilitas dari 1 sampai 5. Skor kos adalah rata-ratanya —
         tanpa bobot.
       </p>
@@ -123,7 +130,7 @@ export function ReviewForm({ kosId }: { kosId: string }) {
       </div>
 
       <label className="mt-7 block">
-        <span className="text-[15px] font-extrabold text-ink">
+        <span className={LABEL_CLASS}>
           Catatan <span className="font-medium text-muted">(opsional)</span>
         </span>
         <textarea
@@ -133,13 +140,13 @@ export function ReviewForm({ kosId }: { kosId: string }) {
           rows={4}
           maxLength={2000}
           placeholder="Apa yang tidak terlihat dari foto iklan?"
-          className="mt-2.5 w-full resize-y rounded-[22px] border border-cream-deep bg-cream px-5 py-4 text-[15px] font-medium text-ink outline-none transition-colors placeholder:text-muted focus:border-rose"
+          className={TEXTAREA_CLASS}
         />
       </label>
 
       <div className="mt-7">
         <label className="block">
-          <span className="text-[15px] font-extrabold text-ink">
+          <span className={LABEL_CLASS}>
             Foto{" "}
             <span className="font-medium text-muted">
               (opsional, maks. {PHOTO_MAX_COUNT})
@@ -160,7 +167,7 @@ export function ReviewForm({ kosId }: { kosId: string }) {
               // Lets the same file be picked again after removing it.
               e.target.value = "";
             }}
-            className="mt-3 block w-full text-sm font-medium text-muted file:mr-4 file:rounded-full file:border-0 file:bg-cream file:px-5 file:py-3 file:text-[15px] file:font-extrabold file:text-ink hover:file:bg-cream-deep"
+            className="mt-3 block w-full text-sm font-medium text-muted file:mr-4 file:rounded-full file:border-0 file:bg-cream file:px-5 file:py-3 file:text-base file:font-extrabold file:text-ink file:transition-colors hover:file:bg-cream-deep"
           />
         </label>
 
@@ -169,13 +176,13 @@ export function ReviewForm({ kosId }: { kosId: string }) {
             {files.map((file, index) => (
               <li
                 key={`${file.name}-${index}`}
-                className="flex items-center justify-between gap-3 rounded-2xl bg-cream px-4 py-2.5 text-sm font-bold text-ink"
+                className="flex items-center justify-between gap-3 rounded-box bg-cream px-4 py-2.5 text-sm font-bold text-ink"
               >
                 <span className="min-w-0 truncate">{file.name}</span>
                 <button
                   type="button"
                   onClick={() => choose(files.filter((_, i) => i !== index))}
-                  className="shrink-0 text-muted hover:text-rose"
+                  className="-my-2 -mr-2 shrink-0 rounded-full px-3 py-3 text-muted transition-colors hover:text-danger"
                 >
                   Hapus
                 </button>
@@ -185,7 +192,7 @@ export function ReviewForm({ kosId }: { kosId: string }) {
         )}
 
         {pickError && (
-          <p role="alert" className="mt-3 text-sm font-bold text-rose">
+          <p role="alert" className="mt-3 text-sm font-bold text-danger">
             {pickError}
           </p>
         )}
@@ -194,7 +201,7 @@ export function ReviewForm({ kosId }: { kosId: string }) {
       {state.error && (
         <p
           role="alert"
-          className="mt-5 rounded-2xl bg-rose/10 px-4 py-3 text-sm font-bold text-rose"
+          className={`mt-5 ${NOTICE_CLASS.error}`}
         >
           {state.error}
         </p>
@@ -203,8 +210,10 @@ export function ReviewForm({ kosId }: { kosId: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="mt-7 w-full rounded-full bg-rose py-4 text-[17px] font-extrabold text-white transition-transform hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0"
+        aria-busy={pending}
+        className={buttonClass("primary", "lg", "mt-7 w-full")}
       >
+        {pending && <Spinner />}
         {pending
           ? files.length
             ? "Menyimpan review dan foto…"
@@ -229,7 +238,7 @@ function ScoreInput({ name, label }: { name: FacilityKey; label: string }) {
   return (
     <fieldset>
       <div className="flex items-baseline justify-between gap-4">
-        <legend className="text-[15px] font-extrabold text-ink">{label}</legend>
+        <legend className={LABEL_CLASS}>{label}</legend>
         <span className="text-sm font-bold tabular-nums text-muted">
           {value ? `${value} / 5` : "belum dinilai"}
         </span>
@@ -239,9 +248,9 @@ function ScoreInput({ name, label }: { name: FacilityKey; label: string }) {
         {[1, 2, 3, 4, 5].map((n) => (
           <label
             key={n}
-            className={`flex-1 cursor-pointer rounded-full py-3 text-center text-[15px] font-extrabold transition-colors ${
+            className={`focus-ring-within flex-1 cursor-pointer select-none rounded-full py-3 text-center text-base font-extrabold transition-[background-color,color,scale] duration-(--duration-fast) ease-out active:scale-(--press-scale) active:duration-(--duration-press) ${
               value === n
-                ? "bg-rose text-white"
+                ? "bg-action text-white"
                 : "bg-cream text-ink hover:bg-cream-deep"
             }`}
           >

@@ -24,7 +24,7 @@ kkost is a Next.js 16 site for reviewing kos (student boarding houses)
 **anywhere in Indonesia**. Students rate six facilities 1–5; the plain average
 is the kos score.
 
-Two routes: `/` (five sections plus an interactive Leaflet map where clicking
+Two routes: `/` (hero, a one-screen "Cara kerja" problem + solution section, the map band, the kos list, sign-in, and a footer, with an interactive Leaflet map where clicking
 anywhere opens a form to add a kos) and `/kos/[id]` (per-facility averages, the
 review list, and the review form). Every kos carries its own city and, if
 someone supplied one, a nearby campus (walking distance only on seeded kos) —

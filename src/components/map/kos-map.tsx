@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   MapContainer,
   Marker,
@@ -14,7 +15,8 @@ import {
   useMap,
   useMapEvents,
 } from "react-leaflet";
-import { ACCENT_HEX, accentForScore } from "@/components/ui/accent";
+import { ACCENT_BG, accentForScore } from "@/components/ui/accent";
+import { buttonClass } from "@/components/ui/controls";
 import { SectionLink } from "@/components/ui/section-link";
 import { INDONESIA, type Accent, type Kos } from "@/data/kos";
 import { formatRupiah } from "@/lib/format";
@@ -28,22 +30,21 @@ import { MapSearch } from "./map-search";
 /**
  * Score pins are drawn as divIcons so they match the circular badges used
  * everywhere else — this also sidesteps Leaflet's broken default marker asset.
+ *
+ * The HTML carries Tailwind classes rather than inline colours: the strings
+ * sit in this file, so Tailwind finds and generates them, and the pins follow
+ * the design tokens like every other badge.
  */
 function scoreIcon(score: number, accent: Accent, isNew: boolean) {
   const dark = accent === "amber" || accent === "sky";
-  const label = isNew ? "Baru" : score.toFixed(1);
+  const colour = isNew
+    ? "bg-ink text-white text-xs"
+    : `${ACCENT_BG[accent]} ${dark ? "text-ink" : "text-white"} text-base`;
   return L.divIcon({
     className: "",
     iconSize: [46, 46],
     iconAnchor: [23, 23],
-    html: `<span style="
-      display:flex;align-items:center;justify-content:center;
-      width:46px;height:46px;border-radius:9999px;
-      background:${isNew ? "#1c2a4e" : ACCENT_HEX[accent]};
-      color:${!isNew && dark ? "#1c2a4e" : "#ffffff"};
-      font-weight:800;font-size:${isNew ? 12 : 15}px;
-      box-shadow:0 8px 20px -6px rgba(28,42,78,.55);
-    ">${label}</span>`,
+    html: `<span class="flex size-[46px] items-center justify-center rounded-full font-extrabold tabular-nums shadow-pin ${colour}">${isNew ? "Baru" : score.toFixed(1)}</span>`,
   });
 }
 
@@ -51,12 +52,7 @@ const draftIcon = L.divIcon({
   className: "",
   iconSize: [34, 34],
   iconAnchor: [17, 17],
-  html: `<span style="
-    display:flex;align-items:center;justify-content:center;
-    width:34px;height:34px;border-radius:9999px;
-    background:#f93a5a;color:#fff;font-weight:800;font-size:20px;line-height:1;
-    box-shadow:0 8px 20px -6px rgba(28,42,78,.55);
-  ">+</span>`,
+  html: `<span class="flex size-[34px] items-center justify-center rounded-full bg-action text-xl font-extrabold leading-none text-white shadow-pin">+</span>`,
 });
 
 /** A searched street or landmark — deliberately unlike a score pin; it is a location, not a kos. */
@@ -64,11 +60,7 @@ const placeIcon = L.divIcon({
   className: "",
   iconSize: [26, 26],
   iconAnchor: [13, 13],
-  html: `<span style="
-    display:block;width:26px;height:26px;border-radius:9999px;
-    background:#3b59df;border:5px solid #ffffff;
-    box-shadow:0 8px 20px -6px rgba(28,42,78,.55);
-  "></span>`,
+  html: `<span class="block size-[26px] rounded-full border-[5px] border-white bg-blue shadow-pin"></span>`,
 });
 
 /**
@@ -90,7 +82,7 @@ function fitPadding(map: L.Map): [number, number] {
  * wider up, which still hid a pin at tablet width — so the fit always leaves
  * room for it. Kept in step with the column's markup below.
  */
-const OVERLAY_INSET = 96;
+const OVERLAY_INSET = 104;
 
 /**
  * kkost spans the whole country, so there is no sensible fixed centre. Fit the
@@ -333,7 +325,7 @@ export default function KosMap({
               closeButton={false}
               eventHandlers={{ remove: () => setDraft(null) }}
             >
-              <span className="block text-[13px] font-bold text-ink">
+              <span className="block text-sm font-bold text-ink">
                 {signedIn
                   ? "Tambahkan kos di titik ini?"
                   : "Masuk dulu untuk menambah kos"}
@@ -347,7 +339,7 @@ export default function KosMap({
                 <button
                   type="button"
                   onClick={() => setFormAt(draft)}
-                  className="mt-2.5 w-full rounded-full bg-rose px-4 py-2 text-[13px] font-extrabold text-white"
+                  className={buttonClass("primary", "sm", "mt-2.5 w-full px-4")}
                 >
                   + Tambah kos
                 </button>
@@ -355,7 +347,7 @@ export default function KosMap({
                 <SectionLink
                   href="/#login"
                   onClick={() => setDraft(null)}
-                  className="mt-2.5 block w-full rounded-full bg-ink px-4 py-2 text-center text-[13px] font-extrabold text-white"
+                  className={buttonClass("dark", "sm", "mt-2.5 w-full px-4 text-white!")}
                 >
                   Masuk atau daftar
                 </SectionLink>
@@ -368,10 +360,10 @@ export default function KosMap({
       {/* One top-left column so the search box and the hint never overlap on a
           phone-width map. `pointer-events-none` on the column keeps the map
           draggable between them; the search box opts itself back in. */}
-      <div className="pointer-events-none absolute left-4 right-4 top-4 z-[500] flex flex-col items-start gap-2 sm:right-auto sm:w-[320px]">
+      <div className="pointer-events-none absolute left-4 right-4 top-4 z-(--z-map-overlay) flex flex-col items-start gap-2 sm:right-auto sm:w-[320px]">
         <MapSearch onPick={handlePlacePick} onClear={() => setPlace(null)} />
 
-        <p className="rounded-full bg-white/95 px-4 py-2 text-xs font-bold text-ink shadow-[var(--shadow-lift)]">
+        <p className="rounded-full bg-white/95 px-4 py-2 text-xs font-bold text-ink shadow-lift">
           {signedIn
             ? "Klik peta untuk menambah kos"
             : "Klik peta untuk menambah kos — perlu masuk"}
@@ -379,19 +371,25 @@ export default function KosMap({
       </div>
 
       {notice && (
-        <p className="absolute bottom-4 left-1/2 z-[500] w-[min(92%,380px)] -translate-x-1/2 rounded-full bg-ink px-5 py-3 text-center text-[13px] font-bold text-white shadow-[var(--shadow-float)]">
+        <p className="absolute bottom-4 left-1/2 z-(--z-map-overlay) w-[min(92%,380px)] -translate-x-1/2 rounded-full bg-ink px-5 py-3 text-center text-sm font-bold text-white shadow-float">
           {notice}
         </p>
       )}
 
-      {formAt && (
-        <AddKosDialog
-          position={formAt}
-          onCancel={() => setFormAt(null)}
-          onSaved={handleSaved}
-          returnFocusRef={mapBox}
-        />
-      )}
+      {/* Portalled to <body>: the map sits inside a `.reveal` block, whose
+          animation makes a stacking context, and the sticky navbar would
+          otherwise paint over the dialog's backdrop. KosMap only ever runs
+          in the browser (ssr: false), so `document` is always there. */}
+      {formAt &&
+        createPortal(
+          <AddKosDialog
+            position={formAt}
+            onCancel={() => setFormAt(null)}
+            onSaved={handleSaved}
+            returnFocusRef={mapBox}
+          />,
+          document.body,
+        )}
     </div>
   );
 }

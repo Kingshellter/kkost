@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ReviewForm } from "@/components/review/review-form";
 import { ReviewList } from "@/components/review/review-list";
 import { Navbar } from "@/components/sections/navbar";
+import { buttonClass } from "@/components/ui/controls";
 import { KosPhoto } from "@/components/ui/kos-photo";
 import { KosScoreBadge } from "@/components/ui/kos-score-badge";
 import { CRITERIA } from "@/data/kos";
@@ -48,10 +49,10 @@ export default async function KosDetail(props: PageProps<"/kos/[id]">) {
             ← Semua kos
           </Link>
 
-          <header className="mt-6 flex flex-wrap items-start gap-6 rounded-[var(--radius-panel)] bg-white p-4 pb-7 shadow-[var(--shadow-float)] sm:p-5 sm:pb-8">
+          <header className="mt-6 flex flex-wrap items-start gap-6 rounded-panel bg-white p-4 pb-7 shadow-float sm:p-5 sm:pb-8">
             <KosPhoto
               kos={kos}
-              className="h-[200px] w-full rounded-[22px] sm:h-[260px]"
+              className="h-[200px] w-full rounded-media sm:h-[260px]"
             />
             <div className="min-w-0 flex-1 px-3 sm:px-3">
               <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] font-extrabold leading-[1.05] tracking-[-0.02em] text-ink">
@@ -90,7 +91,7 @@ export default async function KosDetail(props: PageProps<"/kos/[id]">) {
               <h2 className="text-xl font-extrabold text-ink">
                 Rata-rata per fasilitas
               </h2>
-              <div className="mt-5 grid gap-4 rounded-[var(--radius-panel)] bg-white p-7 shadow-[var(--shadow-lift)] sm:grid-cols-2 sm:gap-x-10">
+              <div className="mt-5 grid gap-4 rounded-panel bg-white p-7 shadow-lift sm:grid-cols-2 sm:gap-x-10">
                 {CRITERIA.map((c) => (
                   <FacilityAverage
                     key={c.key}
@@ -113,7 +114,7 @@ export default async function KosDetail(props: PageProps<"/kos/[id]">) {
 
           <section className="mt-12">
             {!user ? (
-              <div className="rounded-[var(--radius-panel)] bg-white p-8 text-center shadow-[var(--shadow-lift)]">
+              <div className="rounded-panel bg-white p-8 text-center shadow-lift">
                 <p className="text-xl font-extrabold text-ink">
                   Masuk untuk menulis review
                 </p>
@@ -122,13 +123,13 @@ export default async function KosDetail(props: PageProps<"/kos/[id]">) {
                 </p>
                 <Link
                   href="/#login"
-                  className="mt-6 inline-block rounded-full bg-ink px-8 py-3.5 text-[15px] font-extrabold text-white transition-transform hover:-translate-y-0.5"
+                  className={buttonClass("dark", "md", "mt-6")}
                 >
                   Masuk atau daftar
                 </Link>
               </div>
             ) : alreadyReviewed ? (
-              <div className="rounded-[var(--radius-panel)] bg-white p-8 text-center shadow-[var(--shadow-lift)]">
+              <div className="rounded-panel bg-white p-8 text-center shadow-lift">
                 <p className="text-xl font-extrabold text-ink">
                   Kamu sudah menilai kos ini
                 </p>
@@ -167,7 +168,7 @@ function ScoreProvenance({
   demoCount: number;
 }) {
   return (
-    <aside className="mt-6 rounded-[var(--radius-panel)] border border-cream-deep bg-white/60 px-7 py-6">
+    <aside className="mt-6 rounded-panel border border-cream-deep bg-white/60 px-7 py-6">
       <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-muted">
         Dari mana angka ini
       </p>

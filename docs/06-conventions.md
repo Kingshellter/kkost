@@ -48,12 +48,34 @@ tree as possible (see `MapFrame`).
     `--enter-y`, never `scale(0)`. Movement written with these tokens turns
     itself off under reduced motion; hard-coded movement must be gated with
     `motion-safe:` instead. Exits run one duration step shorter than entrances.
-  - focus: an outline in `--color-focus` (`--focus-width`/`--focus-offset`),
-    never `outline-none` without a replacement.
+  - focus: comes free from the global `:focus-visible` rule — add nothing.
+    Never `outline-none` without a replacement; where the real control is
+    hidden or borderless, put `focus-ring-within` on its wrapper and
+    `focus-visible:outline-none` on the control.
+  - states every pressable needs: hover (Tailwind's is touch-safe),
+    `active:scale-(--press-scale)` (`--press-scale-surface` for a whole card)
+    with `active:duration-(--duration-press)`, and a transition listing only
+    the properties that change — never bare `transition` / `all`.
+  - loading: keep the button `disabled` (no double submit), add
+    `aria-busy={pending}` and a `<Spinner />` as its first child, and change
+    the label to say what is happening ("Menyimpan…").
+  - invalid fields: `aria-invalid={Boolean(errors.x)}` — `INPUT_CLASS` turns
+    the border `danger` from that.
   - z-index: `z-(--z-nav)`, `z-(--z-map-overlay)`, `z-(--z-dialog)`; no new
     literal z values.
-- Older code still spells radii/shadows as `rounded-[var(--radius-panel)]` /
-  `shadow-[var(--shadow-lift)]`. It works; migrate it when you touch the file.
+- **Buttons and form fields take their classes from `components/ui/controls.ts`**
+  — `buttonClass("primary" | "dark" | "soft", "sm" | "md" | "lg", extra)`,
+  `INPUT_CLASS`, `SELECT_CLASS`, `TEXTAREA_CLASS`, `LABEL_CLASS`,
+  `FIELD_ERROR_CLASS`, `NOTICE_CLASS`. Never hand-write a button's pill,
+  colour and padding again; extra layout (`w-full`, `mt-7`, `flex-1`) goes in
+  the third argument. One `primary` per surface.
+- Leaflet `divIcon` HTML uses Tailwind classes too, not inline colours.
+- **A modal renders through `createPortal(…, document.body)`.** Anything with
+  a running `.reveal` animation (or a transform) is a stacking context, and a
+  dialog inside one cannot rise above the sticky navbar however high its
+  z-index. `AddKosDialog` in `kos-map.tsx` is the reference.
+- **Anchored sections get `scroll-mt-24 lg:scroll-mt-0`** — the navbar is
+  sticky below `lg`, and without the margin a `SectionLink` lands under it.
 - A new colour is added to `@theme` in `globals.css`, **its contrast checked**
   against the grounds it will sit on, and the table in `04-design-system.md`
   updated — then `ACCENT_HEX` too if it is an accent.

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { buttonClass } from "@/components/ui/controls";
 import { KosScoreBadge } from "@/components/ui/kos-score-badge";
 import { SectionLink } from "@/components/ui/section-link";
 import type { Kos } from "@/data/kos";
@@ -19,7 +20,7 @@ export function KosSidebar({
   const kosList = mergeKos(added, fromServer, filter);
 
   return (
-    <aside className="flex flex-col rounded-[var(--radius-panel)] bg-white p-7 lg:min-h-0">
+    <aside className="flex flex-col rounded-panel bg-white p-7 lg:min-h-0">
       <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-muted">
         {kosList.length} kos di peta
       </p>
@@ -37,7 +38,7 @@ export function KosSidebar({
               ) : (
                 <Link
                   href={`/kos/${kos.id}`}
-                  className="flex items-start gap-4 transition-opacity hover:opacity-70"
+                  className="flex items-start gap-4 rounded-box transition-opacity duration-(--duration-fast) hover:opacity-70 active:opacity-60"
                 >
                   <SidebarRow kos={kos} />
                 </Link>
@@ -46,14 +47,14 @@ export function KosSidebar({
           ))}
         </ul>
       ) : (
-        <p className="mt-6 flex-1 text-[15px] font-medium text-muted">
+        <p className="mt-6 flex-1 text-base font-medium text-muted">
           Tidak ada kos yang cocok dengan filter ini.
         </p>
       )}
 
       <SectionLink
         href="/#browse"
-        className="mt-8 rounded-full bg-ink py-4 text-center text-[15px] font-extrabold text-white transition-transform hover:-translate-y-0.5"
+        className={buttonClass("dark", "md", "mt-8 w-full")}
       >
         Lihat daftar lengkap
       </SectionLink>
@@ -66,7 +67,7 @@ function SidebarRow({ kos }: { kos: Kos }) {
     <>
       <KosScoreBadge kos={kos} size="sm" />
       <div className="min-w-0">
-        <h3 className="text-[17px] font-extrabold leading-tight text-ink">
+        <h3 className="text-lg font-extrabold leading-tight text-ink">
           {kos.name}
         </h3>
         <p className="mt-1 text-sm font-medium text-muted">

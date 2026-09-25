@@ -1,5 +1,10 @@
 import Link from "next/link";
 import { BoundaryCircle, SEAMS } from "@/components/ui/boundary-circle";
+import {
+  buttonClass,
+  LABEL_CLASS,
+  SELECT_CLASS,
+} from "@/components/ui/controls";
 import { KosCard } from "@/components/ui/kos-card";
 import { KosCarousel } from "@/components/ui/kos-carousel";
 import type { Kos } from "@/data/kos";
@@ -26,14 +31,13 @@ export function Browse({ kos, total, cities, filter }: Props) {
   return (
     <section
       id="browse"
-      className="relative overflow-hidden px-4 py-24 sm:px-6 lg:flex lg:min-h-svh lg:flex-col lg:justify-center lg:px-10 lg:py-12 short:py-7"
+      className="relative scroll-mt-24 overflow-hidden px-4 py-section sm:px-6 lg:scroll-mt-0 lg:flex lg:min-h-svh lg:flex-col lg:justify-center lg:px-10 lg:py-12 short:py-7"
     >
       <BoundaryCircle edge="top" circle={SEAMS.mapBrowse} />
       <BoundaryCircle edge="bottom" circle={SEAMS.browseCta} />
 
-      <div className="reveal relative mx-auto w-full max-w-[1240px]">
-        <p className="eyebrow bg-white text-rose">Se-Indonesia</p>
-        <h2 className="mt-6 text-[clamp(2.25rem,5vw,3.5rem)] font-extrabold leading-[1.02] tracking-[-0.03em] text-ink lg:mt-5 lg:text-[3rem] short:mt-4 short:text-[2.5rem]">
+      <div className="reveal relative mx-auto w-full max-w-page">
+        <h2 className="font-extrabold text-ink text-title">
           Cari kos yang cocok
         </h2>
         <p className="mt-4 text-lg font-medium text-ink-soft lg:mt-3" aria-live="polite">
@@ -44,7 +48,7 @@ export function Browse({ kos, total, cities, filter }: Props) {
 
         <form
           action="/#browse"
-          className="mt-10 grid gap-4 rounded-[var(--radius-panel)] bg-white p-5 lg:mt-7 short:mt-5 short:p-4 shadow-[var(--shadow-lift)] sm:grid-cols-2 lg:grid-cols-[repeat(3,minmax(0,1fr))_auto] lg:items-end"
+          className="mt-10 grid gap-4 rounded-panel bg-white p-5 lg:mt-7 short:mt-5 short:p-4 shadow-lift sm:grid-cols-2 lg:grid-cols-[repeat(3,minmax(0,1fr))_auto] lg:items-end"
         >
           <Field label="Kota">
             <select
@@ -89,14 +93,14 @@ export function Browse({ kos, total, cities, filter }: Props) {
           <div className="flex gap-3 sm:col-span-2 lg:col-span-1">
             <button
               type="submit"
-              className="flex-1 rounded-full bg-rose px-7 py-3.5 text-[15px] font-extrabold text-white transition-transform hover:-translate-y-0.5 lg:flex-none"
+              className={buttonClass("primary", "md", "flex-1 lg:flex-none")}
             >
               Terapkan
             </button>
             {filtered && (
               <Link
                 href="/#browse"
-                className="flex-1 rounded-full bg-cream px-6 py-3.5 text-center text-[15px] font-extrabold text-ink transition-colors hover:bg-cream-deep lg:flex-none"
+                className={buttonClass("soft", "md", "flex-1 lg:flex-none")}
               >
                 Reset
               </Link>
@@ -113,7 +117,7 @@ export function Browse({ kos, total, cities, filter }: Props) {
             </KosCarousel>
           </div>
         ) : (
-          <div className="mt-12 rounded-[var(--radius-panel)] bg-white p-10 text-center shadow-[var(--shadow-lift)]">
+          <div className="mt-12 rounded-panel bg-white p-10 text-center shadow-lift">
             <p className="text-xl font-extrabold text-ink">
               Tidak ada kos yang cocok
             </p>
@@ -123,7 +127,7 @@ export function Browse({ kos, total, cities, filter }: Props) {
             </p>
             <Link
               href="/#browse"
-              className="mt-6 inline-block rounded-full bg-ink px-8 py-3.5 text-[15px] font-extrabold text-white transition-transform hover:-translate-y-0.5"
+              className={buttonClass("dark", "md", "mt-6")}
             >
               Hapus filter
             </Link>
@@ -138,8 +142,7 @@ function sortLabel(filter: KosFilter) {
   return SORTS.find((sort) => sort.value === filter.sort)?.label ?? "";
 }
 
-const selectClass =
-  "mt-2 w-full cursor-pointer rounded-full border border-cream-deep bg-cream px-5 py-3.5 text-[15px] font-bold text-ink outline-none transition-colors focus:border-rose";
+const selectClass = SELECT_CLASS;
 
 function Field({
   label,
@@ -150,7 +153,7 @@ function Field({
 }) {
   return (
     <label className="block min-w-0">
-      <span className="text-sm font-extrabold text-ink">{label}</span>
+      <span className={LABEL_CLASS}>{label}</span>
       {children}
     </label>
   );

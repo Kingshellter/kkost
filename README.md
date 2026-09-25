@@ -102,8 +102,9 @@ Sustainable Development Goals. Keenam kriteria penilaian memetakan langsung:
 | **4 — Pendidikan Berkualitas** | Target 4.3: akses setara ke pendidikan tinggi juga soal tempat tinggal yang terjangkau; filter budget dan jarak ke kampus membantu menemukannya |
 | **9 — Industri, Inovasi, dan Infrastruktur** | Target 9.c: ketersediaan konektivitas sebagai kebutuhan dasar, bukan fasilitas tambahan |
 
-Pemetaan yang sama ditampilkan di situs sendiri, pada bagian **Dampak**
-(`#dampak`), bersama rumusan masalahnya.
+Pemetaan SDG ini hanya ada di README. Rumusan masalahnya ditampilkan di situs
+pada bagian **Cara kerja** (`#cara-kerja`), bersama enam kriteria yang
+menjadi solusinya.
 
 ## Fitur
 

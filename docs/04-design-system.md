@@ -47,8 +47,9 @@ later by remapping only those.
 Palette names stay for decoration, the accent maps and existing code. The two
 roses are the rule to remember: **`rose` is the brand colour (logo, hero
 headline, illustrations, blobs); `rose-deep` / `action` is everything a user
-reads or presses.** Components still on `bg-rose` buttons and `text-rose`
-errors are migrated in Fase 3.
+reads or presses.** Buttons and error text moved to `action` / `danger` in
+Fase 3a; `rose` now remains only on the logo, the hero headline span, the
+illustrations. (The section eyebrows that used `text-rose` were removed in Fase 4a.)
 
 ### Contrast (WCAG 2.x, checked when the tokens were set)
 
@@ -91,7 +92,7 @@ are retired. Migration map for Fase 3: 15/17 → `base`/`lg`, 13/12/11 →
 | `--spacing-section` | `py-section` | 4rem | a section's vertical padding on a phone (was `py-24`) |
 | `--spacing-section-lg` | `lg:py-section-lg` | 5rem | the same from `lg` |
 | `--container-page` | `max-w-page` | 1240px | page width (was `max-w-[1240px]`) |
-| `--container-narrow` | `max-w-narrow` | 1160px | the scoring/impact width |
+| `--container-narrow` | `max-w-narrow` | 1160px | a narrower reading width (unused on `/` since Fase 4a) |
 
 The 4px spacing base is Tailwind's default and unchanged.
 
@@ -105,7 +106,6 @@ panel is `media`; small boxes (notices, thumbnails, rows) are `box`.**
 | `--radius-panel` | `rounded-panel` | 2rem | `rounded-[var(--radius-panel)]`, `rounded-[32px]` |
 | `--radius-media` | `rounded-media` | 1.25rem | `rounded-[22px]` |
 | `--radius-box` | `rounded-box` | 1rem | `rounded-2xl` |
-| `--radius-card` | — | 28px | **deprecated**, one use left (map search results) |
 
 ### Shadow — always tinted with ink, never black
 
@@ -138,6 +138,7 @@ Reviewed against Emil Kowalski's design-engineering principles in Fase 2b.
 | `--duration-base` | 200ms | menu, dropdown, toast |
 | `--duration-slow` | 300ms | dialog, sheet — the ceiling for UI motion |
 | `--press-scale` | 0.97 | `active:scale-(--press-scale)` on anything pressable |
+| `--press-scale-surface` | 0.985 | the same for a whole card — 3% of a card moves its edges ~10px |
 | `--enter-scale` | 0.96 | popover/dialog start (with opacity 0) — never from `scale(0)` |
 | `--enter-y` | 8px | menu/toast start offset |
 
@@ -161,7 +162,13 @@ Rules that come with them:
   component built on these tokens is reduced-motion-safe for free.
 - **Focus** is an `outline` of `--focus-width` (2px) at `--focus-offset` (2px)
   in `--color-focus`, not a border-colour change — an outline cannot fight a
-  `box-shadow` and survives forced-colors mode. Applied in Fase 3b.
+  `box-shadow` and survives forced-colors mode. It is **one global rule**
+  (`:focus-visible` in `@layer base`, `globals.css`), so every link, button
+  and field gets it without a class. Where the real control is invisible or
+  borderless — the sr-only radio behind a score pill, the bare select inside
+  the hero's search pill — the wrapper carries `focus-ring-within` (an
+  `@utility`) and the control `focus-visible:outline-none`. Blue passes 3:1 on
+  white, cream and amber.
 
 Durations and the movement/focus tokens are plain `:root` properties (Tailwind
 has no namespace for them): `duration-(--duration-fast)`,
@@ -169,9 +176,11 @@ has no namespace for them): `duration-(--duration-fast)`,
 
 ### Z-index
 
-`:root` properties, used as `z-(--z-dialog)`: `--z-nav` 30, `--z-map-overlay`
-500, `--z-dialog` 1000. Leaflet's panes stack up to ~400, which is why map
-overlays jump to 500.
+`:root` properties, used as `z-(--z-dialog)`: `--z-map-overlay` 500,
+`--z-nav` 1100, `--z-dialog` 1200. Leaflet's panes stack up to 700 and its
+controls to 1000, and the map is not its own stacking context, so anything
+that must cover a map — the sticky navbar on phones, a dialog — sits above
+1000. Map overlays only need to clear tiles and markers.
 
 ### How the tokens are consumed
 
@@ -181,13 +190,16 @@ it. So `var(--color-teal)` in a hand-written style may not exist at runtime —
 use the utility (`bg-teal`), or `ACCENT_HEX` for Leaflet HTML. The `:root`
 block (durations, z-index) is always emitted.
 
-Legacy usage still in components until Fase 3: arbitrary values like
-`rounded-[var(--radius-panel)]` and `shadow-[var(--shadow-lift)]` — both still
-work.
+Fase 3a moved every component to the utilities (`rounded-panel`,
+`shadow-lift`, `max-w-page`, `z-(--z-dialog)`…); arbitrary
+`rounded-[var(--radius-panel)]` no longer appears in `src/`. What is left for
+Fase 4 is page copy: section body text still uses `text-[15px]` and the
+section headings their own `clamp()`s.
 
-`@utility eyebrow` defines the small uppercase pill used at the top of every
-section. Use `eyebrow` + a ground/text pair, e.g.
-`className="eyebrow bg-white text-rose"`.
+`@utility eyebrow` defines the small uppercase pill. Since Fase 4a it is used
+**once on the page, in the hero** (the live counts, `bg-white text-action`);
+section headings stand on their own. Keep it that way — an eyebrow over every
+section reads as a template (the rule: at most one per three sections).
 
 ## The accent system
 
@@ -198,7 +210,7 @@ section. Use `eyebrow` + a ground/text pair, e.g.
 |---|---|---|
 | `ACCENT_BG` | `"bg-rose"` etc. | Tailwind class on an element |
 | `ACCENT_ON` | `"text-white"` / `"text-ink"` / `"text-amber"` | legible text on that ground |
-| `ACCENT_HEX` | `"#f93a5a"` etc. | inline styles, Leaflet `divIcon` HTML, canvas |
+| `ACCENT_HEX` | `"#f93a5a"` etc. | canvas or anything that cannot take a class. Nothing uses it since Fase 3a — kept in sync with the tokens for when something does |
 
 **Why the maps are spelled out:** Tailwind scans source for *complete* class
 strings. `bg-${accent}` would be purged. Never compose accent classes at
@@ -228,12 +240,14 @@ grounds, so they take dark text; the rest take white.
 
 | Component | Props | Notes |
 |---|---|---|
-| `ScoreBadge` | `score`, `size` (`sm`/`md`/`lg`), `accent`, `label`, `className` | The generic circular chip. Pass `label` to show text instead of the number. Colours are inline styles from `ACCENT_HEX`, not classes. |
+| `ScoreBadge` | `score`, `size` (`sm`/`md`/`lg`), `accent`, `label`, `className` | The generic circular chip. Pass `label` to show text instead of the number. Colour is `ACCENT_BG[accent]` plus ink text on the light grounds (amber, sky) and white on the rest — not `ACCENT_ON`, which would give ink an amber number. |
 | `KosScoreBadge` | `kos`, `size`, `className` | **The one to use for a kos.** Applies the `reviews === 0 → dark "Baru"` rule and picks the accent from the score. Wrapping this in a component is not decoration: the rule used to be spelled out at four call sites, two drifted, and unreviewed kos rendered `0.0` on cards and the hero while the sidebar said "Baru". |
-| `KosCard` | `kos: Kos` | Card for the browse grid, linking to `/kos/[id]`. Renders `KosPhoto`, name, "area, city", the campus line (`formatCampus`) when the kos has a `campus`, `ScoreBadge`, highlight pills, price + review count. |
+| `KosCard` | `kos: Kos` | Card for the browse grid, linking to `/kos/[id]`. Renders `KosPhoto`, name, "area, city", the campus line (`formatCampus`) when the kos has a `campus`, `ScoreBadge`, highlight pills (`empty:hidden`, so a kos from the database — which has none — leaves no hole), price + review count. |
 | `KosPhoto` | `kos` (`name`, `photoAccent`), `className`, `showLabel` | **The only place that draws a kos picture** — always a flat SVG scene (bedroom / study / house / kitchen, chosen by `photoAccent`) on the accent colour, built from palette classes (`fill-ink`, `fill-white/90`…). Carries an "Ilustrasi" chip and an `aria-label` saying it is not a real photo — `showLabel={false}` only where there is no room (the 68px hero avatar). Size and radius come from `className`. Real photos are not kos pictures: they belong to reviews and render in `ReviewPhotos` inside `review-list.tsx` (3-column square grid, `next/image`, each opening full size). Remote images are allowed only from the `review-photos` public path of the configured Supabase project (`images.remotePatterns`, derived from `NEXT_PUBLIC_SUPABASE_URL`). |
-| `FacilityBar` | spread `FacilityScore` | One labelled 0–5 bar. The label column is 108px, sized for the longest Indonesian criterion ("Kamar & kasur"). Width is `score/5 * 100%`; has `role="img"` + Indonesian `aria-label`. |
+| `FacilityBar` | spread `FacilityScore` | One labelled 0–5 bar. The label column is 108px, sized for the longest Indonesian criterion ("Kamar & kasur"). Fill is `ACCENT_BG[accent]`, width `score/5 * 100%` (the one inline style); has `role="img"` + Indonesian `aria-label`. |
 | `Logo` | `className?` | Rose "K" circle + "kkost" wordmark. |
+| `controls.ts` *(not a component)* | — | **Every button and form field gets its classes here.** `buttonClass(variant, size, extra)` — variants `primary` (`bg-action`), `dark` (`bg-ink`), `soft` (`bg-cream`); sizes `sm`/`md`/`lg` = 44/48/56px, all 16px+ text. `INPUT_CLASS`, `SELECT_CLASS`, `TEXTAREA_CLASS` (16px, `border-field`), `LABEL_CLASS`, `FIELD_ERROR_CLASS`, `NOTICE_CLASS.{error,info,warning}`. Class strings rather than a `<Button>` because the same look renders as `<button>`, `<Link>` and `<SectionLink>`. States (Fase 3b): press scales to `--press-scale` and cancels the hover lift on the shorter `--duration-press`; only `translate, scale, background-color, color, opacity` transition; `disabled` dims to 60% and goes inert; a **loading** button is `disabled` + `aria-busy` + a `<Spinner />` first child, and `aria-busy:disabled:opacity-100` keeps it at full strength — it is working, not unavailable. Fields: border darkens on hover (`hover:border-muted`), the ground turns white on focus, `aria-invalid` turns the border `danger`, `disabled` dims with a not-allowed cursor. |
+| `Spinner` | — | The mark inside a loading button: a 16px broken ring in `currentColor`, turning every 600ms (faster than Tailwind's 1s — reads as a quicker wait). `motion-safe:` only; under reduced motion it stands still. `aria-hidden` — the label and `aria-busy` carry the meaning. |
 | `SectionLink` | `Link` props, `href: "/#…"` | Link to a landing-page section. **Always root the hash at `/`** — the navbar also renders on `/kos/[id]`, where a bare `#login` only changes the URL. On `/` it scrolls to the element itself, because `Link` does nothing when the clicked hash is already in the URL. The one client component here. Also used for the CTA and sidebar "#browse" links and the map popup's "Masuk atau daftar". |
 
 All of them are Server Components — no `"use client"`, no hooks — except `SectionLink`, which needs `usePathname`.
@@ -254,7 +268,7 @@ All of them are Server Components — no `"use client"`, no hooks — except `Se
   cross a seam: one element would be sliced, or would sit on top of the next
   section's text. Both sections need `relative overflow-hidden`, and the
   section's content wrapper needs `relative` so it paints over the circle.
-  Current seams: hero → `#dampak` (lavender), map band → `#browse` (amber),
+  Current seams: hero → `#cara-kerja` (lavender), map band → `#browse` (amber),
   `#browse` → `#login` (ring). The smallest has an 80px radius, which is why
   `.drift-page` moves only ±32px.
 
@@ -276,8 +290,8 @@ Both in [`globals.css`](../src/app/globals.css), both disabled under
   `entry 40%`). Behind `@supports`, so a browser without scroll timelines shows
   the content untouched rather than hidden. Put it on a section's inner
   container, not on the coloured `<section>` itself, and not on the hero —
-  it is above the fold. Currently on `#dampak`, `#scoring`, the map
-  band, `#browse` and `#login`.
+  it is above the fold. Currently on `#cara-kerja`, the map band,
+  `#browse` and `#login`.
 - **`.drift`** — a circle inside one section moves from +40px to −40px while
   that section crosses the screen (`view()` timeline).
 - **`.drift-page`** — the two halves of a `BoundaryCircle`, +32px → −32px and
@@ -291,20 +305,26 @@ Leaflet ships its own CSS and paints its own containers, so `globals.css`
 overrides it:
 
 - `.leaflet-container` — `var(--color-map)` (`#eee9e1`) background, inherits
-  the app font. `map-frame.tsx` still hardcodes the same hex for its loading
-  placeholder (Fase 3)
+  the app font. `map-frame.tsx`'s loading placeholder uses `bg-map` too
 - `.leaflet-tile-pane` — `filter: grayscale(.92) brightness(1.06) contrast(.9)`
   to wash OSM tiles down to the deck's muted basemap
 - `.leaflet-control-zoom` — pill-shaped, borderless, `var(--shadow-control)`
 - `.leaflet-tooltip` — pill-shaped, borderless, bold ink text, same shadow
 
-Markers are **`L.divIcon` with inline HTML**, not image assets. This matches the
-circular badges used elsewhere and sidesteps Leaflet's well-known broken default
-marker asset path under bundlers. Two icons in `kos-map.tsx`: `scoreIcon()`
-(dynamic per kos) and `draftIcon` (rose "+").
+Markers are **`L.divIcon` with an HTML string**, not image assets. This matches
+the circular badges used elsewhere and sidesteps Leaflet's well-known broken
+default marker asset path under bundlers. Three icons in `kos-map.tsx`:
+`scoreIcon()` (dynamic per kos), `draftIcon` (`action` "+") and `placeIcon`
+(blue ring). Since Fase 3a the HTML carries **Tailwind classes** (`shadow-pin`,
+`ACCENT_BG[accent]`, `size-[46px]`…) instead of inline hex: the strings live in
+the source file, so Tailwind finds and generates them like any other class.
 
-Because Leaflet panes carry their own stacking, map overlays use explicit high
-z-index: the hint pill and toast are `z-[500]`, and `AddKosDialog` is `z-[1000]`.
+Because Leaflet panes carry their own stacking, map overlays use the z tokens:
+the search column, hint pill and toast are `z-(--z-map-overlay)` (500), and
+`AddKosDialog` is `z-(--z-dialog)` (1000).
+
+`.leaflet-container a` sets link colour with more specificity than a utility,
+so a `SectionLink` inside a popup needs `text-white!` to stay white.
 
 ## Copy language
 
@@ -321,7 +341,7 @@ unfinished, so it was unified.
 From `lg` (≥1024px) every landing section is **exactly one screen tall** —
 `lg:flex lg:min-h-svh lg:flex-col lg:justify-center`, content centred, inner
 container `w-full`. The hero uses `lg:min-h-[calc(100svh-5.5rem)]` so hero +
-navbar make one screen. Below `lg` heights follow the content (`px-4 py-24`);
+navbar make one screen. Below `lg` heights follow the content (`px-4 py-section`);
 a phone cannot hold six criteria or a card grid in one screen.
 
 Measured to fit at 1440×900, 1280×800 and 1366×768. What made that possible:
@@ -334,22 +354,44 @@ Measured to fit at 1440×900, 1280×800 and 1366×768. What made that possible:
 - **The map row takes its height from the screen**:
   `lg:h-[clamp(360px,calc(100svh-345px),600px)]` on the grid, map and sidebar
   `h-full`, the sidebar list scrolls inside. 345px is everything else in the
-  band — change it if the heading changes.
+  band — change it if the heading changes. (Removing the eyebrow in Fase 4a
+  made the heading ~60px shorter, so 345px is now conservative; retuning it is
+  part of the Listing pass.)
 - **`short:`** — a custom variant in `globals.css`,
   `(width >= 64rem) and (height <= 860px)`. Registered after the breakpoints,
-  so it overrides `lg:`. Only the dense sections use it: `#scoring` (smaller
-  number circles), `#browse` (140px card images), `#dampak` (less padding).
+  so it overrides `lg:`. Only the dense sections use it: `#cara-kerja`
+  (tighter list and grid gaps), `#browse` (140px card images).
+
+Fase 4a added 1024×768 to the sizes checked; all five sections fit it too.
 
 After changing any section's content, re-measure: every `main > section`
-should be `innerHeight` tall at those three sizes (hero: `innerHeight − 87`).
+should be `innerHeight` tall at those three sizes (hero: `innerHeight − 88`, the navbar's 5.5rem).
 
 ## Responsive
 
 Mobile-first with `sm:` / `lg:` breakpoints. Content is capped at
-`max-w-[1240px]` (`max-w-[1160px]` in the scoring section). Display headings use
-`text-[clamp(...)]` rather than breakpoint steps. The navbar's link list is
+`max-w-page`. Headings use the fluid type tokens (`text-display`,
+`text-title`) rather than breakpoint steps. The navbar's link list is
 `hidden lg:flex`, replaced below `lg` by `MobileNav` — the competition rules
 require the site to work at every screen size, so that menu is not optional.
+
+**The navbar is sticky below `lg`** (`sticky top-0 lg:relative`). Every
+anchored section — and the `#dampak` / `#scoring` halves — carries
+`scroll-mt-24 lg:scroll-mt-0`, so a `SectionLink` lands just under the bar
+instead of beneath it (measured: section top 96px, bar bottom 88px).
+
+**Hero headline.** The phrases "orang yang pernah" and "tinggal di sana." are
+`whitespace-nowrap` spans instead of `<br>`s, so lines break where the sentence
+does. Two sizes keep that possible: `text-display` (`clamp(2rem, 10.5vw,
+4.25rem)` — still on one line at 320px) and, from `lg` where the headline
+shares a row with the hero card, `text-display-split` (`clamp(3rem, 5.4vw,
+4.25rem)`), with the card column 400px until `xl` and 480px after. Recheck at
+320, 1024 and 1280 if the headline copy changes.
+
+**Icons.** `lucide-react`, first used in Fase 4a: one icon per criterion in
+`HowItWorks` (`BedDouble`, `ShowerHead`, `Droplets`, `Wifi`, `CookingPot`,
+`SquareParking`), `size-5`, `strokeWidth` 2, `aria-hidden`. Keep to lucide —
+one icon family per project.
 
 The map is the one place where a fixed pixel inset breaks: `FitToKos` scales its
 padding to the container, which is ~343px wide on a phone and ~800px on a

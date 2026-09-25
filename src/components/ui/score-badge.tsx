@@ -1,10 +1,10 @@
-import { ACCENT_HEX } from "./accent";
+import { ACCENT_BG } from "./accent";
 import type { Accent } from "@/data/kos";
 
 const SIZES = {
-  sm: "h-11 w-11 text-base",
-  md: "h-14 w-14 text-xl",
-  lg: "h-[72px] w-[72px] text-[28px]",
+  sm: "size-11 text-base",
+  md: "size-14 text-xl",
+  lg: "size-18 text-3xl",
 } as const;
 
 export type ScoreBadgeSize = keyof typeof SIZES;
@@ -26,15 +26,15 @@ export function ScoreBadge({
   label,
   className = "",
 }: Props) {
+  // Only the two light grounds take ink; ACCENT_ON would give ink an amber
+  // number, which is right for the scoring circles but not for "Baru".
+  const text = accent === "amber" || accent === "sky" ? "text-ink" : "text-white";
+
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center rounded-full font-extrabold tabular-nums ${SIZES[size]} ${className}`}
-      style={{
-        backgroundColor: ACCENT_HEX[accent],
-        color: accent === "amber" || accent === "sky" ? "#1c2a4e" : "#ffffff",
-      }}
+      className={`inline-flex shrink-0 items-center justify-center rounded-full font-extrabold tabular-nums ${ACCENT_BG[accent]} ${text} ${SIZES[size]} ${className}`}
     >
-      <span className={label ? "text-[11px] tracking-wide" : undefined}>
+      <span className={label ? "text-xs tracking-wide" : undefined}>
         {label ?? score.toFixed(1)}
       </span>
     </span>

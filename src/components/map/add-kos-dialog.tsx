@@ -4,6 +4,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import {
+  buttonClass,
+  FIELD_ERROR_CLASS,
+  INPUT_CLASS,
+  LABEL_CLASS,
+  NOTICE_CLASS,
+} from "@/components/ui/controls";
+import { Spinner } from "@/components/ui/spinner";
 import { reverseGeocode } from "@/lib/geocode";
 import { createClient } from "@/utils/supabase/client";
 import {
@@ -195,7 +203,7 @@ export function AddKosDialog({
 
   return (
     <div
-      className="fixed inset-0 z-[1000] flex items-start justify-center overflow-y-auto overscroll-contain bg-ink/60 p-4"
+      className="fixed inset-0 z-(--z-dialog) flex items-start justify-center overflow-y-auto overscroll-contain bg-ink/60 p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="add-kos-title"
@@ -204,14 +212,14 @@ export function AddKosDialog({
       <form
         ref={formRef}
         onSubmit={handleSubmit(onSubmit)}
-        className="my-auto w-full max-w-[440px] rounded-[var(--radius-panel)] bg-white p-8 shadow-[var(--shadow-float)]"
+        className="my-auto w-full max-w-[440px] rounded-panel bg-white p-8 shadow-float"
       >
         <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-muted">
           Tambah kos
         </p>
         <h2
           id="add-kos-title"
-          className="mt-3 text-[26px] font-extrabold leading-tight text-ink"
+          className="mt-3 text-2xl font-extrabold leading-tight text-ink"
         >
           Kos baru di titik ini
         </h2>
@@ -223,6 +231,7 @@ export function AddKosDialog({
           <Field label="Nama kos" error={errors.name?.message}>
             <input
               {...register("name")}
+              aria-invalid={Boolean(errors.name)}
               autoFocus
               placeholder="Kos Puri Melati"
               className={inputClass}
@@ -233,6 +242,7 @@ export function AddKosDialog({
             <Field label="Area" error={errors.area?.message}>
               <input
                 {...register("area")}
+                aria-invalid={Boolean(errors.area)}
                 placeholder="Tembalang"
                 className={inputClass}
               />
@@ -241,6 +251,7 @@ export function AddKosDialog({
             <Field label="Kota" error={errors.city?.message}>
               <input
                 {...register("city")}
+                aria-invalid={Boolean(errors.city)}
                 placeholder="Semarang"
                 className={inputClass}
               />
@@ -259,6 +270,7 @@ export function AddKosDialog({
           >
             <input
               {...register("campus")}
+              aria-invalid={Boolean(errors.campus)}
               placeholder="Universitas Diponegoro"
               className={inputClass}
             />
@@ -267,6 +279,7 @@ export function AddKosDialog({
           <Field label="Harga per bulan (Rp)" error={errors.price?.message}>
             <input
               {...register("price", { valueAsNumber: true })}
+              aria-invalid={Boolean(errors.price)}
               type="number"
               inputMode="numeric"
               min={0}
@@ -278,13 +291,13 @@ export function AddKosDialog({
         </div>
 
         {serverError && (
-          <p className="mt-4 rounded-2xl bg-rose/10 px-4 py-3 text-sm font-bold break-words text-rose">
+          <p className={`mt-4 break-words ${NOTICE_CLASS.error}`}>
             {serverError}
           </p>
         )}
 
         {!isSupabaseConfigured && (
-          <p className="mt-4 rounded-2xl bg-amber/15 px-4 py-3 text-sm font-medium text-ink">
+          <p className={`mt-4 ${NOTICE_CLASS.warning}`}>
             Supabase belum dikonfigurasi, jadi kos ini hanya muncul di peta
             selama sesi ini dan <strong>belum tersimpan ke database</strong>.
           </p>
@@ -294,15 +307,17 @@ export function AddKosDialog({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 rounded-full bg-cream py-3.5 text-[15px] font-extrabold text-ink transition-colors hover:bg-cream-deep"
+            className={buttonClass("soft", "md", "flex-1 px-4")}
           >
             Batal
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 rounded-full bg-rose py-3.5 text-[15px] font-extrabold text-white transition-transform hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0"
+            aria-busy={isSubmitting}
+            className={buttonClass("primary", "md", "flex-1 px-4")}
           >
+            {isSubmitting && <Spinner />}
             {isSubmitting ? "Menyimpan…" : "Simpan kos"}
           </button>
         </div>
@@ -311,8 +326,7 @@ export function AddKosDialog({
   );
 }
 
-const inputClass =
-  "mt-2 w-full rounded-full border border-cream-deep bg-cream px-5 py-3.5 text-[15px] font-bold text-ink outline-none transition-colors placeholder:text-muted focus:border-rose";
+const inputClass = INPUT_CLASS;
 
 function Field({
   label,
@@ -327,12 +341,12 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-[15px] font-extrabold text-ink">
+      <span className={LABEL_CLASS}>
         {label}
         {hint && <span className="font-medium text-muted"> ({hint})</span>}
       </span>
       {children}
-      {error && <span className="mt-1.5 block text-sm font-bold text-rose">{error}</span>}
+      {error && <span className={FIELD_ERROR_CLASS}>{error}</span>}
     </label>
   );
 }
