@@ -28,8 +28,28 @@ tree as possible (see `MapFrame`).
 - **Never build class names by string interpolation of a variable**
   (`bg-${accent}`). Tailwind scans for complete literals. Use the lookup maps in
   `components/ui/accent.ts`, or an inline `style` with `ACCENT_HEX`.
-- Radii/shadows are consumed as arbitrary values:
-  `rounded-[var(--radius-panel)]`, `shadow-[var(--shadow-lift)]`.
+- **Use tokens, never raw values** (full list in `04-design-system.md`):
+  - colour: semantic names first — `bg-action`, `text-danger`, `ring-focus`,
+    `border-field`; palette names (`text-ink`, `bg-cream`) for everything else.
+    Never `bg-rose`/`text-rose` for a button, link or error: `rose` is brand
+    decoration and fails AA with text — use `action` / `danger`.
+  - type: `text-display` / `text-title` / `text-heading` for headings,
+    Tailwind's `text-xs…2xl` below that. **No `text-[Npx]`.** Body copy,
+    inputs, selects and buttons are at least `text-base` (16px) — iOS zooms
+    on a focused input under 16px.
+  - layout: `py-section lg:py-section-lg`, `max-w-page` / `max-w-narrow`.
+  - radius: `rounded-full` for controls, `rounded-panel` / `rounded-media` /
+    `rounded-box` for surfaces. No `rounded-[22px]`.
+  - shadow: `shadow-lift`, `shadow-float`, `shadow-control`, `shadow-pin`.
+  - motion: `duration-(--duration-fast)` etc. with `ease-out-soft` /
+    `ease-in-out-soft`; never Tailwind's bare `duration-150`.
+  - z-index: `z-(--z-nav)`, `z-(--z-map-overlay)`, `z-(--z-dialog)`; no new
+    literal z values.
+- Older code still spells radii/shadows as `rounded-[var(--radius-panel)]` /
+  `shadow-[var(--shadow-lift)]`. It works; migrate it when you touch the file.
+- A new colour is added to `@theme` in `globals.css`, **its contrast checked**
+  against the grounds it will sit on, and the table in `04-design-system.md`
+  updated — then `ACCENT_HEX` too if it is an accent.
 
 ## TypeScript
 

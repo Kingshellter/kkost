@@ -5,7 +5,19 @@
  * All user-facing copy here is Indonesian, like the rest of the site.
  */
 
-export type Accent = "rose" | "amber" | "blue" | "sky" | "ink";
+/**
+ * Colours a component may be tinted with. `teal` and `rose-deep` exist for
+ * the score scale (see `accentForScore`); the rest are brand colours used as
+ * identity (criteria, illustrations).
+ */
+export type Accent =
+  | "rose"
+  | "rose-deep"
+  | "amber"
+  | "blue"
+  | "sky"
+  | "teal"
+  | "ink";
 
 /**
  * The six things every reviewer scores. These keys are also the column names

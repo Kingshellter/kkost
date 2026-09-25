@@ -8,33 +8,147 @@ big extrabold display type, decorative off-canvas circles.
 
 There is **no `tailwind.config.js`**. All tokens live in an `@theme inline`
 block in [`src/app/globals.css`](../src/app/globals.css), which means every
-token is automatically a utility class *and* a CSS variable.
+token is automatically a utility class (and a CSS variable when something
+refers to it — see "How the tokens are consumed" below).
+
+The token set was rebuilt in UI-revamp Fase 2a (25 Sep 2026) from the findings
+in [ui-audit.md](ui-audit.md). Dark mode was deliberately **skipped** (the brand
+is a light cream ground); the semantic colour names exist so it can be added
+later by remapping only those.
+
+### Colour — palette
 
 ```css
 --color-cream:      #f1ece3   /* page background */
---color-cream-deep: #e7e1d6   /* hairlines, dividers, input borders */
+--color-cream-deep: #e7e1d6   /* hairlines and dividers (decorative) */
 --color-ink:        #1c2a4e   /* primary text, dark sections */
 --color-ink-soft:   #24345c   /* body copy */
---color-rose:       #f93a5a   /* primary action / brand */
---color-amber:      #fcb800   /* CTA section ground */
+--color-rose:       #f93a5a   /* BRAND + DECORATION ONLY — fails AA with text */
+--color-rose-deep:  #c81e40   /* the rose that passes AA: actions, errors */
+--color-amber:      #fcb800   /* CTA section ground, mid score */
 --color-amber-soft: #fcd056
---color-blue:       #3b59df
+--color-blue:       #3b59df   /* info, "Mahasiswa" badge, focus ring */
 --color-sky:        #4fc3f7
---color-muted:      #7f8493   /* secondary text */
+--color-teal:       #16805a   /* high score — not a brand colour */
+--color-muted:      #62677a   /* secondary text (was #7f8493, failed AA) */
 --color-lavender:   #d7d7e2   /* hero blob */
-
---font-sans / --font-display : var(--font-jakarta)
-
---radius-card:  28px
---radius-panel: 32px          /* used as rounded-[var(--radius-panel)] */
-
---shadow-lift:  0 18px 40px -18px rgb(28 42 78 / .28)
---shadow-float: 0 30px 70px -28px rgb(28 42 78 / .42)
+--color-field:      #7d8497   /* input / select borders */
+--color-map:        #eee9e1   /* Leaflet ground under the tiles */
 ```
 
-Usage: colours as normal utilities (`bg-cream`, `text-ink`, `border-cream-deep`);
-radii and shadows via arbitrary values (`rounded-[var(--radius-panel)]`,
-`shadow-[var(--shadow-lift)]`).
+### Colour — semantic (use these in new and refactored components)
+
+```css
+--color-action: var(--color-rose-deep)   /* bg-action, text-action */
+--color-danger: var(--color-rose-deep)   /* error text and notices */
+--color-focus:  var(--color-blue)        /* ring-focus */
+```
+
+Palette names stay for decoration, the accent maps and existing code. The two
+roses are the rule to remember: **`rose` is the brand colour (logo, hero
+headline, illustrations, blobs); `rose-deep` / `action` is everything a user
+reads or presses.** Components still on `bg-rose` buttons and `text-rose`
+errors are migrated in Fase 3.
+
+### Contrast (WCAG 2.x, checked when the tokens were set)
+
+| Pair | Ratio | Needs |
+|---|---|---|
+| white on `rose-deep` (buttons) | 5.65 | 4.5 ✅ |
+| `rose-deep` on white / on cream | 5.65 / 4.80 | 4.5 ✅ |
+| `muted` on white / on cream | 5.61 / 4.77 | 4.5 ✅ |
+| white on `teal` (score badge) | 4.92 | 4.5 ✅ |
+| `ink` on `amber` | 8.05 | 4.5 ✅ |
+| `field` border on white / on cream | 3.74 / 3.18 | 3 ✅ (non-text) |
+| `blue` focus ring on white / on cream | 5.71 / 4.85 | 3 ✅ |
+| white on `rose` | 3.63 | ❌ — why `rose` never carries text |
+
+Changing any colour token means re-checking this table.
+
+### Type
+
+`--font-sans` / `--font-display` → `var(--font-jakarta)` (Plus Jakarta Sans,
+400–800).
+
+Tailwind's own `text-xs/sm/base/lg/xl/2xl` (12/14/16/18/20/24) are kept as they
+are. Three display sizes are added, each carrying its own leading and tracking:
+
+| Utility | Size | Leading / tracking | For |
+|---|---|---|---|
+| `text-display` | `clamp(2.5rem, 6.5vw, 4.25rem)` | 1 / −0.035em | hero h1 |
+| `text-title` | `clamp(2rem, 4.5vw, 3rem)` | 1.05 / −0.03em | every section h2 |
+| `text-heading` | `clamp(1.75rem, 4vw, 2.5rem)` | 1.05 / −0.02em | detail h1, dialogs, 404/error |
+
+**Minimum 16px (`text-base`) for body copy, inputs, selects and buttons** —
+iOS Safari zooms the page when an input under 16px is focused. `15px` and `13px`
+are retired. Migration map for Fase 3: 15/17 → `base`/`lg`, 13/12/11 →
+`sm`/`xs`, 22/26/28 → `2xl`, 32 → `3xl`.
+
+### Spacing and layout
+
+| Token | Utility | Value | For |
+|---|---|---|---|
+| `--spacing-section` | `py-section` | 4rem | a section's vertical padding on a phone (was `py-24`) |
+| `--spacing-section-lg` | `lg:py-section-lg` | 5rem | the same from `lg` |
+| `--container-page` | `max-w-page` | 1240px | page width (was `max-w-[1240px]`) |
+| `--container-narrow` | `max-w-narrow` | 1160px | the scoring/impact width |
+
+The 4px spacing base is Tailwind's default and unchanged.
+
+### Radius
+
+Rule: **controls are `rounded-full`; containers are `panel`; a picture inside a
+panel is `media`; small boxes (notices, thumbnails, rows) are `box`.**
+
+| Token | Utility | Value | Replaces |
+|---|---|---|---|
+| `--radius-panel` | `rounded-panel` | 2rem | `rounded-[var(--radius-panel)]`, `rounded-[32px]` |
+| `--radius-media` | `rounded-media` | 1.25rem | `rounded-[22px]` |
+| `--radius-box` | `rounded-box` | 1rem | `rounded-2xl` |
+| `--radius-card` | — | 28px | **deprecated**, one use left (map search results) |
+
+### Shadow — always tinted with ink, never black
+
+```css
+--shadow-lift:    0 18px 40px -18px rgb(28 42 78 / .28)   /* cards, bars */
+--shadow-float:   0 30px 70px -28px rgb(28 42 78 / .42)   /* raised panels, dialogs */
+--shadow-control: 0 8px 20px -8px rgb(28 42 78 / .4)      /* Leaflet zoom + tooltip */
+--shadow-pin:     0 8px 20px -6px rgb(28 42 78 / .55)     /* map markers (Fase 3) */
+```
+
+### Motion
+
+| Token | Value | For |
+|---|---|---|
+| `ease-out-soft` (`--ease-out-soft`) | `cubic-bezier(0.23, 1, 0.32, 1)` | anything entering, press feedback |
+| `ease-in-out-soft` | `cubic-bezier(0.77, 0, 0.175, 1)` | something on screen moving to a new place |
+| `--duration-press` | 100ms | `:active` press |
+| `--duration-fast` | 150ms | hover, colour changes |
+| `--duration-base` | 200ms | menu, dropdown, toast |
+| `--duration-slow` | 300ms | dialog, sheet |
+
+Durations are plain `:root` properties (Tailwind has no namespace for them):
+`duration-(--duration-fast)`. Under `prefers-reduced-motion: reduce` all four
+are `0ms` — a safety net under the component-level checks, still to be reviewed
+in Fase 2b.
+
+### Z-index
+
+`:root` properties, used as `z-(--z-dialog)`: `--z-nav` 30, `--z-map-overlay`
+500, `--z-dialog` 1000. Leaflet's panes stack up to ~400, which is why map
+overlays jump to 500.
+
+### How the tokens are consumed
+
+`@theme inline` copies each value straight into its utility, and Tailwind only
+emits a `--color-*`/`--radius-*` variable into the CSS when something refers to
+it. So `var(--color-teal)` in a hand-written style may not exist at runtime —
+use the utility (`bg-teal`), or `ACCENT_HEX` for Leaflet HTML. The `:root`
+block (durations, z-index) is always emitted.
+
+Legacy usage still in components until Fase 3: arbitrary values like
+`rounded-[var(--radius-panel)]` and `shadow-[var(--shadow-lift)]` — both still
+work.
 
 `@utility eyebrow` defines the small uppercase pill used at the top of every
 section. Use `eyebrow` + a ground/text pair, e.g.
@@ -55,8 +169,22 @@ section. Use `eyebrow` + a ground/text pair, e.g.
 strings. `bg-${accent}` would be purged. Never compose accent classes at
 runtime — add an entry to the map instead.
 
-`accentForScore(score)` bands the colour: `≥ 4.6 → rose`, `≥ 4.3 → amber`,
-else `blue`. Used by map pins and the sidebar.
+`Accent` has two kinds of member. **Identity colours** — `rose`, `amber`,
+`blue`, `sky`, `ink` — tint criteria (`CRITERIA.accent`) and illustrations
+(`photoAccent`). **Score colours** — `teal`, `amber`, `rose-deep` — come only
+from `accentForScore(score)`:
+
+| Average | Accent | Meaning |
+|---|---|---|
+| `≥ SCORE_HIGH` (4.3) | `teal` | good |
+| `≥ SCORE_MID` (3.5) | `amber` | middling |
+| below | `rose-deep` | poor |
+
+Used by `KosScoreBadge`, the review cards, the map pins and the sidebar. Until
+Fase 2a the scale was `≥ 4.6 rose, ≥ 4.3 amber, else blue` — rose marked the
+*best* kos while also meaning "button" and "error", and blue (the lowest band)
+was also the "Mahasiswa" badge. A kos with no reviews is still the dark "Baru"
+chip (`ink`). The map has no legend for these colours yet — that is Fase 4.
 
 Contrast rule that appears in several places: `amber` and `sky` are light
 grounds, so they take dark text; the rest take white.
@@ -127,11 +255,13 @@ Both in [`globals.css`](../src/app/globals.css), both disabled under
 Leaflet ships its own CSS and paints its own containers, so `globals.css`
 overrides it:
 
-- `.leaflet-container` — cream-ish `#eee9e1` background, inherits the app font
+- `.leaflet-container` — `var(--color-map)` (`#eee9e1`) background, inherits
+  the app font. `map-frame.tsx` still hardcodes the same hex for its loading
+  placeholder (Fase 3)
 - `.leaflet-tile-pane` — `filter: grayscale(.92) brightness(1.06) contrast(.9)`
   to wash OSM tiles down to the deck's muted basemap
-- `.leaflet-control-zoom` — pill-shaped, borderless, lifted shadow
-- `.leaflet-tooltip` — pill-shaped, borderless, bold ink text
+- `.leaflet-control-zoom` — pill-shaped, borderless, `var(--shadow-control)`
+- `.leaflet-tooltip` — pill-shaped, borderless, bold ink text, same shadow
 
 Markers are **`L.divIcon` with inline HTML**, not image assets. This matches the
 circular badges used elsewhere and sidesteps Leaflet's well-known broken default

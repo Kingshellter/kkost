@@ -20,6 +20,30 @@ Kontras dihitung dengan rumus WCAG 2.x dari nilai token di `globals.css`.
 
 Kode masalah (`B-3`, `M-2`, dst.) dipakai lagi di tabel prioritas (bagian 4).
 
+### Status perbaikan
+
+**Fase 2a (25 Sep 2026), token selesai:**
+
+| Kode | Status | Sisa pekerjaan |
+|---|---|---|
+| **G-1** | Sebagian | `muted` sudah digelapkan ke `#62677a` (4,77 di cream) dan otomatis berlaku di seluruh situs. Token `rose-deep` / `action` / `danger` (lolos AA) dan `field` (border ≥ 3:1) sudah ada. |
+| **G-2** | Token siap | `text-display/title/heading`, dengan minimal 16px untuk body/input/tombol. |
+| **G-3** | Token siap | `rounded-panel/media/box` + aturan pemakaiannya. |
+| **G-4** | Token siap | `--color-map` dan `--shadow-control` sudah dipakai di `globals.css`. |
+| **G-5** | Sebagian | Skala skor baru sudah aktif: teal ≥ 4,3, amber ≥ 3,5, `rose-deep` di bawahnya. |
+| **M-1** | Token siap | Aturan minimal 16px sudah ada. |
+
+Yang masih harus dikerjakan:
+- **Fase 3:**
+  - G-1: tombol dan teks error masih memakai `bg-rose`/`text-rose`, jadi harus dipindah ke `action`/`danger`.
+  - G-2, G-3, G-4, M-1: komponen masih harus dimigrasi ke token barunya.
+  - G-4: hex di `kos-map.tsx`, `score-badge.tsx`, dan `map-frame.tsx` masih hardcode.
+- **Fase 4:**
+  - G-5: legenda warna pin di peta.
+  - B-7: kartu kos.
+
+Detail token lengkap ada di `04-design-system.md`.
+
 ---
 
 ## 1. Masalah per halaman

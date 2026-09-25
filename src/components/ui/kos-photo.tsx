@@ -144,4 +144,7 @@ const SCENES: Record<Accent, () => React.JSX.Element> = {
   rose: House,
   blue: Kitchen,
   ink: Bedroom,
+  // Score colours, never a photoAccent (PHOTO_ACCENTS); listed for the Record.
+  teal: Study,
+  "rose-deep": House,
 };
