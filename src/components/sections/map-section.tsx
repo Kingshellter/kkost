@@ -34,11 +34,11 @@ export function MapSection({
       />
 
       <div className="reveal relative mx-auto w-full max-w-page">
-        <div className="text-center">
+        <div>
           <h2 className="font-extrabold text-white text-title">
             Semua kos di peta
           </h2>
-          <p className="mx-auto mt-5 max-w-[52ch] text-lg text-white/70 lg:mt-4">
+          <p className="mt-5 max-w-[52ch] text-lg text-white/70 lg:mt-4">
             {narrowed
               ? `Menampilkan ${kos.length} kos yang cocok dengan filter di bawah.`
               : "Dari Sabang sampai Merauke. Jarak ke kampus adalah satu hal yang tidak bisa direnovasi."}

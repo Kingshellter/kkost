@@ -146,10 +146,12 @@ function HeroCard({ kos, reviews }: { kos: Kos; reviews: Review[] }) {
     <div className="relative mx-auto w-full max-w-[480px] lg:mx-0">
       <article className="rounded-panel bg-white p-7 shadow-float">
         <div className="flex items-start gap-4">
+          {/* Decoration, not information: on a phone it squeezed the
+              location into three lines between itself and the score. */}
           <KosPhoto
             kos={kos}
             showLabel={false}
-            className="h-[68px] w-[68px] shrink-0 rounded-full"
+            className="size-[68px] shrink-0 rounded-full max-sm:hidden"
           />
           <div className="min-w-0 flex-1">
             <h2 className="text-xl font-extrabold leading-tight text-ink sm:text-2xl">

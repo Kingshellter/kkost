@@ -66,6 +66,13 @@ Kode masalah (`B-3`, `M-2`, dst.) dipakai lagi di tabel prioritas (bagian 4).
 | **G-11 / M-6** | Selesai | Navbar sticky di bawah `lg`. Anchor diberi `scroll-mt`, z-index nav 1100 di atas peta, dan dialog tambah kos lewat portal. |
 | **B-5** | Sebagian | Navbar sekarang punya link "Peta" (`#peta`). Pin yang bisa diklik ke halaman detail menunggu pass Listing. |
 
+**Fase 4b Beranda (25 Sep 2026), verifikasi 375px + 1280px:**
+- Avatar ilustrasi di kartu hero disembunyikan di bawah `sm`, karena membuat meta lokasi jadi 4 baris; sekarang 2.
+- Judul section peta rata kiri, seperti semua section lain.
+- Masih lolos: tinggi section = 1 layar di 1280×800, tidak ada overflow di 375px, halaman 6.709px.
+- Dicatat untuk pass Listing: label "9 KOS DI PETA" (huruf kapital), ruang kosong di tengah kartu kos saat tinggi kartu disamakan, tombol ▶ menimpa kartu ketiga, dan copy "tidak bisa direnovasi".
+- Diterima apa adanya: kolom kiri section Masuk terasa lega di 1280px setelah strip tagline pindah ke footer.
+
 Yang masih harus dikerjakan:
 - **Fase 4:**
   - G-5: legenda warna pin di peta.
