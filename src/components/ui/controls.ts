@@ -29,8 +29,8 @@ const BUTTON_BASE =
 const BUTTON_VARIANT: Record<ButtonVariant, string> = {
   /* The one call to action on a surface. `action`, not `rose`: white on
      brand rose is 3.6:1. */
-  primary: "bg-action text-white hover:-translate-y-0.5",
-  dark: "bg-ink text-white hover:-translate-y-0.5 hover:bg-ink-soft",
+  primary: "bg-action text-white hover:-translate-y-(--hover-lift)",
+  dark: "bg-ink text-white hover:-translate-y-(--hover-lift) hover:bg-ink-soft",
   soft: "bg-cream text-ink hover:bg-cream-deep",
 };
 

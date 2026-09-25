@@ -195,7 +195,9 @@ function HeroCard({ kos, reviews }: { kos: Kos; reviews: Review[] }) {
           <blockquote className="line-clamp-3 text-base font-bold leading-snug text-white">
             &ldquo;{quote.body}&rdquo;
           </blockquote>
-          <figcaption className="mt-2 text-xs font-bold text-white/75">
+          {/* White at 90%, not 75%: 75% on blue was 3.9:1, under AA for
+              text this small (Fase 7c). Still a step quieter than the quote. */}
+          <figcaption className="mt-2 text-sm font-bold text-white/90">
             {quote.authorName}
             {quote.isDemo && " (review contoh)"}
           </figcaption>

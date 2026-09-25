@@ -152,7 +152,7 @@ export function Browse({ kos, total, cities, filter }: Props) {
             <p className="text-xl font-extrabold text-ink">
               Tidak ada kos yang cocok
             </p>
-            <p className="mx-auto mt-2 max-w-[40ch] text-[15px] font-medium text-muted">
+            <p className="mx-auto mt-2 max-w-[40ch] text-base font-medium text-muted">
               Coba kota lain atau naikkan budget. Kalau kamu tahu kos di sini
               yang belum terdaftar, tambahkan lewat peta di atas.
             </p>

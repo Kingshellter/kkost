@@ -151,6 +151,7 @@ Reviewed against Emil Kowalski's design-engineering principles in Fase 2b.
 | `--press-scale-surface` | 0.985 | the same for a whole card — 3% of a card moves its edges ~10px |
 | `--enter-scale` | 0.96 | popover/dialog start (with opacity 0) — never from `scale(0)` |
 | `--enter-y` | 8px | menu/toast start offset |
+| `--hover-lift` | 2px | how far a button or kos card rises under a mouse (`hover:-translate-y-(--hover-lift)`) |
 
 Rules that come with them:
 
@@ -167,11 +168,13 @@ Rules that come with them:
   (`@custom-variant hover`) to apply only under `(hover: hover) and
   (pointer: fine)` — Tailwind's own checks `(hover: hover)` alone, which some
   Android and hybrid devices report, leaving a tapped card lifted. Hover lift
-  is 2px everywhere (`hover:-translate-y-0.5`, buttons and kos cards).
+  is 2px everywhere (`hover:-translate-y-(--hover-lift)`, buttons and kos
+  cards), 0 under reduced motion.
 - **Reduced motion means less motion, not none.** Under
   `prefers-reduced-motion: reduce` the durations are kept (opacity and colour
   still ease, so a change stays followable) and only the movement tokens
-  collapse: `--press-scale` and `--enter-scale` → 1, `--enter-y` → 0. A
+  collapse: `--press-scale` and `--enter-scale` → 1, `--enter-y` and
+  `--hover-lift` → 0. A
   component built on these tokens is reduced-motion-safe for free.
 - **Focus** is an `outline` of `--focus-width` (2px) at `--focus-offset` (2px)
   in `--color-focus`, not a border-colour change — an outline cannot fight a

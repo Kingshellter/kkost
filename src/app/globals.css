@@ -156,6 +156,9 @@
   --press-scale-surface: 0.985;
   --enter-scale: 0.96;
   --enter-y: 8px;
+  /* Hover lift on buttons and kos cards (`hover:-translate-y-(--hover-lift)`),
+     mouse only (see the custom hover variant). */
+  --hover-lift: 2px;
 
   /* Focus is an outline in --color-focus, not a border colour change: it
      cannot fight a box-shadow and survives forced-colors mode. */
@@ -184,6 +187,7 @@
     --press-scale-surface: 1;
     --enter-scale: 1;
     --enter-y: 0px;
+    --hover-lift: 0px;
   }
 }
 

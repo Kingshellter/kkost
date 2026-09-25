@@ -8,7 +8,7 @@ export function KosCard({ kos }: { kos: Kos }) {
   return (
     <Link
       href={`/kos/${kos.id}`}
-      className="flex flex-col rounded-panel bg-white p-4 shadow-lift transition-[translate,scale] duration-(--duration-fast) ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-(--press-scale-surface) active:duration-(--duration-press)"
+      className="flex flex-col rounded-panel bg-white p-4 shadow-lift transition-[translate,scale] duration-(--duration-fast) ease-out hover:-translate-y-(--hover-lift) active:translate-y-0 active:scale-(--press-scale-surface) active:duration-(--duration-press)"
     >
       <KosPhoto kos={kos} className="h-[190px] rounded-media short:h-[140px]" />
 

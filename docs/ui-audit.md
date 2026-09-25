@@ -208,11 +208,23 @@ Dipertimbangkan dan **disetujui** (tidak diubah):
 
 Belum tertangani: `autoPan` popup Leaflet tetap animasi di bawah reduced motion (Leaflet 1.9 tidak punya opsi untuk mematikannya).
 
-Yang masih harus dikerjakan:
-- **Fase 4:**
-  - G-5: legenda warna pin di peta.
-  - Eyebrow `text-rose`.
-  - Teks section (`text-[15px]`) dan judul section (`text-title`).
+**Fase 7c Cek akhir (25 Sep 2026):**
+
+| Cek | Hasil | Cara |
+|---|---|---|
+| Kontras WCAG AA | **Lolos** setelah 1 perbaikan | Skrip menghitung rasio setiap elemen teks yang terlihat (warna `oklab` dinormalkan lewat canvas, latar transparan dicampur ke atas). Diuji di `/` 375 dan 1280, `/kos/[id]`, dan 404. **Gagal lalu diperbaiki:** keterangan kutipan hero "Sari W. (review contoh)", `text-white/75` 12px di atas biru = 3,94 → `text-white/90` 14px. Dikecualikan: huruf "K" di logo (3,63, logotype). Placeholder terendah 4,77 |
+| Animasi hanya transform/opacity | **Lolos** | Runtime: 0 elemen dengan `transition-property` di luar opacity/transform/translate/scale/rotate/visibility/warna. Sumber: tidak ada `transition-all`, `transition` polos, atau transisi layout. Keyframes yang tersisa hanya `spin` (spinner, `motion-safe`). Transisi warna = paint saja, untuk umpan balik hover/pilih |
+| Layout shift | **Lolos, CLS 0** | `PerformanceObserver` `layout-shift` (buffered) sambil scroll seluruh halaman: `/` di 375 dan 1280, `/kos/[id]` di 375. 1280×800 tetap satu layar per section (hero 712px + navbar, sisanya 800px) |
+| Reduced motion | **Lolos** setelah 1 perbaikan | Diaudit dari kode, karena emulasi `prefers-reduced-motion` tidak tersedia di pane. Setiap gerak punya gate: token `--press-*`/`--enter-*` (tekan, dialog, menu, toast, kartu sukses), `motion-reduce:transition-none` (pill tab, hamburger, chevron), `motion-safe:` (spinner), `matchMedia` (scroll `SectionLink`/carousel, `flyTo`, animasi Leaflet). **Lubang ditutup:** angkat hover 2px di tombol dan kartu tetap bergerak di bawah `reduce`. Sekarang token `--hover-lift` yang runtuh ke 0 |
+| Build / lint / tsc | **Lolos** | `npm run build`, `npm run lint`, `npx tsc --noEmit` |
+
+Tidak dicek di sini: `autoPan` popup Leaflet (lihat 7b), dan semua butir yang butuh HP asli (`08-roadmap.md` 3b).
+
+Yang masih harus dikerjakan (per 25 Sep 2026, setelah Fase 7c):
+- G-5 (legenda peta, `MapLegend`), eyebrow `text-rose` (sekarang `text-action`, satu-satunya eyebrow di hero), dan `text-[15px]` sudah selesai. Yang terakhir, di empty state Browse, diganti `text-base` di 7c.
+- **Butuh HP asli:** checklist `08-roadmap.md` bagian 3b (tap, landscape/poni, scroll lock iOS, keyboard, animasi).
+- **Butuh akun sungguhan:** login dari halaman detail sampai kartu "Review kamu tersimpan" (`08-roadmap.md`).
+- **Diketahui, belum ditangani:** `autoPan` popup Leaflet tetap animasi di bawah reduced motion; `global-error.tsx` belum ada; warna link atribusi Leaflet kalah dari `leaflet.css`.
 
 Detail token lengkap ada di `04-design-system.md`.
 

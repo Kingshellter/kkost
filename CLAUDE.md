@@ -97,7 +97,7 @@ state. To test on a real phone, open `http://<LAN-IP>:3000`.
   shift.
 - **Always respect `prefers-reduced-motion`.** Build motion from the tokens
   in `globals.css` (`--duration-*`, `--press-scale`, `--enter-scale`,
-  `--enter-y`): under `reduce` the scale and distance tokens collapse to
+  `--enter-y`, `--hover-lift`): under `reduce` the scale and distance tokens collapse to
   1 / 0px, so only fades remain. Anything else that moves gets
   `motion-reduce:transition-none` or sits behind `motion-safe:`.
   Never set `scroll-behavior: smooth` on `html` (why: `docs/04-design-system.md`).
