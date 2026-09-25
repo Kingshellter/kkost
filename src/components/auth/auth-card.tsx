@@ -69,7 +69,11 @@ export function AuthCard() {
             filling in place — it shows which way the switch went. Moving on
             screen, so ease-in-out. Width: half the row less half the 4px
             gap and the 4px padding each side; shift: its own width plus the
-            gap. Reduced motion: it jumps, and the text colour still eases. */}
+            gap. The tabs' text colour runs on the pill's own curve and
+            duration, so the label turns white as the pill arrives under it —
+            on ease-out it went white while the pill was a quarter of the way
+            there, white on cream for a beat. Reduced motion: pill and colour
+            both switch at once. */}
         <span
           aria-hidden
           className={`absolute inset-y-1 left-1 w-[calc(50%-0.375rem)] rounded-full bg-ink transition-transform duration-(--duration-base) ease-in-out motion-reduce:transition-none ${
@@ -89,7 +93,7 @@ export function AuthCard() {
             aria-controls={panelId}
             tabIndex={mode === m ? 0 : -1}
             onClick={() => setMode(m)}
-            className={`relative min-h-11 flex-1 select-none rounded-full text-sm font-extrabold transition-[color,scale] duration-(--duration-base) ease-out active:scale-(--press-scale) active:duration-(--duration-press) ${
+            className={`relative min-h-11 flex-1 select-none rounded-full text-sm font-extrabold transition-[color,scale] duration-(--duration-base) [transition-timing-function:var(--ease-in-out),var(--ease-out)] motion-reduce:transition-none active:scale-(--press-scale) active:duration-(--duration-press) ${
               mode === m ? "text-white" : "text-muted hover:text-ink"
             }`}
           >

@@ -72,7 +72,7 @@ export function Browse({ kos, total, cities, filter }: Props) {
           </span>
           <ChevronDown
             aria-hidden
-            className="chevron size-5 shrink-0 text-muted transition-transform duration-(--duration-base) ease-out"
+            className="chevron size-5 shrink-0 text-muted transition-transform duration-(--duration-base) ease-in-out motion-reduce:transition-none"
             strokeWidth={2}
           />
         </label>

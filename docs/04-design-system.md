@@ -163,8 +163,11 @@ Rules that come with them:
 - **An exit is one step shorter than its entrance** (`slow → base`,
   `base → fast`): the system answering should be quicker than the thing
   arriving.
-- **Hover is already touch-safe.** Tailwind v4 compiles `hover:` inside
-  `@media (hover: hover)`, so a tap never leaves a card stuck lifted.
+- **Hover is touch-safe.** `hover:` is redefined in `globals.css`
+  (`@custom-variant hover`) to apply only under `(hover: hover) and
+  (pointer: fine)` — Tailwind's own checks `(hover: hover)` alone, which some
+  Android and hybrid devices report, leaving a tapped card lifted. Hover lift
+  is 2px everywhere (`hover:-translate-y-0.5`, buttons and kos cards).
 - **Reduced motion means less motion, not none.** Under
   `prefers-reduced-motion: reduce` the durations are kept (opacity and colour
   still ease, so a change stays followable) and only the movement tokens
@@ -297,11 +300,17 @@ unmount after `durationMs("--duration-fast")` (`lib/motion.ts`), never on
 
 | Element | Purpose | Enter | Exit |
 |---|---|---|---|
-| `AddKosDialog` | bridge the page ↔ modal jump | backdrop fade + panel `scale(--enter-scale)`→1, base, `ease-out`, centred origin | reverse on fast; `inert` while leaving, first close wins |
+| `AddKosDialog` | bridge the page ↔ modal jump | backdrop fade + panel `scale(--enter-scale)`→1, base, `ease-out`, centred origin. Only the backdrop fades: the panel is its child, and its own opacity would multiply with the backdrop's | reverse on fast; `inert` while leaving, first close wins |
 | `MobileNav` panel | show where it came from | `origin-top-right` scale + fade, base | reverse on fast; `invisible` when closed (out of Tab order) |
 | Map toast | feedback after a save | rises `--enter-y` + fade, base | sinks + fade on fast, then unmounts; announced through an always-mounted `sr-only` `role="status"` |
 | `SavedCard` (review) | a 1,400px form becomes a small card | rises `--enter-y` + fade, slow; the check follows 75ms later from `--enter-scale` (the site's only stagger — a once-per-kos moment) | — |
-| `AuthCard` tab pill | which way the switch went | one ink pill slides `translate-x`, base, `--ease-in-out` (on-screen movement); `motion-reduce:transition-none` | — |
+| `AuthCard` tab pill | which way the switch went | one ink pill slides `translate-x`, base, `--ease-in-out` (on-screen movement); the tabs' text colour runs on the same curve and duration so a label turns white as the pill arrives; `motion-reduce:transition-none` on both | — |
+
+The map honours reduced motion too: `zoomAnimation`, `fadeAnimation`,
+`markerZoomAnimation` and `inertia` are off under `reduce` (read at mount —
+Leaflet takes them only when the map is created), and a place search jumps
+instead of flying. The hamburger's bars and the filter chevron morph on
+`--ease-in-out` and switch instantly under `reduce`.
 
 Plus, from Fase 3: press feedback (`active:scale-(--press-scale)`) on every
 control, colour/border transitions on fields, the review form's progress bar
@@ -464,7 +473,8 @@ one icon family per project.
   .leaflet-container a` removes it again.
 - **`touch-action: manipulation`** on `a`, `button`, `label`, `summary`,
   `[role=button]`, `[role=tab]` (base layer): no double-tap-zoom wait.
-- **Hover:** Tailwind v4's `hover:` is already `@media (hover: hover)`. Every
+- **Hover:** `hover:` needs `(hover: hover) and (pointer: fine)` (custom
+  variant, Fase 7b). Every
   hover style on a control has an `active:` partner, because a finger only
   ever gets the press.
 - **Small drawn, large target:** where a control must look smaller than 44px

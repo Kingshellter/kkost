@@ -174,6 +174,40 @@ Semua memakai token (`--duration-*`, `ease-out`, `--ease-in-out`, `--enter-scale
 
 **Butuh mata/HP:** rasa gerak (putar 2–5× lebih lambat di DevTools → Animations) dan kehalusan di HP asli.
 
+**Fase 7a Review animasi (25 Sep 2026), skill `review-animations`.** Keputusan: **Block** (temuan 1 dan 2). Semua temuan diperbaiki di 7b.
+
+| # | Before | After | Why |
+|---|---|---|---|
+| 1 | `add-kos-dialog.tsx:232`: panel `<form>` ikut `starting:opacity-0` / `data-closing:opacity-0`, padahal ia **anak** overlay yang juga memudar | Panel hanya `scale` (`transition-[scale]`); opacity cukup dari overlay | Opacity bertumpuk (0,34 × 0,34 = 0,12 di 40ms, terukur). Panel muncul paling akhir dan hilang paling dulu, jadi terasa lambat dan tidak menyatu dengan backdrop |
+| 2 | `auth-card.tsx:92`: warna teks tab `transition-[color,…] ease-out` | Warna memakai kurva yang sama dengan pill (`--ease-in-out`, `--duration-base`) | Terukur: di 80ms teks "Daftar" sudah putih (245) sementara pill baru menutupi 24% tab. Terlihat kilatan putih-di-atas-krem (±1,1:1). Properti yang dikoordinasikan harus sinkron |
+| 3 | `kos-map.tsx:323`: `MapContainer` dengan `zoomAnimation`/`fadeAnimation`/`markerZoomAnimation` bawaan (aktif) | Nilai `false` untuk ketiganya saat `prefers-reduced-motion: reduce` (dibaca live seperti `coarse`) | Zoom tombol/pinch/klik-ganda, fade tile, dan fade popup tetap bergerak di bawah reduced motion. Hanya `flyTo` yang sudah dijaga |
+| 4 | Varian `hover:` Tailwind v4 = `@media (hover: hover)` saja; `kos-card.tsx:11` `hover:-translate-y-1`, `controls.ts:32-33` `hover:-translate-y-0.5` | `@custom-variant hover` → `(hover: hover) and (pointer: fine)` di `globals.css` | Standar 8: gerak hover harus di balik kedua kondisi. Perangkat hybrid/Android yang mengaku `hover` tetap bisa mendapat kartu yang tertahan terangkat |
+| 5 | `kos-card.tsx:11` `hover:-translate-y-1` (4px) | `hover:-translate-y-0.5` (2px, sama dengan tombol) | Kartu kos dilewati kursor puluhan kali per sesi, jadi masuk kelas "tens/day": perkecil. Satu jarak angkat untuk seluruh situs |
+| 6 | `mobile-nav.tsx:51,57`: garis hamburger → X `ease-out` | `--ease-in-out` | Garis bergerak dan berputar **di layar** (morph), bukan masuk/keluar |
+| 7 | `browse.tsx:75`: chevron filter `rotate-180` `ease-out`, tanpa aturan reduced motion | `--ease-in-out` + `motion-reduce:transition-none` | Rotasi di tempat = gerak di layar. Rotasi tidak ditangani token `--enter-*`, jadi perlu gate sendiri |
+
+Dipertimbangkan dan **disetujui** (tidak diubah):
+- **Esc menutup dialog dengan animasi 150ms.** Standar melarang animasi pada aksi keyboard yang sering. Menambah kos jarang, dan jalur keluarnya harus sama untuk mouse dan keyboard.
+- **Kartu sukses total 375ms** (300 + delay 75). Momen jarang, jadi masih dalam jatah "delight". Interaksi tidak diblokir.
+- **Spinner diam di bawah reduced motion.** Label "Menyimpan…" tetap menyampaikan status.
+- **Bar progres review `scaleX` tetap bertumbuh di bawah reduced motion.** Ini indikasi status, bukan perpindahan posisi.
+- **Easing warna tombol/pill skor `ease-out`, bukan `ease`.** Pada 150ms perbedaannya tidak terlihat, sementara scale tekan (yang dominan) memang harus `ease-out`.
+- **Toast, menu, feedback tekan (100ms turun / 150ms lepas), smooth scroll `SectionLink`/carousel, `flyTo`:** lolos. Semuanya transition, dari token, asimetris, dan menghormati reduced motion.
+
+**Fase 7b (25 Sep 2026): ketujuh temuan 7a diterapkan.**
+
+| # | Hasil | Terukur |
+|---|---|---|
+| 1 | Panel dialog hanya `scale`, opacity dari overlay | Di 40ms opacity efektif panel 0,34 (sebelumnya 0,12). `transition-property: scale` |
+| 2 | Warna teks tab memakai `--ease-in-out` seperti pill (easing per properti: warna `--ease-in-out`, scale tekan tetap `--ease-out`) | Di 80ms pill 9%, teks masih abu (116). Di 120ms pill 81%, teks 226. Tidak ada lagi putih di atas krem |
+| 3 | Leaflet: `zoomAnimation`, `fadeAnimation`, `markerZoomAnimation`, `inertia` = `false` saat reduced motion | Hanya dari kode: emulasi reduced motion tidak tersedia di pane. Dibaca saat mount, karena Leaflet hanya membaca opsi ini saat peta dibuat |
+| 4 | `@custom-variant hover` → `(hover: hover) and (pointer: fine)` | CSS terkompilasi: 0 blok `@media (hover: hover)` yang tersisa |
+| 5 | Angkat kartu kos 4px → 2px | — |
+| 6 | Garis hamburger `--ease-in-out` + `motion-reduce:transition-none` | Gate reduced motion ditambahkan juga di sini, dengan alasan yang sama seperti #7 |
+| 7 | Chevron filter `--ease-in-out` + `motion-reduce:transition-none` | — |
+
+Belum tertangani: `autoPan` popup Leaflet tetap animasi di bawah reduced motion (Leaflet 1.9 tidak punya opsi untuk mematikannya).
+
 Yang masih harus dikerjakan:
 - **Fase 4:**
   - G-5: legenda warna pin di peta.

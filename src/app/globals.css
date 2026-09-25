@@ -7,6 +7,20 @@
  */
 @custom-variant short (@media (width >= 64rem) and (height <= 860px));
 
+/*
+ * `hover:` only for a precise pointer that can hover — a mouse or trackpad.
+ * Tailwind's own variant checks `(hover: hover)` alone, which some Android
+ * phones and hybrid devices report; there a tap leaves the card or button
+ * lifted until the next tap elsewhere. Touch gets `active:` instead.
+ */
+@custom-variant hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @slot;
+    }
+  }
+}
+
 @theme inline {
   /*
    * Brand palette — sampled from "Review Kos v5 Rounded". These are the
@@ -177,8 +191,8 @@
  * Phone behaviour (Fase 5). Tailwind's preflight already covers two items
  * of the usual list: `-webkit-text-size-adjust: 100%` and a transparent
  * `-webkit-tap-highlight-color` on html (Leaflet's links undo the latter;
- * see the .leaflet-container a rule). Hover needs nothing either: Tailwind
- * v4's `hover:` only applies under `@media (hover: hover)`.
+ * see the .leaflet-container a rule). Hover is handled by the custom
+ * `hover` variant at the top of this file.
  *
  * - touch-action: manipulation — controls never double-tap-zoom, so iOS
  *   fires the click at once instead of waiting to see if a second tap is

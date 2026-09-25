@@ -273,6 +273,10 @@ export default function KosMap({
   // iPad with a trackpad changes its primary pointer while the page is open.
   const coarse = useMediaQuery("(pointer: coarse)");
   const canHover = useMediaQuery("(hover: hover)");
+  // Leaflet reads its animation options once, when the map is created, so
+  // this is effectively the setting at mount — enough for a preference that
+  // is set in the OS, not toggled mid-visit. FocusPlace reads it per search.
+  const still = useMediaQuery("(prefers-reduced-motion: reduce)");
   // The user's choice, not the lock itself: a fine pointer is never locked,
   // so switching away from touch unlocks without an effect to sync it.
   const [unlocked, setUnlocked] = useState(false);
@@ -324,6 +328,13 @@ export default function KosMap({
         center={INDONESIA.center}
         zoom={INDONESIA.zoom}
         scrollWheelZoom={false}
+        // Under reduced motion: zooms (buttons, pinch, double tap) jump
+        // instead of scaling, tiles and markers appear without fading, and
+        // a flicked pan stops where the finger lifts.
+        zoomAnimation={!still}
+        fadeAnimation={!still}
+        markerZoomAnimation={!still}
+        inertia={!still}
         // Top left belongs to the search box now; the default zoom control
         // would sit underneath it.
         zoomControl={false}

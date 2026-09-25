@@ -212,6 +212,10 @@ export function AddKosDialog({
   // --duration-fast, keyed off `data-closing`. Centred origin: a modal is
   // not anchored to its trigger. Under reduced motion --enter-scale is 1,
   // so only the fade remains.
+  //
+  // Only the backdrop fades. The panel is its child, so giving it its own
+  // opacity multiplied the two (0.34 × 0.34 = 0.12 a fifth of the way in):
+  // the panel arrived last and left first, and the pair read as two layers.
   return (
     <div
       className="fixed inset-0 z-(--z-dialog) flex items-start justify-center overflow-y-auto overscroll-contain bg-ink/60 px-gutter pb-safe pt-4 transition-opacity duration-(--duration-base) ease-out starting:opacity-0 data-closing:opacity-0 data-closing:duration-(--duration-fast)"
@@ -229,7 +233,7 @@ export function AddKosDialog({
         onSubmit={handleSubmit(onSubmit)}
         inert={closing}
         data-closing={closing || undefined}
-        className="relative my-auto w-full max-w-[440px] rounded-panel bg-white p-6 shadow-float transition-[opacity,scale] duration-(--duration-base) ease-out starting:scale-(--enter-scale) starting:opacity-0 data-closing:scale-(--enter-scale) data-closing:opacity-0 data-closing:duration-(--duration-fast) sm:p-8"
+        className="relative my-auto w-full max-w-[440px] rounded-panel bg-white p-6 shadow-float transition-[scale] duration-(--duration-base) ease-out starting:scale-(--enter-scale) data-closing:scale-(--enter-scale) data-closing:duration-(--duration-fast) sm:p-8"
       >
         {/* On a phone the form is taller than the screen and "Batal" sits
             below the fold; this is the way out from the top. */}

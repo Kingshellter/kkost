@@ -82,6 +82,12 @@ tree as possible (see `MapFrame`).
   a transform, a running animation or its own z-index is a stacking context,
   and a dialog inside one cannot rise above the sticky navbar however high
   its z-index. `AddKosDialog` in `kos-map.tsx` is the reference.
+- **Coordinated properties share a curve.** When two things describe one
+  change (the tab pill and the label's colour), give them the same duration
+  and easing, per property if needed:
+  `[transition-timing-function:var(--ease-in-out),var(--ease-out)]` for
+  `transition-[color,scale]`. A child never gets its own fade inside a
+  parent that fades — the opacities multiply.
 - **Motion (Fase 6):** enter with `starting:` (`@starting-style`); leave by
   setting a `data-*` attribute that transitions back to the start values,
   then unmount after `durationMs("--duration-fast")` from `lib/motion.ts` —

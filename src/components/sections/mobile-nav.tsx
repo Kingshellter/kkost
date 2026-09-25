@@ -48,19 +48,19 @@ export function MobileNav({
         <span className="sr-only">{open ? "Tutup menu" : "Buka menu"}</span>
         <span
           aria-hidden
-          className={`h-[2px] w-4 rounded-full bg-ink transition-transform duration-(--duration-base) ease-out ${
+          className={`h-[2px] w-4 rounded-full bg-ink transition-transform duration-(--duration-base) ease-in-out motion-reduce:transition-none ${
             open ? "translate-y-[7px] rotate-45" : ""
           }`}
         />
         <span
           aria-hidden
-          className={`h-[2px] w-4 rounded-full bg-ink transition-opacity duration-(--duration-base) ease-out ${
+          className={`h-[2px] w-4 rounded-full bg-ink transition-opacity duration-(--duration-base) ease-in-out ${
             open ? "opacity-0" : ""
           }`}
         />
         <span
           aria-hidden
-          className={`h-[2px] w-4 rounded-full bg-ink transition-transform duration-(--duration-base) ease-out ${
+          className={`h-[2px] w-4 rounded-full bg-ink transition-transform duration-(--duration-base) ease-in-out motion-reduce:transition-none ${
             open ? "-translate-y-[7px] -rotate-45" : ""
           }`}
         />
