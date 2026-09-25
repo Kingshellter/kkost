@@ -10,7 +10,7 @@ map exists so you can read *only the right one*.
 |---|---|---|
 | [`src/app/layout.tsx`](../src/app/layout.tsx) | 25 | Root layout. `lang="id"`, Jakarta font variable, `bg-cream text-ink`, site `metadata` (title/description) |
 | [`src/app/page.tsx`](../src/app/page.tsx) | 140 | Route `/`. Renders `ConfirmNotice` for `?konfirmasi=`. Loads the kos list (and its `source`), session and `searchParams`; renders `DataNotice` when not showing the real database; parses the URL filter; fetches the featured kos's reviews; stacks Navbar + 6 sections |
-| [`src/app/kos/[id]/page.tsx`](../src/app/kos/[id]/page.tsx) | 218 | Route `/kos/[id]`. Kos header with a `KosPhoto` banner, `ScoreProvenance` panel, per-facility averages, review list, and either the review form, a sign-in prompt, or "sudah menilai" |
+| [`src/app/kos/[id]/page.tsx`](../src/app/kos/[id]/page.tsx) | 300 | Route `/kos/[id]`. Two-column grid from `lg` (sticky aside right). Back link, header (`KosPhoto` banner, name, location, price, score, "Tulis review" + "Lihat lokasi" anchors), per-facility averages as `FacilityBar`s, aside (`ScoreProvenance`, `KosLocation`: OSM + `/?kota=…#peta` links), review list (`#ulasan`), and at `#tulis-review` either an inline `AuthCard` or `ReviewForm` (which itself shows "tersimpan" / "sudah menilai"). `Footer` |
 | [`src/app/globals.css`](../src/app/globals.css) | 345 | Tailwind v4 `@theme inline` tokens, `eyebrow` utility, motion (`.reveal` fade-up, `.drift` / `.drift-page` circle parallax — all scroll-driven, all off for reduced motion), all Leaflet overrides |
 | [`src/app/error.tsx`](../src/app/error.tsx) | 55 | Client error boundary in Indonesian — "Coba lagi" (`retry()`, the Next 16 prop name) and a home link. Shown when `fetchKos` throws |
 | [`src/app/auth/confirm/route.ts`](../src/app/auth/confirm/route.ts) | 55 | `GET` handler for the sign-up confirmation link: `verifyOtp` (`token_hash`) or `exchangeCodeForSession` (`code`), then redirects to `/?konfirmasi=berhasil\|masuk\|gagal#login`. Exports the `ConfirmOutcome` type |
@@ -42,8 +42,10 @@ map exists so you can read *only the right one*.
 | File | ~n | Owns |
 |---|---|---|
 | [`accent.ts`](../src/components/ui/accent.ts) | 56 | `ACCENT_BG`, `ACCENT_ON`, `ACCENT_HEX`, `accentForScore` + `SCORE_HIGH`/`SCORE_MID` |
-| [`controls.ts`](../src/components/ui/controls.ts) | 83 | `buttonClass()` and the field class strings (`INPUT_CLASS`, `SELECT_CLASS`, `TEXTAREA_CLASS`, `LABEL_CLASS`, `FIELD_ERROR_CLASS`, `NOTICE_CLASS`). Every button and form field takes its classes from here |
+| [`controls.ts`](../src/components/ui/controls.ts) | 91 | `buttonClass()` and the field class strings (`INPUT_CLASS`, `SELECT_CLASS`, `TEXTAREA_CLASS`, `LABEL_CLASS`, `FIELD_ERROR_CLASS`, `NOTICE_CLASS`). Every button and form field takes its classes from here |
 | [`spinner.tsx`](../src/components/ui/spinner.tsx) | 14 | `Spinner` — the loading mark inside a busy button (with `aria-busy`) |
+| [`field.tsx`](../src/components/ui/field.tsx) | 41 | `Field` — label + hint + description + error around one form control |
+| [`criterion-icon.ts`](../src/components/ui/criterion-icon.ts) | 23 | `CRITERION_ICON` — one lucide icon per facility key |
 | [`score-badge.tsx`](../src/components/ui/score-badge.tsx) | 42 | Circular score chip, 3 sizes, optional text label. Generic — knows nothing about kos |
 | [`kos-score-badge.tsx`](../src/components/ui/kos-score-badge.tsx) | 32 | `ScoreBadge` + the kos rule: `reviews === 0` renders a dark "Baru" chip instead of `0.0`. **Use this for any kos**, never `ScoreBadge` directly |
 | [`kos-card.tsx`](../src/components/ui/kos-card.tsx) | 60 | Kos card for the browse carousel; links to `/kos/[id]` |
@@ -61,7 +63,7 @@ map exists so you can read *only the right one*.
 | [`navbar.tsx`](../src/components/sections/navbar.tsx) | 78 | — | Pill navbar. Reads the session: name + "Mahasiswa" badge (students only) + sign-out form, else a "Masuk" link. Desktop links hidden below `lg` |
 | [`mobile-nav.tsx`](../src/components/sections/mobile-nav.tsx) | 97 | — | **Client.** Disclosure menu for `< lg`. Without it the site has no navigation on a phone |
 | [`hero.tsx`](../src/components/sections/hero.tsx) | 204 | — | Headline, live stats eyebrow, city + budget GET form to `/#browse`, `HeroCard` (featured kos with its real per-facility averages and newest review as the quote, captioned when demo), decorative blobs |
-| [`how-it-works.tsx`](../src/components/sections/how-it-works.tsx) | 107 | `#cara-kerja` (+ `#dampak`, `#scoring`) | One screen: the problem (`PROBLEMS` as a compact list) on the left, the six `CRITERIA` with lucide icons on the right, the one-line solution. Replaced `impact.tsx` + `scoring.tsx` in Fase 4a |
+| [`how-it-works.tsx`](../src/components/sections/how-it-works.tsx) | 89 | `#cara-kerja` (+ `#dampak`, `#scoring`) | One screen: the problem (`PROBLEMS` as a compact list) on the left, the six `CRITERIA` with lucide icons on the right, the one-line solution. Replaced `impact.tsx` + `scoring.tsx` in Fase 4a |
 | [`footer.tsx`](../src/components/sections/footer.tsx) | 50 | — | Logo + tagline, `NAV_LINKS`, OpenStreetMap data credit. Rendered on `/` only for now |
 | [`map-section.tsx`](../src/components/sections/map-section.tsx) | 101 | `#peta` | Dark ink band; says how many kos match when the filter narrows; passes the filtered kos list and the `filter` to `<MapFrame/>` + `<KosSidebar/>`; fixes the map's height (440/460px, screen-derived on lg); `MapLegend` (pin colours + add-kos hint) under the map |
 | [`browse.tsx`](../src/components/sections/browse.tsx) | 200 | `#browse` | Filter bar (kota / budget / urutkan) as a GET form — folded behind a "Filter & urutkan" checkbox-label below `lg` (`filterSummary`), result count, reset link, every filtered kos as a `KosCard` in a `KosCarousel`, empty state |
@@ -75,20 +77,20 @@ map exists so you can read *only the right one*.
 | [`kos-map.tsx`](../src/components/map/kos-map.tsx) | 537 | `MapContainer`, `OVERLAY_INSET` (fit padding under the search box), OSM `TileLayer`, bottom-right `ZoomControl`, `ClickCatcher`, `FitToKos` (auto-fit + `ResizeObserver`), `FocusPlace` (flies to a search result; jumps under reduced motion), `TouchLock` + the lock pill (coarse pointers), a `Popup` per kos pin ("Lihat kos"), hover-only tooltips, `fitPadding`, the three `divIcon`s, draft marker + popup, draft/form/notice/place state, `handleSaved` (toast timer in a ref), `mapBox` ref for returning focus |
 | [`map-search.tsx`](../src/components/map/map-search.tsx) | 240 | Debounced place-search combobox overlaying the map's top-left — results list, keyboard navigation, loading/empty/error states, clear button. Calls `searchPlaces`; the parent owns the map move |
 | [`kos-sidebar.tsx`](../src/components/map/kos-sidebar.tsx) | 79 | **`lg` only.** "N kos di peta" list (scrolls inside the map row's height), each row linking to `/kos/[id]` — except a `local-` kos, which has no page; empty state for a filter with no match; "Lihat daftar lengkap" link |
-| [`add-kos-dialog.tsx`](../src/components/map/add-kos-dialog.tsx) | 290 | Modal form — name, area, city, campus (optional), price. Area and city pre-filled by `reverseGeocode` from the clicked point. zod + react-hook-form, Escape-to-close, Tab focus trap, focus returned to the map on close, scroll lock with scrollbar compensation, `saveKos` call, inline server error, unconfigured warning, local `Field` + `inputClass` helpers |
+| [`add-kos-dialog.tsx`](../src/components/map/add-kos-dialog.tsx) | 358 | Modal form — name, area, city, campus (optional), price. Area and city pre-filled by `reverseGeocode` from the clicked point. zod + react-hook-form with `noValidate`; price is a text field (`inputMode="numeric"`, digits pulled out, so "950.000" works) with a live `formatRupiah` preview via `useWatch`. Close button, Escape-to-close, Tab focus trap, focus returned to the map on close, scroll lock with scrollbar compensation, `saveKos` call, inline server error, unconfigured warning |
 
 ## Auth — `src/components/auth/`
 
 | File | ~n | Owns |
 |---|---|---|
-| [`auth-card.tsx`](../src/components/auth/auth-card.tsx) | 145 | Client. Sign-in / sign-up tabs in one card, `useActionState`, inline error and notice |
+| [`auth-card.tsx`](../src/components/auth/auth-card.tsx) | 240 | Client. Sign-in / sign-up as an ARIA tab list (roving tabindex, arrows/Home/End) over a `tabpanel` form. `AuthForm` is keyed by mode, so each mode has its own `useActionState` (no stale error); email and name live in `AuthCard` and survive the switch. Show/hide password button |
 
 ## Reviews — `src/components/review/`
 
 | File | ~n | Owns |
 |---|---|---|
-| [`review-form.tsx`](../src/components/review/review-form.tsx) | 270 | Client. Six 1–5 radio groups styled as pills, optional note, up to 3 photos (picker + list), success state with `photoError`. `submitWithPhotos` wraps the Server Action and uploads the photos from the browser once it returns the review id |
-| [`review-list.tsx`](../src/components/review/review-list.tsx) | 78 | Server. One card per review: average badge, author + verified badge + "Review contoh" badge, date, note, `ReviewPhotos` (up to 3 thumbnails, each opens full size), six `FacilityBar`s. Also the empty state |
+| [`review-form.tsx`](../src/components/review/review-form.tsx) | 490 | Client. Owns all three states: form, `SavedCard` (focused on mount, "Lihat review" → `#ulasan`), and "sudah menilai" (`alreadyReviewed`). Form: `Progress` ("x dari 6 dinilai" + running average, bar via `scaleX`), six `ScoreInput` pill groups with criterion icons and a "Buruk … Sangat baik" scale, note, `PhotoPicker` (dashed target + thumbnails with 44px remove buttons). `noValidate` + own unscored check. `submitWithPhotos` wraps the Server Action and uploads the photos from the browser once it returns the review id |
+| [`review-list.tsx`](../src/components/review/review-list.tsx) | 127 | Server. One card per review: average badge, author + verified badge + "Review contoh" badge, date, note, `ReviewPhotos` (up to 3 thumbnails, each opens full size), the six scores as a compact 2/3-column grid (criterion-colour dot, label, number). Also the empty state |
 
 ## Elsewhere
 

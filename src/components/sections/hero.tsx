@@ -106,7 +106,7 @@ export function Hero({ featured, reviews, stats, cities, filter }: Props) {
 
             <button
               type="submit"
-              className={buttonClass("primary", "md", "shrink-0 px-8")}
+              className={buttonClass("primary", "md", "shrink-0 px-8!")}
             >
               Cari
             </button>

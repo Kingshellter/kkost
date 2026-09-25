@@ -1,17 +1,18 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { X } from "lucide-react";
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import {
   buttonClass,
-  FIELD_ERROR_CLASS,
   INPUT_CLASS,
-  LABEL_CLASS,
   NOTICE_CLASS,
 } from "@/components/ui/controls";
+import { Field } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
+import { formatRupiah } from "@/lib/format";
 import { reverseGeocode } from "@/lib/geocode";
 import { createClient } from "@/utils/supabase/client";
 import {
@@ -88,11 +89,14 @@ export function AddKosDialog({
     handleSubmit,
     getValues,
     setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", area: "", city: "", campus: "", price: 0 },
+    // No price: an empty field reads better than a "0" to delete first.
+    defaultValues: { name: "", area: "", city: "", campus: "" },
   });
+  const price = useWatch({ control, name: "price" });
 
   /** "loading" while the clicked point is being looked up; "done" after. */
   const [locating, setLocating] = useState<"loading" | "done">("loading");
@@ -209,22 +213,35 @@ export function AddKosDialog({
       aria-labelledby="add-kos-title"
       onClick={(e) => e.target === e.currentTarget && onCancel()}
     >
+      {/* noValidate: every message comes from the zod schema, in
+          Indonesian, instead of the browser's own bubbles. */}
       <form
         ref={formRef}
+        noValidate
         onSubmit={handleSubmit(onSubmit)}
-        className="my-auto w-full max-w-[440px] rounded-panel bg-white p-8 shadow-float"
+        className="relative my-auto w-full max-w-[440px] rounded-panel bg-white p-6 shadow-float sm:p-8"
       >
-        <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-muted">
-          Tambah kos
-        </p>
+        {/* On a phone the form is taller than the screen and "Batal" sits
+            below the fold; this is the way out from the top. */}
+        <button
+          type="button"
+          onClick={onCancel}
+          aria-label="Tutup"
+          className="absolute right-3 top-3 grid size-11 place-items-center rounded-full text-muted transition-colors duration-(--duration-fast) hover:bg-cream hover:text-ink sm:right-4 sm:top-4"
+        >
+          <X aria-hidden className="size-5" strokeWidth={2.5} />
+        </button>
+
         <h2
           id="add-kos-title"
-          className="mt-3 text-2xl font-extrabold leading-tight text-ink"
+          className="pr-10 text-2xl font-extrabold leading-tight text-ink"
         >
-          Kos baru di titik ini
+          Tambah kos di titik ini
         </h2>
-        <p className="mt-2 text-sm font-medium text-muted">
-          {position[0].toFixed(5)}, {position[1].toFixed(5)}
+        {/* Not the coordinates: they mean nothing to a person, and the area
+            and city below are filled from them anyway. */}
+        <p className="mt-2 text-base font-medium text-muted">
+          Kos langsung muncul di peta setelah disimpan.
         </p>
 
         <div className="mt-6 space-y-4">
@@ -257,10 +274,10 @@ export function AddKosDialog({
               />
             </Field>
           </div>
-          <p className="-mt-2 text-xs font-medium text-muted" aria-live="polite">
+          <p className="-mt-2 text-sm font-medium text-muted" aria-live="polite">
             {locating === "loading"
               ? "Mendeteksi area dan kota dari titik di peta…"
-              : "Area dan kota diisi dari titik di peta — ubah bila kurang tepat."}
+              : "Area dan kota diisi dari titik di peta. Ubah bila kurang tepat."}
           </p>
 
           <Field
@@ -276,17 +293,29 @@ export function AddKosDialog({
             />
           </Field>
 
-          <Field label="Harga per bulan (Rp)" error={errors.price?.message}>
+          {/* Text, not type="number": its `step` made the browser reject
+              any price that was not a multiple of it, and it cannot take
+              "950.000". Digits are pulled out here; zod checks the rest. */}
+          <Field label="Harga per bulan" error={errors.price?.message}>
             <input
-              {...register("price", { valueAsNumber: true })}
+              {...register("price", {
+                setValueAs: (v) => Number(String(v).replace(/\D/g, "")),
+              })}
               aria-invalid={Boolean(errors.price)}
-              type="number"
+              aria-describedby="add-kos-price-preview"
               inputMode="numeric"
-              min={0}
-              step={50000}
-              placeholder="950000"
+              autoComplete="off"
+              placeholder="950.000"
               className={inputClass}
             />
+            <span
+              id="add-kos-price-preview"
+              className="mt-1.5 block text-sm font-medium text-muted"
+            >
+              {price > 0
+                ? `${formatRupiah(price)} / bulan`
+                : "Tulis angkanya saja, tanpa Rp."}
+            </span>
           </Field>
         </div>
 
@@ -307,7 +336,7 @@ export function AddKosDialog({
           <button
             type="button"
             onClick={onCancel}
-            className={buttonClass("soft", "md", "flex-1 px-4")}
+            className={buttonClass("soft", "md", "flex-1")}
           >
             Batal
           </button>
@@ -315,7 +344,7 @@ export function AddKosDialog({
             type="submit"
             disabled={isSubmitting}
             aria-busy={isSubmitting}
-            className={buttonClass("primary", "md", "flex-1 px-4")}
+            className={buttonClass("primary", "md", "flex-1")}
           >
             {isSubmitting && <Spinner />}
             {isSubmitting ? "Menyimpan…" : "Simpan kos"}
@@ -327,26 +356,3 @@ export function AddKosDialog({
 }
 
 const inputClass = INPUT_CLASS;
-
-function Field({
-  label,
-  hint,
-  error,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  error?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block">
-      <span className={LABEL_CLASS}>
-        {label}
-        {hint && <span className="font-medium text-muted"> ({hint})</span>}
-      </span>
-      {children}
-      {error && <span className={FIELD_ERROR_CLASS}>{error}</span>}
-    </label>
-  );
-}

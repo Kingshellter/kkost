@@ -1,25 +1,7 @@
-import {
-  BedDouble,
-  CookingPot,
-  Droplets,
-  ShowerHead,
-  SquareParking,
-  Wifi,
-  type LucideIcon,
-} from "lucide-react";
 import { ACCENT_BG, ACCENT_ON } from "@/components/ui/accent";
 import { BoundaryCircle, SEAMS } from "@/components/ui/boundary-circle";
-import { CRITERIA, PROBLEMS, type FacilityKey } from "@/data/kos";
-
-/** One icon per criterion, so each circle says what it is instead of "01". */
-const CRITERION_ICON: Record<FacilityKey, LucideIcon> = {
-  room: BedDouble,
-  bathroom: ShowerHead,
-  water: Droplets,
-  wifi: Wifi,
-  kitchen: CookingPot,
-  parking: SquareParking,
-};
+import { CRITERION_ICON } from "@/components/ui/criterion-icon";
+import { CRITERIA, PROBLEMS } from "@/data/kos";
 
 /**
  * The problem and the answer on one screen: what an ad leaves out (left), and

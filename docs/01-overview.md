@@ -63,8 +63,24 @@ enforced.
   Fase 4a (25 Sep 2026): the old `#dampak` and `#scoring` sections were merged
   so the kos list starts at ±4,500px on a phone instead of ±6,800px (page
   9,254px → ±6,750px); both old anchors still land, on the two halves
-- ✅ **Kos detail page at `/kos/[id]`** — per-facility averages, review list,
-  review form
+- ✅ **Kos detail page at `/kos/[id]`** — header (name, location, price,
+  score, a "Tulis review" / "Masuk untuk menulis" shortcut to the form),
+  per-facility averages as bars, review list (six scores per review as a
+  compact grid), **sign-in in place** (the `AuthCard` renders where the form
+  goes; after signing in the page re-renders with the form, so the visitor
+  never loses the kos), and an aside with "Dari mana angka ini" + **location**
+  (OpenStreetMap link at the kos's coordinates, and "Lihat di peta kkost" →
+  `/?kota=<city>#peta`). From `lg` the aside is a sticky right column. Footer
+  on this page too. Redesigned in UI-revamp Fase 4a
+- ✅ **Forms (UI-revamp Fase 4a Form, 25 Sep 2026)** — the sign-in card is a
+  full ARIA tab list (arrow keys, `tabpanel`) with a show/hide password
+  button, and switching tabs no longer carries the other mode's error; the
+  review form shows "x dari 6 dinilai" with the running plain average, the
+  1–5 scale ends ("Buruk … Sangat baik"), photo thumbnails instead of the
+  browser's file row, its own "belum dinilai" check instead of browser
+  bubbles, and a saved card that takes focus; the add-kos dialog lost the raw
+  coordinates, gained a close button, and takes prices like "950.000" with a
+  live Rupiah preview
 - ✅ **Nationwide scope** — every kos stores its own `city` and optional
   `campus`. Distance to campus exists only on seeded kos; new ones show
   "Dekat <kampus>"

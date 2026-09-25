@@ -436,7 +436,7 @@ export default function KosMap({
                 <button
                   type="button"
                   onClick={() => setFormAt(draft)}
-                  className={buttonClass("primary", "sm", "mt-2.5 w-full px-4")}
+                  className={buttonClass("primary", "sm", "mt-2.5 w-full")}
                 >
                   + Tambah kos
                 </button>
@@ -444,7 +444,7 @@ export default function KosMap({
                 <SectionLink
                   href="/#login"
                   onClick={() => setDraft(null)}
-                  className={buttonClass("dark", "sm", "mt-2.5 w-full px-4 text-white!")}
+                  className={buttonClass("dark", "sm", "mt-2.5 w-full text-white!")}
                 >
                   Masuk atau daftar
                 </SectionLink>
@@ -472,7 +472,7 @@ export default function KosMap({
             "sm",
             // bottom-6 clears Leaflet's attribution line; min-h-11 keeps a
             // 44px target with the smaller text the phone width needs.
-            "absolute bottom-6 left-4 z-(--z-map-overlay) min-h-11 px-4 text-sm shadow-lift",
+            "absolute bottom-6 left-4 z-(--z-map-overlay) min-h-11 px-4! text-sm! shadow-lift",
           )}
         >
           {locked ? (

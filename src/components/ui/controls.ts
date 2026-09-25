@@ -41,7 +41,15 @@ const BUTTON_SIZE: Record<ButtonSize, string> = {
   lg: "px-8 py-3.5 text-lg",
 };
 
-/** `buttonClass("dark", "sm", "w-full")` — extra classes go last. */
+/**
+ * `buttonClass("dark", "sm", "w-full")` — extra classes go last.
+ *
+ * Extras that *add* (layout, margin, width) just work. Extras that *change*
+ * something the size or variant already sets — padding, text size, colour —
+ * are not guaranteed to win: Tailwind orders its CSS by its own rules, not by
+ * the order of the class string, so `px-4` loses to the size's `px-7`. Mark
+ * such an override important: `buttonClass("primary", "md", "px-4!")`.
+ */
 export function buttonClass(
   variant: ButtonVariant = "primary",
   size: ButtonSize = "md",

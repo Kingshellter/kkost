@@ -1,12 +1,16 @@
+import { ChevronLeft, MapPin } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AuthCard } from "@/components/auth/auth-card";
 import { ReviewForm } from "@/components/review/review-form";
 import { ReviewList } from "@/components/review/review-list";
+import { Footer } from "@/components/sections/footer";
 import { Navbar } from "@/components/sections/navbar";
 import { buttonClass } from "@/components/ui/controls";
+import { FacilityBar } from "@/components/ui/facility-bar";
 import { KosPhoto } from "@/components/ui/kos-photo";
 import { KosScoreBadge } from "@/components/ui/kos-score-badge";
-import { CRITERIA } from "@/data/kos";
+import { CRITERIA, type Kos } from "@/data/kos";
 import { getSessionUser } from "@/lib/auth";
 import { formatCampus, formatRupiah } from "@/lib/format";
 import { fetchKos, isSupabaseConfigured } from "@/lib/kos-repository";
@@ -18,8 +22,11 @@ export async function generateMetadata(props: PageProps<"/kos/[id]">) {
   const { id } = await props.params;
   const supabase = isSupabaseConfigured ? await createClient() : null;
   const kos = await fetchKos(supabase, id);
-  return { title: kos ? `${kos.name} — kkost` : "Kos tidak ditemukan — kkost" };
+  return { title: kos ? `${kos.name} · kkost` : "Kos tidak ditemukan · kkost" };
 }
+
+/** Everything in the left column on a laptop; the aside takes the right. */
+const MAIN_COL = "lg:col-start-1";
 
 export default async function KosDetail(props: PageProps<"/kos/[id]">) {
   const { id } = await props.params;
@@ -40,109 +47,149 @@ export default async function KosDetail(props: PageProps<"/kos/[id]">) {
   return (
     <>
       <Navbar />
-      <main className="flex-1 px-4 py-14 sm:px-6 lg:px-10 lg:py-20">
-        <div className="mx-auto max-w-[1000px]">
+      <main className="flex-1 px-4 py-10 sm:px-6 lg:px-10 lg:py-16">
+        {/* DOM order is the phone's reading order: what the kos is, how it
+            scores, where the number comes from, what tenants said, then the
+            form. From lg the provenance + location aside moves to a sticky
+            right column beside the rest. */}
+        <div className="mx-auto grid max-w-page gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-x-10">
           <Link
             href="/#browse"
-            className="text-[15px] font-bold text-muted transition-colors hover:text-ink"
+            className={`${MAIN_COL} -ml-1 inline-flex min-h-11 w-fit items-center gap-1 rounded-full pr-2 text-base font-bold text-ink-soft transition-colors duration-(--duration-fast) hover:text-ink`}
           >
-            ← Semua kos
+            <ChevronLeft aria-hidden className="size-5" strokeWidth={2.5} />
+            Semua kos
           </Link>
 
-          <header className="mt-6 flex flex-wrap items-start gap-6 rounded-panel bg-white p-4 pb-7 shadow-float sm:p-5 sm:pb-8">
+          <header
+            className={`${MAIN_COL} -mt-4 rounded-panel bg-white p-4 shadow-float sm:p-5`}
+          >
+            {/* Shorter on a phone: an illustration carries no information,
+                and at 200px it pushed the name and price off the first
+                screen. */}
             <KosPhoto
               kos={kos}
-              className="h-[200px] w-full rounded-media sm:h-[260px]"
+              className="h-[140px] w-full rounded-media sm:h-[220px]"
             />
-            <div className="min-w-0 flex-1 px-3 sm:px-3">
-              <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] font-extrabold leading-[1.05] tracking-[-0.02em] text-ink">
-                {kos.name}
-              </h1>
-              <p className="mt-2 text-[17px] font-medium text-muted">
-                {kos.area}, {kos.city}
-              </p>
-              {kos.campus && (
-                <p className="mt-1 text-[15px] font-medium text-muted">
-                  {formatCampus(kos.campus, kos.distance)}
+
+            <div className="flex items-start gap-5 px-2 pb-2 pt-6 sm:px-3">
+              <div className="min-w-0 flex-1">
+                <h1 className="font-extrabold text-ink text-heading">
+                  {kos.name}
+                </h1>
+                <p className="mt-2 text-base font-medium text-muted">
+                  {kos.area}, {kos.city}
                 </p>
-              )}
-              <p className="mt-5 whitespace-nowrap text-[22px] font-extrabold text-ink">
-                {formatRupiah(kos.price)}
-                <span className="text-base font-medium text-muted"> / bulan</span>
-              </p>
+                {kos.campus && (
+                  <p className="mt-0.5 text-sm font-medium text-muted">
+                    {formatCampus(kos.campus, kos.distance)}
+                  </p>
+                )}
+                <p className="mt-4 text-2xl font-extrabold text-ink">
+                  {formatRupiah(kos.price)}
+                  <span className="text-base font-medium text-muted"> / bulan</span>
+                </p>
+              </div>
+
+              <div className="flex shrink-0 flex-col items-center gap-2">
+                <KosScoreBadge kos={kos} size="lg" />
+                <p className="text-sm font-bold text-muted">
+                  {kos.reviews} review
+                </p>
+              </div>
             </div>
 
-            <div className="flex flex-col items-center gap-2 px-3">
-              <KosScoreBadge kos={kos} size="lg" />
-              <p className="text-sm font-bold text-muted">
-                {kos.reviews} review
-              </p>
+            {/* The form sits under every review; this is the way to it.
+                Gone once the visitor has already scored this kos. One short
+                label either way: "Masuk untuk menulis" wrapped to two lines
+                in a half-width phone button, and the section it lands on
+                already says that signing in comes first. */}
+            <div className="mt-4 flex gap-3 px-2 pb-1 sm:px-3">
+              {!alreadyReviewed && (
+                <a href="#tulis-review" className={buttonClass("primary", "md", "flex-1 px-4! sm:flex-none sm:px-7!")}>
+                  Tulis review
+                </a>
+              )}
+              <a href="#lokasi" className={buttonClass("soft", "md", "flex-1 px-4! sm:flex-none sm:px-7!")}>
+                Lihat lokasi
+              </a>
             </div>
           </header>
 
-          <ScoreProvenance
-            score={kos.score}
-            count={kos.reviews}
-            demoCount={reviews.filter((r) => r.isDemo).length}
-          />
-
           {reviews.length > 0 && (
-            <section className="mt-10">
+            <section className={MAIN_COL}>
               <h2 className="text-xl font-extrabold text-ink">
                 Rata-rata per fasilitas
               </h2>
-              <div className="mt-5 grid gap-4 rounded-panel bg-white p-7 shadow-lift sm:grid-cols-2 sm:gap-x-10">
-                {CRITERIA.map((c) => (
-                  <FacilityAverage
-                    key={c.key}
-                    label={c.title}
-                    value={averageFor(reviews, c.key)}
-                  />
-                ))}
+              {/* The same bar as the hero card, so one number never looks
+                  like two different things on two pages. */}
+              <div className="mt-4 space-y-3.5 rounded-panel bg-white p-6 shadow-lift sm:p-7">
+                {CRITERIA.map((c) => {
+                  const value = averageFor(reviews, c.key);
+                  return (
+                    <div key={c.key} className="flex items-center gap-3">
+                      <div className="min-w-0 flex-1">
+                        <FacilityBar label={c.title} score={value} accent={c.accent} />
+                      </div>
+                      <span className="w-8 text-right text-base font-extrabold tabular-nums text-ink">
+                        {value.toFixed(1)}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </section>
           )}
 
-          <section className="mt-12">
+          <aside className="flex flex-col gap-5 lg:sticky lg:top-8 lg:col-start-2 lg:row-span-5 lg:row-start-1 lg:self-start">
+            <ScoreProvenance
+              score={kos.score}
+              count={kos.reviews}
+              demoCount={reviews.filter((r) => r.isDemo).length}
+            />
+            <KosLocation kos={kos} />
+          </aside>
+
+          <section id="ulasan" className={`${MAIN_COL} scroll-mt-24 lg:scroll-mt-8`}>
             <h2 className="text-xl font-extrabold text-ink">
               {reviews.length} review dari penghuni
             </h2>
-            <div className="mt-5">
+            <div className="mt-4">
               <ReviewList reviews={reviews} />
             </div>
           </section>
 
-          <section className="mt-12">
+          <section id="tulis-review" className={`${MAIN_COL} scroll-mt-24 lg:scroll-mt-8`}>
             {!user ? (
-              <div className="rounded-panel bg-white p-8 text-center shadow-lift">
-                <p className="text-xl font-extrabold text-ink">
-                  Masuk untuk menulis review
-                </p>
-                <p className="mx-auto mt-2 max-w-[42ch] text-[15px] font-medium text-muted">
-                  Satu review per kos, per masa sewa.
-                </p>
-                <Link
-                  href="/#login"
-                  className={buttonClass("dark", "md", "mt-6")}
-                >
-                  Masuk atau daftar
-                </Link>
-              </div>
-            ) : alreadyReviewed ? (
-              <div className="rounded-panel bg-white p-8 text-center shadow-lift">
-                <p className="text-xl font-extrabold text-ink">
-                  Kamu sudah menilai kos ini
-                </p>
-                <p className="mx-auto mt-2 max-w-[42ch] text-[15px] font-medium text-muted">
-                  Satu review per kos, per masa sewa.
-                </p>
+              // Signing in here, not on the homepage: the action revalidates
+              // the whole layout, so this page renders again with a user and
+              // the review form takes the card's place. The visitor never
+              // loses the kos they were reading.
+              // Side by side from md: a lone 460px card in an 820px column
+              // left half the row empty.
+              <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,420px)] md:items-start md:gap-8">
+                <div className="md:pt-2">
+                  <h2 className="text-xl font-extrabold text-ink">
+                    Masuk untuk menulis review
+                  </h2>
+                  <p className="mt-1 max-w-[52ch] text-base text-ink-soft">
+                    Satu review per kos, per masa sewa. Setelah masuk, form
+                    penilaian muncul di sini.
+                  </p>
+                </div>
+                <AuthCard />
               </div>
             ) : (
-              <ReviewForm kosId={kos.id} />
+              // One component for "write", "saved" and "already reviewed":
+              // the review action revalidates this page, and swapping
+              // branches here would unmount the form before it could say
+              // the review was saved.
+              <ReviewForm kosId={kos.id} alreadyReviewed={alreadyReviewed} />
             )}
           </section>
         </div>
       </main>
+      <Footer />
     </>
   );
 }
@@ -168,19 +215,17 @@ function ScoreProvenance({
   demoCount: number;
 }) {
   return (
-    <aside className="mt-6 rounded-panel border border-cream-deep bg-white/60 px-7 py-6">
-      <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-muted">
-        Dari mana angka ini
-      </p>
+    <section className="rounded-panel border border-cream-deep bg-white/60 p-6">
+      <h2 className="text-base font-extrabold text-ink">Dari mana angka ini</h2>
 
       {count === 0 ? (
-        <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
+        <p className="mt-2 text-sm leading-relaxed text-ink-soft">
           Kos ini belum punya skor karena belum ada yang menilainya. Begitu
-          review pertama masuk, skornya dihitung otomatis oleh database —
-          tidak ada yang bisa menuliskannya sendiri.
+          review pertama masuk, skornya dihitung otomatis oleh database. Tidak
+          ada yang bisa menuliskannya sendiri.
         </p>
       ) : (
-        <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
+        <p className="mt-2 text-sm leading-relaxed text-ink-soft">
           <strong className="font-extrabold text-ink">
             {score.toFixed(1)}
           </strong>{" "}
@@ -192,7 +237,7 @@ function ScoreProvenance({
       )}
 
       {demoCount > 0 && (
-        <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
+        <p className="mt-2 text-sm leading-relaxed text-ink-soft">
           {demoCount} di antaranya ditulis akun contoh kkost untuk
           demonstrasi, dan diberi label{" "}
           <strong className="font-extrabold text-ink">Review contoh</strong> di
@@ -203,17 +248,53 @@ function ScoreProvenance({
       <p className="mt-3 text-sm font-medium text-muted">
         Satu review per orang per kos.
       </p>
-    </aside>
+    </section>
   );
 }
 
-function FacilityAverage({ label, value }: { label: string; value: number }) {
+/**
+ * Where the kos is, as links rather than a map: a second Leaflet instance on
+ * every detail page would cost a script and a tile load, and on a phone it
+ * would need the scroll lock all over again. OpenStreetMap opens at the kos's
+ * own coordinates; the kkost link shows it among the other kos in its city.
+ */
+function KosLocation({ kos }: { kos: Kos }) {
+  const [lat, lng] = kos.coords;
+  const osm = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`;
+
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-cream-deep pb-3 last:border-0">
-      <span className="text-[15px] font-bold text-ink">{label}</span>
-      <span className="text-[17px] font-extrabold tabular-nums text-ink">
-        {value.toFixed(1)}
-      </span>
-    </div>
+    <section
+      id="lokasi"
+      className="scroll-mt-24 rounded-panel bg-white p-6 shadow-lift lg:scroll-mt-8"
+    >
+      <h2 className="flex items-center gap-2 text-base font-extrabold text-ink">
+        <MapPin aria-hidden className="size-5 text-action" strokeWidth={2} />
+        Lokasi
+      </h2>
+      <p className="mt-2 text-base font-medium text-ink">
+        {kos.area}, {kos.city}
+      </p>
+      {kos.campus && (
+        <p className="mt-0.5 text-sm font-medium text-muted">
+          {formatCampus(kos.campus, kos.distance)}
+        </p>
+      )}
+      <div className="mt-4 grid gap-2">
+        <a
+          href={osm}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={buttonClass("soft", "sm", "w-full")}
+        >
+          Buka di OpenStreetMap
+        </a>
+        <Link
+          href={`/?kota=${encodeURIComponent(kos.city)}#peta`}
+          className={buttonClass("soft", "sm", "w-full")}
+        >
+          Lihat di peta kkost
+        </Link>
+      </div>
+    </section>
   );
 }

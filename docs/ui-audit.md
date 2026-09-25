@@ -96,7 +96,43 @@ Hasil: di 375px halaman 6.709px → 5.952px. Tinggi peta di laptop 423px → 444
 - Diterima apa adanya: tinggi kartu disamakan dalam carousel (harga sejajar), jadi kartu yang isinya pendek punya ruang ±45–65px sebelum harga.
 - Masih lolos: tidak ada tap target < 44px di kedua section, tidak ada overflow, 1280×800 tetap 1 layar per section, peta dan sidebar sejajar.
 
+**Fase 4a Detail kos (25 Sep 2026):**
+
+| Kode | Status | Catatan |
+|---|---|---|
+| **D-1** | Selesai | Rata-rata fasilitas langsung setelah header. "Dari mana angka ini" pindah ke aside (di HP setelah rata-rata; di `lg` jadi kolom kanan yang sticky). |
+| **D-2** | Selesai | Rata-rata memakai `FacilityBar` + angka, sama seperti kartu hero. |
+| **D-3** | Selesai | Ilustrasi 200px → 140px di HP. Nama, harga, skor, dan tombol aksi masuk layar pertama (tombol berakhir di 639px pada layar 812px). |
+| **D-4** | Selesai | Kartu Lokasi: link OpenStreetMap di koordinat kos + "Lihat di peta kkost" (`/?kota=…#peta`). |
+| **D-5 / B-8** | Selesai | Login di tempat: `AuthCard` di `#tulis-review`. Setelah masuk, halaman ter-render ulang dengan form review. Server action tidak diubah. **Belum diuji dengan akun sungguhan.** |
+| **D-6** | Selesai | Tombol "Tulis review" / "Masuk untuk menulis" di header (ke `#tulis-review`) + "Lihat lokasi". |
+| **D-7** | Selesai | Skor per review jadi grid ringkas. Kartu review 424px → 319px di 375px. |
+| Lainnya | Selesai | Link kembali 44px dengan ikon, label "DARI MANA ANGKA INI" jadi `h2` biasa, tidak ada em-dash di teks maupun `<title>` (termasuk judul global di `layout.tsx`), footer di halaman detail. |
+
+**Fase 4b Detail kos (25 Sep 2026), verifikasi 375px + 1280px (lewat DOM, pane tersembunyi):**
+- Tombol di header 96px di HP karena "Masuk untuk menulis" turun baris. Label jadi selalu "Tulis review" dan padding HP diperkecil, sekarang 48px, satu baris.
+- **Bug sistemik ditemukan:** override `px-4` di argumen ketiga `buttonClass` kalah dari `px-7` bawaan ukuran (Tailwind mengurutkan CSS-nya sendiri). Override yang perlu diberi `!` (`px-4!`, `px-8!`, `text-sm!`); `px-4` yang tidak berpengaruh di dialog dan popup dihapus. Aturannya dicatat di `controls.ts` dan `06-conventions.md`.
+- Kartu login di `lg`: 460px sendirian di kolom 820px. Sekarang 2 kolom mulai `md` (judul + penjelasan kiri, kartu kanan).
+- Masih lolos: tidak ada teks terpotong (termasuk label di grid skor review 2 kolom), tidak ada tap target < 44px, tidak ada overflow. Aside 562px < tinggi layar, jadi sticky aman.
+
+**Fase 4a Form (25 Sep 2026):**
+
+| Kode | Status | Catatan |
+|---|---|---|
+| **F-1** | Selesai | Tab ARIA lengkap: `aria-controls`, `tabpanel`, roving tabindex, panah/Home/End. Tombol lihat/sembunyikan password (44px). "Minimal 8 karakter" jadi teks bantu tetap di mode Daftar (bukan placeholder). Tombol: "Masuk" / "Buat akun". Padding HP 32 → 24px. Transisi pergantian mode ditunda ke Fase 6. |
+| **F-2** | Selesai | Progres "x dari 6 dinilai" + rata-rata sementara + bar (`scaleX`). Ikon kriteria + skala "Buruk … Sangat baik". Input file diganti kotak "Pilih foto" + thumbnail 93px dengan tombol hapus 44px (ikon X). Validasi sendiri ("Masih ada n fasilitas yang belum dinilai", fokus ke grup pertama yang kosong) menggantikan bubble browser. Kartu sukses dengan ikon, fokus otomatis, dan "Lihat review" → `#ulasan`. Animasinya ditunda ke Fase 6. |
+| **F-3** | Selesai | Eyebrow uppercase dan koordinat mentah dihapus. Subjudul: "Kos langsung muncul di peta setelah disimpan." Tombol tutup X 44px di pojok. Petunjuk lokasi `text-xs` → `text-sm`. |
+
+Bug yang ditemukan dan diperbaiki di fase ini:
+- **Harga ditolak browser:** `type="number" step={50000}` membuat 975.000 ditolak dengan pesan bawaan browser (bahasa Inggris). Sekarang field teks numerik: "975000" dan "950.000" sama-sama lolos, dengan pratinjau "Rp950.000 / bulan". Harga awal kosong, bukan "0". `noValidate`, jadi semua pesan dari zod.
+- **Kartu sukses review tidak pernah tampil:** revalidasi membalik `alreadyReviewed`, `page.tsx` mengganti cabang, dan `ReviewForm` ter-unmount. Sekarang `ReviewForm` memegang ketiga state. **Belum diuji dengan akun sungguhan** (checklist di `08-roadmap.md`).
+- **Error nyasar mode:** error "Masuk" tetap tampil di tab "Daftar". Form sekarang di-key per mode; email yang sudah diketik tetap ada.
+- Em-dash di copy ketiga form dan pesan pendaftaran (`auth-actions.ts`).
+
+Verifikasi (DOM, 375/768/1280): tidak ada overflow, semua kontrol ≥ 44px, input 16px, panah/Home pada tab, email bertahan antar-tab, tombol mata mengganti `type`, progres dan rata-rata, batas 3 foto dan hapus, validasi lalu error server, dan radio tetap tercentang setelah reset form. Dialog tidak dikirim sungguhan (akan menulis ke database).
+
 Yang masih harus dikerjakan:
+- **Fase 4 (lainnya):** E-1, `error.tsx` tanpa Navbar/Footer dan `not-found.tsx` tanpa Footer.
 - **Fase 4:**
   - G-5: legenda warna pin di peta.
   - Eyebrow `text-rose`.
@@ -410,7 +446,7 @@ bawaan Tailwind. Ini dibuat di Fase 2.
 | B-3, B-4 | Pola 3 kartu + nomor 01/02/03, semua rata tengah | Rendah | Fase 4 (Beranda) |
 | G-9 | Em-dash di copy | Rendah | Fase 4 (per halaman) |
 | G-10 | Tidak ada footer | Rendah | Fase 4 |
-| F-1–F-3 | Detail form (progres, file input, koordinat mentah) | Rendah | Fase 4 (Form) |
+| F-1–F-3 | Detail form (progres, file input, koordinat mentah) | Rendah | ✅ Fase 4a Form |
 | M-10 | Tap highlight, safe-area, scroll lock iOS | Rendah | Fase 5 |
 | E-1 | `error.tsx` tanpa Navbar | Rendah | Fase 4 (lainnya) |
 | — | Mode gelap belum ada | Rendah | Fase 2: **putuskan dulu** mau dibuat atau tidak. Brand-nya terang (cream) |

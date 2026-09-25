@@ -1,7 +1,6 @@
 import Image from "next/image";
-import { FacilityBar } from "@/components/ui/facility-bar";
 import { ScoreBadge } from "@/components/ui/score-badge";
-import { accentForScore } from "@/components/ui/accent";
+import { ACCENT_BG, accentForScore } from "@/components/ui/accent";
 import { CRITERIA, type Review } from "@/data/kos";
 
 const dateFmt = new Intl.DateTimeFormat("id-ID", {
@@ -70,16 +69,28 @@ export function ReviewList({ reviews }: { reviews: Review[] }) {
             <ReviewPhotos photos={review.photos} author={review.authorName} />
           )}
 
-          <div className="mt-6 grid gap-3.5 sm:grid-cols-2 sm:gap-x-8">
+          {/* Six whole numbers per review, not six bars: the bars made every
+              card ~150px taller and the page grew fast. The dot keeps each
+              criterion's colour from the averages above. */}
+          <ul
+            aria-label="Nilai per fasilitas"
+            className="mt-5 grid grid-cols-2 gap-x-6 gap-y-1.5 border-t border-cream-deep pt-4 text-sm sm:grid-cols-3"
+          >
             {CRITERIA.map((c) => (
-              <FacilityBar
-                key={c.key}
-                label={c.title}
-                score={review.scores[c.key]}
-                accent={c.accent}
-              />
+              <li key={c.key} className="flex items-center gap-2">
+                <span
+                  aria-hidden
+                  className={`size-2 shrink-0 rounded-full ${ACCENT_BG[c.accent]}`}
+                />
+                <span className="min-w-0 flex-1 truncate font-medium text-muted">
+                  {c.title}
+                </span>
+                <span className="font-extrabold tabular-nums text-ink">
+                  {review.scores[c.key]}
+                </span>
+              </li>
             ))}
-          </div>
+          </ul>
         </li>
       ))}
     </ul>

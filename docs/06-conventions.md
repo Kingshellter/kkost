@@ -69,6 +69,14 @@ tree as possible (see `MapFrame`).
   `FIELD_ERROR_CLASS`, `NOTICE_CLASS`. Never hand-write a button's pill,
   colour and padding again; extra layout (`w-full`, `mt-7`, `flex-1`) goes in
   the third argument. One `primary` per surface.
+  **An extra that changes what the size or variant already sets (padding,
+  text size, colour) must be marked important** — `px-4!`, `text-sm!`,
+  `text-white!`. Tailwind orders its CSS by its own rules, not by the order
+  of the class string, so a plain `px-4` silently loses to the size's `px-7`
+  (found in Fase 4b: the detail page's two half-width buttons wrapped to two
+  lines). An override that changes nothing is dead code — leave it out.
+  Labels must fit on one line at every width; shorten the label before
+  shrinking the text.
 - Leaflet `divIcon` HTML uses Tailwind classes too, not inline colours.
 - **A modal renders through `createPortal(…, document.body)`.** Anything with
   a running `.reveal` animation (or a transform) is a stacking context, and a
@@ -200,7 +208,7 @@ input is not lost. No `alert()`, no `console.error` as the user-facing path.
 - **React 19 resets a `<form action>` after the action settles** — on error
   too. A plain uncontrolled field loses what the user typed, and a controlled
   radio (`checked=`) comes back unchecked in the DOM while its UI still looks
-  selected, so `required` blocks the resubmit. The pattern used in `AuthCard`
+  selected, so the resubmit sends nothing. The pattern used in `AuthCard`
   and `ReviewForm`: keep the field uncontrolled, mirror it into `useState` via
   `onChange`, and pass that state as `defaultValue` / `defaultChecked` — the
   reset then restores the user's input. Never keep a password this way.
@@ -209,6 +217,31 @@ input is not lost. No `alert()`, no `console.error` as the user-facing path.
   from the browser straight to Storage after the action returns the id they
   belong to — `ReviewForm`'s `submitWithPhotos` is the reference. The action's
   result stands even if an upload fails; report that part separately.
+- **Forms validate themselves, not through the browser.** Put `noValidate` on
+  the `<form>` and check in code (zod, or a small check in `onSubmit`), so
+  every message is Indonesian, in our `FIELD_ERROR_CLASS` / `NOTICE_CLASS`
+  style, and points at the field that is wrong. Browser bubbles speak the
+  browser's language, and a `required` radio group points at one radio out of
+  thirty. Avoid native constraints that fight the schema: `type="number"` with
+  `step` rejected any price that was not a multiple of it. Money is a text
+  field with `inputMode="numeric"` that keeps only the digits. `AddKosDialog`
+  and `ReviewForm` are the references.
+- **A component whose state must survive a Server Action's revalidation must
+  not change branch because of it.** `revalidatePath` re-renders the page
+  with fresh data; if that data flips a conditional in the parent (as
+  "already reviewed" does), the old child unmounts mid-submit and its result
+  state is lost. Pass the flag down and let the component decide, as
+  `<ReviewForm alreadyReviewed>` does.
+- **Tabs are the full ARIA pattern or not tabs at all:** `role="tab"` with
+  `id` + `aria-controls`, the content in `role="tabpanel"` +
+  `aria-labelledby`, only the selected tab at `tabIndex={0}`, and
+  ArrowLeft/Right/Home/End moving selection and focus. `AuthCard` is the
+  reference. When each tab has its own action state, key the panel by tab.
+- **Help text that must stay visible goes in `Field`'s `description`, not the
+  placeholder** — a placeholder disappears on the first keystroke.
+- **Blob previews** (`URL.createObjectURL`) are made in the event handler that
+  picks the file and revoked when it is removed, plus once on unmount — not
+  derived in an effect (the lint forbids `setState` in an effect body).
 
 ## Supabase
 

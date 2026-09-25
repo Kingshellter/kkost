@@ -234,9 +234,10 @@ second, which is the debounce's real reason.
 ## The "review with photos" flow
 
 ```
-/kos/[id] → <ReviewForm kosId>  — scores, note, and up to 3 photos
+/kos/[id] → <ReviewForm kosId alreadyReviewed>  — scores, note, and up to 3 photos
   picking: checkPhotoFile (type, 2 MB) + max 3 — early errors only; the files
-           live in component state, not the input (React 19 resets the form)
+           live in component state, not the input (React 19 resets the form),
+           each with a blob preview URL made on pick and revoked on remove
   submit → submitWithPhotos (client wrapper around the Server Action)
     1. submitReview(formData)            — the file input has no `name`, so no
                                            file reaches the action (1 MB limit)
@@ -308,10 +309,21 @@ a `useActionState` form rendered by the CTA section.
 
 ```
 /kos/[id] (server)
-  → getSessionUser()             not signed in → prompt to sign in
-  → fetchReviews(supabase, id)   already reviewed (matched on authorId) → tell the user
-  → <ReviewForm kosId>           six radio groups, 1–5, + optional note
-       submit → submitReview (server action)
+  → getSessionUser()             not signed in → <AuthCard/> right here, at #tulis-review
+                                   signIn revalidates "/" as a layout, so the page
+                                   renders again with a user and the form replaces
+                                   the card. No redirect, no ?next= to validate.
+  → fetchReviews(supabase, id)   already reviewed (matched on authorId) → alreadyReviewed
+  → <ReviewForm kosId alreadyReviewed>
+                                 six radio groups, 1–5, + optional note. One component
+                                 for all three states — form, "tersimpan", "sudah
+                                 menilai" — because the action below revalidates this
+                                 page (alreadyReviewed flips to true); if page.tsx
+                                 swapped branches, the form would unmount before its
+                                 success card and photoError could show. state.ok wins.
+       submit → client check: all six scored? (noValidate; else "Masih ada n
+                fasilitas yang belum dinilai" + focus the first unscored group)
+              → submitReview (server action)
             · re-reads the user from the session — the form never sends an author id
             · zod validates the six scores and the note
             · saveReview → insert into public.reviews
@@ -320,6 +332,8 @@ a `useActionState` form rendered by the CTA section.
                  42501 → RLS rejected (not signed in)
             · revalidatePath("/kos/[id]") and revalidatePath("/")
   → the database trigger recomputes kos.score and kos.reviews
+  → <SavedCard> takes focus (heading, tabIndex -1), so the page scrolls to it
+    and a screen reader announces it; "Lihat review" → #ulasan
 ```
 
 The score is never written by the application. `kos.score` and `kos.reviews`

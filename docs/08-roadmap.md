@@ -64,9 +64,17 @@ akun sungguhan (agen tidak boleh membuat akun atau memasukkan kata sandi).
       yang sudah pernah kamu review lewat URL langsung — atau review satu kos,
       lalu kirim lagi dari tab lain yang masih memuat form. Server menolak
       ("sudah menulis review"). Harapan: keenam skor tetap terpilih dan
-      catatan tetap ada, dan tombol kirim tidak diblokir validasi browser.
+      catatan tetap ada, dan progres tetap "6 dari 6 dinilai".
       Jika gagal, lihat `ScoreInput` di `src/components/review/review-form.tsx`
       dan aturan "React 19 resets a form" di `06-conventions.md`.
+- [ ] **Kartu "Review kamu tersimpan" muncul setelah kirim** (Fase 4a Form).
+      Masuk, buka kos yang belum pernah kamu review, isi keenam skor, kirim.
+      Harapan: kartu hijau "Review kamu tersimpan" muncul di tempat form dan
+      halaman menggulir ke sana; tombol "Tulis review" di header hilang;
+      "Lihat review" menuju daftar review. Muat ulang halaman → kartu
+      berganti "Kamu sudah menilai kos ini". Jika yang muncul langsung "sudah
+      menilai", cabang di `src/app/kos/[id]/page.tsx` tidak lagi merender
+      `<ReviewForm alreadyReviewed>` — lihat `06-conventions.md`.
 
 ## 3. Foto dalam review — jalankan 0010 dan uji (±20 menit)
 

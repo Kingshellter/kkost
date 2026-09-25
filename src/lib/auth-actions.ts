@@ -95,7 +95,7 @@ export async function signUp(
   return {
     error: null,
     notice: isCampusEmail(email)
-      ? "Akun dibuat. Email kampus terdeteksi — review kamu akan bertanda mahasiswa terverifikasi."
+      ? "Akun dibuat. Email kampus terdeteksi, jadi review kamu akan bertanda mahasiswa terverifikasi."
       : "Akun dibuat.",
   };
 }
