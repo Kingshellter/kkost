@@ -47,7 +47,7 @@ export default async function KosDetail(props: PageProps<"/kos/[id]">) {
   return (
     <>
       <Navbar />
-      <main className="flex-1 px-4 py-10 sm:px-6 lg:px-10 lg:py-16">
+      <main className="flex-1 px-gutter py-10 lg:py-16">
         {/* DOM order is the phone's reading order: what the kos is, how it
             scores, where the number comes from, what tenants said, then the
             form. From lg the provenance + location aside moves to a sticky
@@ -55,7 +55,7 @@ export default async function KosDetail(props: PageProps<"/kos/[id]">) {
         <div className="mx-auto grid max-w-page gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-x-10">
           <Link
             href="/#browse"
-            className={`${MAIN_COL} -ml-1 inline-flex min-h-11 w-fit items-center gap-1 rounded-full pr-2 text-base font-bold text-ink-soft transition-colors duration-(--duration-fast) hover:text-ink`}
+            className={`${MAIN_COL} -ml-1 inline-flex min-h-11 w-fit items-center gap-1 rounded-full pr-2 text-base font-bold text-ink-soft transition-colors duration-(--duration-fast) hover:text-ink active:text-action`}
           >
             <ChevronLeft aria-hidden className="size-5" strokeWidth={2.5} />
             Semua kos

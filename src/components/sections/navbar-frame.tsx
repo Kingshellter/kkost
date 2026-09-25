@@ -25,12 +25,17 @@ export function NavbarFrame({
   // is short enough to scroll back; a pinned bar there would also cover the
   // top of each one-screen section.
   return (
-    <header className="sticky top-0 z-(--z-nav) px-4 pt-5 sm:px-6 lg:relative lg:px-10">
+    <header className="sticky top-0 z-(--z-nav) px-gutter pt-5 lg:relative">
       <nav
         aria-label="Utama"
         className="relative mx-auto flex max-w-page items-center gap-6 rounded-full bg-white px-5 py-3 shadow-lift sm:px-6"
       >
-        <Link href="/" className="shrink-0">
+        {/* The logo is 36px tall; the ::before takes the target to 44 without
+            making the pill taller. */}
+        <Link
+          href="/"
+          className="relative shrink-0 before:absolute before:-inset-1 before:content-['']"
+        >
           <Logo />
         </Link>
 
@@ -39,7 +44,7 @@ export function NavbarFrame({
             <li key={link.href}>
               <SectionLink
                 href={link.href}
-                className="text-base font-bold text-ink transition-colors hover:text-action"
+                className="text-base font-bold text-ink transition-colors hover:text-action active:text-action"
               >
                 {link.label}
               </SectionLink>

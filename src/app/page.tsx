@@ -81,7 +81,7 @@ function DataNotice({ source }: { source: KosSource }) {
   if (source === "database") return null;
 
   return (
-    <div className="px-4 pt-5 sm:px-6 lg:px-10">
+    <div className="px-gutter pt-5">
       <p
         role="status"
         className="mx-auto max-w-page rounded-media bg-amber/15 px-5 py-3.5 text-sm font-medium text-ink"
@@ -126,7 +126,7 @@ function parseConfirmOutcome(
 /** The result of clicking the link in the sign-up confirmation email. */
 function ConfirmNotice({ outcome }: { outcome: ConfirmOutcome }) {
   return (
-    <div className="px-4 pt-5 sm:px-6 lg:px-10">
+    <div className="px-gutter pt-5">
       <p
         role="status"
         className={`mx-auto max-w-page rounded-media px-5 py-3.5 text-sm font-bold ${

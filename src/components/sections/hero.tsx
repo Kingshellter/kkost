@@ -22,7 +22,7 @@ type Props = {
 export function Hero({ featured, reviews, stats, cities, filter }: Props) {
   // On a laptop hero + navbar fill exactly one screen; 5.5rem is the navbar.
   return (
-    <section className="relative overflow-hidden px-4 pb-section pt-14 sm:px-6 lg:flex lg:min-h-[calc(100svh-5.5rem)] lg:flex-col lg:justify-center lg:px-10 lg:py-12">
+    <section className="relative overflow-hidden px-gutter pb-section pt-14 lg:flex lg:min-h-[calc(100svh-5.5rem)] lg:flex-col lg:justify-center lg:py-12">
       {/* Decorative blobs from the deck */}
       <div
         aria-hidden
@@ -155,7 +155,7 @@ function HeroCard({ kos, reviews }: { kos: Kos; reviews: Review[] }) {
           />
           <div className="min-w-0 flex-1">
             <h2 className="text-xl font-extrabold leading-tight text-ink sm:text-2xl">
-              <Link href={`/kos/${kos.id}`} className="transition-colors hover:text-action">
+              <Link href={`/kos/${kos.id}`} className="transition-colors hover:text-action active:text-action">
                 {kos.name}
               </Link>
             </h2>

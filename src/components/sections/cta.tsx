@@ -10,7 +10,7 @@ export async function Cta() {
   return (
     <section
       id="login"
-      className="relative scroll-mt-24 overflow-hidden bg-amber px-4 py-section sm:px-6 lg:flex lg:min-h-svh lg:scroll-mt-0 lg:flex-col lg:justify-center lg:px-10 lg:py-14"
+      className="relative scroll-mt-24 overflow-hidden bg-amber px-gutter py-section lg:flex lg:min-h-svh lg:scroll-mt-0 lg:flex-col lg:justify-center lg:py-14"
     >
       {/* Decorative ring + blob from the deck */}
       <BoundaryCircle edge="top" circle={SEAMS.browseCta} />

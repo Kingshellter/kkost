@@ -17,7 +17,7 @@ export function HowItWorks() {
   return (
     <section
       id="cara-kerja"
-      className="relative scroll-mt-24 overflow-hidden bg-white px-4 py-section sm:px-6 lg:flex lg:min-h-svh lg:scroll-mt-0 lg:flex-col lg:justify-center lg:px-10 lg:py-section-lg short:py-10"
+      className="relative scroll-mt-24 overflow-hidden bg-white px-gutter py-section lg:flex lg:min-h-svh lg:scroll-mt-0 lg:flex-col lg:justify-center lg:py-section-lg short:py-10"
     >
       <BoundaryCircle edge="top" circle={SEAMS.heroImpact} />
 

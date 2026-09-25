@@ -18,7 +18,7 @@ export function StatusCard({
   actions: React.ReactNode;
 }) {
   return (
-    <main className="flex flex-1 items-center justify-center px-4 py-16 sm:px-6 sm:py-24">
+    <main className="flex flex-1 items-center justify-center px-gutter py-16 sm:py-24">
       <div className="w-full max-w-[520px] rounded-panel bg-white p-6 text-center shadow-float sm:p-10">
         {code && (
           <p className="text-sm font-extrabold tabular-nums text-action">

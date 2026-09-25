@@ -21,7 +21,7 @@ export function MapSection({
   return (
     <section
       id="peta"
-      className="relative scroll-mt-24 overflow-hidden bg-ink px-4 pb-28 pt-section sm:px-6 lg:scroll-mt-0 lg:flex lg:min-h-svh lg:flex-col lg:justify-center lg:px-10 lg:py-14"
+      className="relative scroll-mt-24 overflow-hidden bg-ink px-gutter pb-28 pt-section lg:scroll-mt-0 lg:flex lg:min-h-svh lg:flex-col lg:justify-center lg:py-14"
     >
       {/* Decorative ring + blob from the deck */}
       <div

@@ -32,7 +32,7 @@ export function Browse({ kos, total, cities, filter }: Props) {
   return (
     <section
       id="browse"
-      className="relative scroll-mt-24 overflow-hidden px-4 py-section sm:px-6 lg:scroll-mt-0 lg:flex lg:min-h-svh lg:flex-col lg:justify-center lg:px-10 lg:py-12 short:py-7"
+      className="relative scroll-mt-24 overflow-hidden px-gutter py-section lg:scroll-mt-0 lg:flex lg:min-h-svh lg:flex-col lg:justify-center lg:py-12 short:py-7"
     >
       <BoundaryCircle edge="top" circle={SEAMS.mapBrowse} />
       <BoundaryCircle edge="bottom" circle={SEAMS.browseCta} />

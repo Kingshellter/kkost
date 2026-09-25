@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/controls";
 import { Field } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
+import { useScrollLock } from "@/components/ui/use-scroll-lock";
 import { formatRupiah } from "@/lib/format";
 import { reverseGeocode } from "@/lib/geocode";
 import { createClient } from "@/utils/supabase/client";
@@ -161,24 +162,8 @@ export function AddKosDialog({
     };
   }, [returnFocusRef]);
 
-  // Freeze the page behind the dialog. Overflow on the root element always
-  // applies to the viewport; the padding compensates for the vanishing
-  // scrollbar so the layout underneath does not jump sideways.
-  useEffect(() => {
-    const root = document.documentElement;
-    const { body } = document;
-    const scrollbar = window.innerWidth - root.clientWidth;
-    const prevOverflow = root.style.overflow;
-    const prevPadding = body.style.paddingRight;
-
-    root.style.overflow = "hidden";
-    if (scrollbar > 0) body.style.paddingRight = `${scrollbar}px`;
-
-    return () => {
-      root.style.overflow = prevOverflow;
-      body.style.paddingRight = prevPadding;
-    };
-  }, []);
+  // Freeze the page behind the dialog, iOS included.
+  useScrollLock();
 
   async function onSubmit(values: FormValues) {
     setServerError(null);
@@ -207,7 +192,7 @@ export function AddKosDialog({
 
   return (
     <div
-      className="fixed inset-0 z-(--z-dialog) flex items-start justify-center overflow-y-auto overscroll-contain bg-ink/60 p-4"
+      className="fixed inset-0 z-(--z-dialog) flex items-start justify-center overflow-y-auto overscroll-contain bg-ink/60 px-gutter pb-safe pt-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="add-kos-title"
@@ -227,7 +212,7 @@ export function AddKosDialog({
           type="button"
           onClick={onCancel}
           aria-label="Tutup"
-          className="absolute right-3 top-3 grid size-11 place-items-center rounded-full text-muted transition-colors duration-(--duration-fast) hover:bg-cream hover:text-ink sm:right-4 sm:top-4"
+          className="absolute right-3 top-3 grid size-11 place-items-center rounded-full text-muted transition-colors duration-(--duration-fast) hover:bg-cream hover:text-ink active:bg-cream-deep sm:right-4 sm:top-4"
         >
           <X aria-hidden className="size-5" strokeWidth={2.5} />
         </button>

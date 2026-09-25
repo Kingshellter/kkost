@@ -9,7 +9,7 @@ import { NAV_LINKS } from "@/data/kos";
  */
 export function Footer() {
   return (
-    <footer className="px-4 py-10 sm:px-6 lg:px-10">
+    <footer className="px-gutter py-10">
       <div className="mx-auto flex max-w-page flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Logo />
@@ -19,12 +19,12 @@ export function Footer() {
         </div>
 
         <nav aria-label="Footer">
-          <ul className="flex flex-wrap gap-x-6 gap-y-2">
+          <ul className="flex flex-wrap gap-x-6">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
                 <SectionLink
                   href={link.href}
-                  className="text-sm font-bold text-ink transition-colors duration-(--duration-fast) hover:text-action"
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center text-sm font-bold text-ink transition-colors duration-(--duration-fast) hover:text-action active:text-action"
                 >
                   {link.label}
                 </SectionLink>
@@ -40,7 +40,7 @@ export function Footer() {
           href="https://www.openstreetmap.org/copyright"
           target="_blank"
           rel="noopener noreferrer"
-          className="underline underline-offset-2 transition-colors duration-(--duration-fast) hover:text-ink"
+          className="underline underline-offset-2 transition-colors duration-(--duration-fast) hover:text-ink active:text-ink"
         >
           kontributor OpenStreetMap
         </a>

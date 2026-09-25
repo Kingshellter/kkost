@@ -142,6 +142,21 @@ Verifikasi: `/halaman-ngawur`, `/kos/salah`, dan UUID yang tidak ada → HTTP 40
 
 Belum dibuat: `global-error.tsx` untuk error di root layout. Halaman ini harus merender `<html>`/`<body>` sendiri tanpa CSS global; tanpanya Next memakai halaman bawaan.
 
+**Fase 5 Mobile pass (25 Sep 2026), pakai skill `mobile-native`:**
+
+| Kode | Status | Catatan |
+|---|---|---|
+| **M-10 tap highlight** | Selesai | Audit keliru sebagian: preflight Tailwind v4 **sudah** membuat tap highlight transparan di `html`. Yang tersisa adalah highlight biru dari `leaflet.css` di semua link peta (zoom, atribusi, "Lihat kos"). Sudah ditimpa. |
+| **M-10 safe-area** | Selesai | `viewport-fit=cover` + utility `px-gutter` (gutter 16/24/40px yang tidak pernah lebih kecil dari inset poni) di semua section, navbar, footer, detail, `StatusCard`, dan overlay dialog. `pb-safe` untuk overlay dialog. |
+| **M-10 scroll lock iOS** | Selesai | `useScrollLock()`: `body` di-`position: fixed` pada offset scroll, lalu dipulihkan. Diuji di emulasi: halaman tidak bergeser selama dialog terbuka, dan kembali tepat ke 1.200px setelah ditutup. |
+| **M-2** | Selesai | Sapuan DOM di `/`, `/kos/[id]`, 404 pada 375px: 0 kontrol < 44px (di luar link inline dalam kalimat, termasuk atribusi Leaflet). Diperbaiki: logo navbar 36 → 44 (area ketuk `::before`), input search peta 36 → 48, tombol hapus search 36 → 44 (+ ikon lucide), link footer 20 → 44 tinggi dan min 44 lebar. |
+| Lainnya | Selesai | `touch-action: manipulation` untuk semua kontrol. Pasangan `active:` untuk setiap `hover:` di kontrol (link kembali, link footer/nav, judul kos di hero, tombol mata, X dialog, hapus foto, kotak pilih foto). `interactive-widget=resizes-content`, `themeColor` cream. Keyboard: `enterKeyHint="search"` di search peta, email tanpa auto-kapital/koreksi. Daftar hasil search `overscroll-contain`. |
+| Sudah aman | — | Tidak ada `100vh` (semua `svh`), input 16px, `hover:` Tailwind v4 sudah di balik `(hover: hover)`, carousel pakai scroll-snap native, menu HP muat di landscape 812×375 (bawah menu di 336px). |
+
+Catatan: `.leaflet-container a { color }` di `globals.css` ternyata kalah dari `leaflet.css` sejak awal (atribusi tetap #0078A8). Tidak diubah di fase ini.
+
+**Butuh HP asli:** kilatan tap, hover yang tertinggal, poni di landscape, scroll lock iOS, keyboard, dan zoom input tidak bisa direproduksi di emulasi. Checklist ada di `08-roadmap.md` bagian 3b.
+
 Yang masih harus dikerjakan:
 - **Fase 4:**
   - G-5: legenda warna pin di peta.
@@ -457,7 +472,7 @@ bawaan Tailwind. Ini dibuat di Fase 2.
 | G-9 | Em-dash di copy | Rendah | Fase 4 (per halaman) |
 | G-10 | Tidak ada footer | Rendah | Fase 4 |
 | F-1–F-3 | Detail form (progres, file input, koordinat mentah) | Rendah | ✅ Fase 4a Form |
-| M-10 | Tap highlight, safe-area, scroll lock iOS | Rendah | Fase 5 |
+| M-10 | Tap highlight, safe-area, scroll lock iOS | Rendah | ✅ Fase 5 (tunggu tes HP asli) |
 | E-1 | `error.tsx` tanpa Navbar | Rendah | ✅ Fase 4a Lainnya |
 | — | Mode gelap belum ada | Rendah | Fase 2: **putuskan dulu** mau dibuat atau tidak. Brand-nya terang (cream) |
 

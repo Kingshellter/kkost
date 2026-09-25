@@ -173,8 +173,55 @@
   }
 }
 
-html {
-  -webkit-text-size-adjust: 100%;
+/*
+ * Phone behaviour (Fase 5). Tailwind's preflight already covers two items
+ * of the usual list: `-webkit-text-size-adjust: 100%` and a transparent
+ * `-webkit-tap-highlight-color` on html (Leaflet's links undo the latter;
+ * see the .leaflet-container a rule). Hover needs nothing either: Tailwind
+ * v4's `hover:` only applies under `@media (hover: hover)`.
+ *
+ * - touch-action: manipulation — controls never double-tap-zoom, so iOS
+ *   fires the click at once instead of waiting to see if a second tap is
+ *   coming. Pinch zoom on the page is untouched.
+ * - No `overscroll-behavior` on html: kkost is a scrolling document, and
+ *   pull-to-refresh is welcome on one. Inner scrollers (the dialog, the
+ *   place list) use `overscroll-contain` themselves.
+ */
+@layer base {
+  a,
+  button,
+  label,
+  summary,
+  [role="button"],
+  [role="tab"] {
+    touch-action: manipulation;
+  }
+}
+
+/*
+ * The page's side gutter — 1rem, 1.5rem from sm, 2.5rem from lg — but never
+ * less than the safe area. With viewport-fit=cover (layout.tsx) a phone in
+ * landscape puts the notch over the left or right edge; section backgrounds
+ * run under it, their content stays out.
+ */
+@utility px-gutter {
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+
+  @media (width >= 40rem) {
+    padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
+  }
+  @media (width >= 64rem) {
+    padding-left: max(2.5rem, env(safe-area-inset-left, 0px));
+    padding-right: max(2.5rem, env(safe-area-inset-right, 0px));
+  }
+}
+
+/* Bottom padding that clears the home indicator, for anything that reaches
+   the bottom edge of the screen (the dialog overlay). */
+@utility pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
 }
 
 /*
@@ -296,6 +343,14 @@ body {
 
 .leaflet-container a {
   color: var(--color-blue);
+}
+
+/* leaflet.css gives every link in the map (zoom buttons, attribution, the
+   popup's "Lihat kos") a translucent blue tap flash, undoing preflight's
+   transparent one. They have their own :active states. `html` in front:
+   leaflet.css loads after this file, and at equal specificity it wins. */
+html .leaflet-container a {
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Desaturate OSM tiles down to the deck's washed-out basemap */

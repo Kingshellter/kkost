@@ -96,6 +96,16 @@ are retired. Migration map for Fase 3: 15/17 → `base`/`lg`, 13/12/11 →
 
 The 4px spacing base is Tailwind's default and unchanged.
 
+**Side gutter: `px-gutter`, never `px-4 sm:px-6 lg:px-10`.** A custom
+utility in `globals.css`: 1rem, 1.5rem from `sm`, 2.5rem from `lg`, each
+`max()`-ed with `env(safe-area-inset-left/right)`. The viewport is
+`viewport-fit=cover` (`layout.tsx`), so on a phone in landscape a section's
+background runs under the notch while its content stays clear of it. Every
+full-width section, the navbar, the footer, the detail page, `StatusCard` and
+the dialog overlay use it. `pb-safe` (`max(1rem, env(safe-area-inset-bottom))`)
+is the same idea for anything that reaches the bottom edge of the screen —
+today only the dialog overlay.
+
 ### Radius
 
 Rule: **controls are `rounded-full`; containers are `panel`; a picture inside a
@@ -430,6 +440,29 @@ shares a row with the hero card, `text-display-split` (`clamp(3rem, 5.4vw,
 `HowItWorks` (`BedDouble`, `ShowerHead`, `Droplets`, `Wifi`, `CookingPot`,
 `SquareParking`), `size-5`, `strokeWidth` 2, `aria-hidden`. Keep to lucide —
 one icon family per project.
+
+### Phone platform layer (Fase 5)
+
+- **Viewport** (`layout.tsx` `viewport` export): `viewport-fit=cover`,
+  `interactive-widget=resizes-content` (Android's keyboard shrinks the layout
+  like iOS's), `themeColor` = cream (mirrors `--color-cream`; one value, no
+  dark scheme), `colorScheme: "light"`. Zoom is never disabled.
+- **Tap highlight:** Tailwind's preflight already sets it transparent on
+  `html`. Leaflet re-adds a blue one to every map link; `html
+  .leaflet-container a` removes it again.
+- **`touch-action: manipulation`** on `a`, `button`, `label`, `summary`,
+  `[role=button]`, `[role=tab]` (base layer): no double-tap-zoom wait.
+- **Hover:** Tailwind v4's `hover:` is already `@media (hover: hover)`. Every
+  hover style on a control has an `active:` partner, because a finger only
+  ever gets the press.
+- **Small drawn, large target:** where a control must look smaller than 44px
+  (the logo, the search's clear button), a `before:absolute before:-inset-1`
+  pseudo-element takes the hit area to 44.
+- **Scroll lock:** `useScrollLock()` (`components/ui/use-scroll-lock.ts`)
+  pins `<body>` with `position: fixed` at the scroll offset and restores it on
+  release — the lock iOS Safari honours.
+- **No `overscroll-behavior` on `html`** — a scrolling document keeps
+  pull-to-refresh. Inner scrollers set `overscroll-contain`.
 
 The map is the one place where a fixed pixel inset breaks: `FitToKos` scales its
 padding to the container, which is ~343px wide on a phone and ~800px on a

@@ -72,6 +72,12 @@ enforced.
   (OpenStreetMap link at the kos's coordinates, and "Lihat di peta kkost" →
   `/?kota=<city>#peta`). From `lg` the aside is a sticky right column. Footer
   on this page too. Redesigned in UI-revamp Fase 4a
+- ✅ **Mobile pass (UI-revamp Fase 5, 25 Sep 2026)** — `viewport-fit=cover`
+  with safe-area gutters (`px-gutter`), an iOS-proof scroll lock for the
+  add-kos dialog, no tap flash on map links, instant taps (`touch-action:
+  manipulation`), an `active:` state on every hovered control, and every
+  control on `/`, `/kos/[id]` and the 404s at 44px or more. **Verified in
+  emulation only; the real-phone checklist is in `08-roadmap.md`.**
 - ✅ **Forms (UI-revamp Fase 4a Form, 25 Sep 2026)** — the sign-in card is a
   full ARIA tab list (arrow keys, `tabpanel`) with a show/hide password
   button, and switching tabs no longer carries the other mode's error; the

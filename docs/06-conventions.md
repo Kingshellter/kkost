@@ -185,6 +185,29 @@ navbar is the easy thing to get wrong: its link list is `hidden lg:flex`, so
 `MobileNav` must keep working. Check any new navigation at 375px before calling
 it done.
 
+Phone rules (Fase 5, details in `04-design-system.md`):
+
+- **Side padding of a full-width block is `px-gutter`**, never `px-4 sm:px-6
+  lg:px-10` — only the utility keeps content out of the notch in landscape.
+  Anything `fixed` against the bottom edge adds `pb-safe`.
+- **Every `hover:` on a control has an `active:` partner.** Touch gets no
+  hover; the press is its only feedback.
+- **44px targets, including text links in a list** (footer nav: `inline-flex
+  min-h-11 min-w-11`). Inline links inside a sentence are exempt. If the
+  control must look smaller, extend the hit area with `before:absolute
+  before:-inset-1`, don't grow the drawing.
+- **A modal locks scroll with `useScrollLock()`**, not `overflow: hidden`
+  alone (iOS ignores it for swipes on the backdrop).
+- **Set the keyboard:** `enterKeyHint` on search, `inputMode` on numbers,
+  `autoCapitalize="none"` + `autoCorrect="off"` on email.
+- **Never disable zoom** (`maximum-scale`, `user-scalable=no`). 16px inputs
+  are what stop iOS zooming.
+- Real-phone check: `npm run dev`, open `http://<LAN-IP>:3000`. The page
+  hydrates, but Next 16 blocks the HMR websocket from a non-localhost origin,
+  so reload by hand after an edit. `allowedDevOrigins` would lift that; it is
+  deliberately not set (it widens a dev-server safety default and would need
+  an IP in the repo).
+
 ## Error UX
 
 Errors are surfaced **in Indonesian, inline, and actionable** — they name the

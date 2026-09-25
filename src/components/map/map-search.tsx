@@ -1,5 +1,6 @@
 "use client";
 
+import { X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { searchPlaces, type Place } from "@/lib/geocode";
 
@@ -154,7 +155,7 @@ export function MapSearch({ onPick, onClear }: Props) {
         <label htmlFor={`${listId}-input`} className="sr-only">
           Cari jalan atau tempat
         </label>
-        <div className="flex items-center gap-2 rounded-full bg-white/95 py-1.5 pl-4 pr-1.5 shadow-lift focus-within:ring-2 focus-within:ring-focus">
+        <div className="flex items-center gap-2 rounded-full bg-white/95 pl-4 pr-1.5 shadow-lift focus-within:ring-2 focus-within:ring-focus">
           <SearchIcon />
           <input
             id={`${listId}-input`}
@@ -169,21 +170,24 @@ export function MapSearch({ onPick, onClear }: Props) {
             }
             value={query}
             placeholder="Cari jalan atau tempat…"
+            enterKeyHint="search"
             onChange={(e) => type(e.target.value)}
             onFocus={() => places.length && setOpen(true)}
             onKeyDown={onKeyDown}
             // The last variant hides WebKit's own clear button, which would
             // otherwise sit next to ours doing the same job.
-            className="min-w-0 flex-1 bg-transparent py-1.5 text-base font-bold text-ink outline-none placeholder:font-medium placeholder:text-muted [&::-webkit-search-cancel-button]:hidden"
+            className="min-w-0 flex-1 bg-transparent py-3 text-base font-bold text-ink outline-none placeholder:font-medium placeholder:text-muted [&::-webkit-search-cancel-button]:hidden"
           />
           {query && (
             <button
               type="button"
               onClick={clear}
               aria-label="Hapus pencarian"
-              className="grid size-9 shrink-0 place-items-center rounded-full bg-cream text-base font-extrabold text-muted transition-[background-color,color,scale] duration-(--duration-fast) ease-out hover:bg-cream-deep hover:text-ink active:scale-(--press-scale) active:duration-(--duration-press)"
+              // 36px drawn so the pill stays slim; the ::before takes the
+              // target to 44px.
+              className="relative grid size-9 shrink-0 place-items-center rounded-full bg-cream text-muted transition-[background-color,color,scale] duration-(--duration-fast) ease-out before:absolute before:-inset-1 before:content-[''] hover:bg-cream-deep hover:text-ink active:scale-(--press-scale) active:duration-(--duration-press)"
             >
-              ×
+              <X aria-hidden className="size-4" strokeWidth={2.5} />
             </button>
           )}
         </div>
@@ -194,7 +198,7 @@ export function MapSearch({ onPick, onClear }: Props) {
           id={listId}
           role="listbox"
           aria-label="Hasil pencarian tempat"
-          className="absolute left-0 right-0 top-[calc(100%+0.5rem)] max-h-64 overflow-y-auto rounded-media bg-white p-2 shadow-float"
+          className="absolute left-0 right-0 top-[calc(100%+0.5rem)] max-h-64 overflow-y-auto overscroll-contain rounded-media bg-white p-2 shadow-float"
         >
           {loading && (
             <li className="px-3 py-2.5 text-sm font-bold text-muted">

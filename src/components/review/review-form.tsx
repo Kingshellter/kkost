@@ -402,9 +402,9 @@ function PhotoPicker({
                 type="button"
                 onClick={() => onRemove(index)}
                 aria-label={`Hapus foto ${file.name}`}
-                className="absolute -right-2 -top-2 grid size-11 place-items-center rounded-full"
+                className="group absolute -right-2 -top-2 grid size-11 place-items-center rounded-full"
               >
-                <span className="grid size-8 place-items-center rounded-full bg-ink text-white shadow-control transition-colors duration-(--duration-fast) hover:bg-danger">
+                <span className="grid size-8 place-items-center rounded-full bg-ink text-white shadow-control transition-colors duration-(--duration-fast) hover:bg-danger group-active:bg-danger">
                   <X aria-hidden className="size-4" strokeWidth={2.5} />
                 </span>
               </button>
@@ -414,7 +414,7 @@ function PhotoPicker({
       )}
 
       {!full && (
-        <label className="focus-ring-within mt-3 flex min-h-22 cursor-pointer flex-col items-center justify-center gap-1 rounded-box border-2 border-dashed border-field bg-cream/50 px-4 py-4 text-center transition-colors duration-(--duration-fast) hover:border-muted hover:bg-cream">
+        <label className="focus-ring-within mt-3 flex min-h-22 cursor-pointer flex-col items-center justify-center gap-1 rounded-box border-2 border-dashed border-field bg-cream/50 px-4 py-4 text-center transition-colors duration-(--duration-fast) hover:border-muted hover:bg-cream active:bg-cream-deep">
           {/* No `name`: the files must not ride along to the Server Action. */}
           <input
             type="file"

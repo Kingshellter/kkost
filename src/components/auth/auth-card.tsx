@@ -156,6 +156,9 @@ function AuthForm({
           <input
             type="email"
             name="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             defaultValue={email}
             onChange={(e) => onEmail(e.target.value)}
             required
@@ -197,7 +200,7 @@ function AuthForm({
               onClick={() => setShowPassword((v) => !v)}
               aria-pressed={showPassword}
               aria-label="Lihat password"
-              className="absolute right-1 top-[calc(50%+0.25rem)] grid size-11 -translate-y-1/2 place-items-center rounded-full text-muted transition-colors duration-(--duration-fast) hover:text-ink"
+              className="absolute right-1 top-[calc(50%+0.25rem)] grid size-11 -translate-y-1/2 place-items-center rounded-full text-muted transition-colors duration-(--duration-fast) hover:text-ink active:bg-cream"
             >
               {showPassword ? (
                 <EyeOff aria-hidden className="size-5" strokeWidth={2} />

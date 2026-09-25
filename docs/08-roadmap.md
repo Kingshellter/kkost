@@ -97,6 +97,28 @@ digantikan `0010`.
 - [ ] Setelah lolos, hapus kalimat "has not been tested yet" di
       `01-overview.md`.
 
+## 3b. Tes di HP asli — Fase 5 (±15 menit)
+
+Emulasi di browser tidak bisa mereproduksi hal-hal di bawah. Jalankan
+`npm run dev`, sambungkan HP ke Wi-Fi yang sama, buka
+`http://<IP-laptop>:3000` (cek IP: `ipconfig getifaddr en0`). Setelah edit
+kode, muat ulang manual — HMR tidak jalan dari IP LAN.
+
+- [ ] **Ketuk** kartu kos, link footer, tombol peta: tidak ada kilatan
+      abu-abu/biru, dan tombol langsung mengecil saat jari menyentuh.
+- [ ] **Hover tidak tertinggal:** ketuk tombol "Tulis review" lalu kembali;
+      tombol tidak tetap terangkat.
+- [ ] **Landscape (iPhone berponi):** section peta (gelap) dan CTA (amber)
+      penuh sampai tepi layar, teks dan tombol tidak tertutup poni.
+- [ ] **Dialog tambah kos (iOS):** buka dari peta, geser di area gelap
+      di luar kartu → halaman di belakang **tidak** ikut bergeser. Tutup →
+      halaman kembali ke posisi semula, bukan ke atas.
+- [ ] **Keyboard:** fokus ke field harga di dialog → keyboard angka; field
+      di bawah tetap bisa di-scroll ke atas keyboard (Android juga).
+      Search peta: tombol Enter bertuliskan "Cari"/"Search".
+- [ ] **Tidak ada zoom otomatis** saat mengetuk input mana pun (iOS).
+- [ ] **Tarik untuk refresh** di atas halaman masih berfungsi (disengaja).
+
 ## 4. Sebelum submit (wajib — pengumpulan BATCH II ditutup 27 September 2026)
 
 - [x] **Deploy.** *(Selesai 24 Sep 2026: <https://kkost.vercel.app>, dari
