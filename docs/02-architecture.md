@@ -95,8 +95,17 @@ Trace it end to end:
 (`MapSection` → `MapFrame` → `KosMap`).
 
 ```
-user clicks map
-  → ClickCatcher (useMapEvents) → setDraft([lat, lng])
+user taps a pin
+  → Popup: name, city, score, price, "Lihat kos" → /kos/[id]
+    (hover devices also get a name tooltip; a local- kos has no link)
+
+phone: the map starts locked (TouchLock: dragging + touchZoom off), so the
+page scrolls through it
+  → tap on an empty spot, or the "Ketuk untuk menggeser peta" pill
+  → unlocked (that tap does NOT open the draft); "Kunci peta" locks again
+
+user clicks map (unlocked)
+  → ClickCatcher (useMapEvents) → handleMapClick → setDraft([lat, lng])
   → red "+" draft marker + Popup
        signed out → "Masuk dulu untuk menambah kos" + link to #login. Stops here.
        signed in  → "Tambahkan kos di titik ini?"
@@ -210,9 +219,13 @@ Three things that flow needs:
   the pin but leaves the view where the user put it.
 - **The search box lives outside `MapContainer`.** Rendered as a Leaflet child,
   every click and keystroke in it would also drag the map, zoom it, or open the
-  add-kos draft. It is a sibling overlay at `z-[500]` instead, sharing a
-  top-left column with the "klik peta" hint so the two cannot overlap on a
-  phone. Leaflet's own zoom control moved to `bottomright` to make room.
+  add-kos draft. It is a sibling overlay at `z-(--z-map-overlay)` instead.
+  The "klik peta" hint that used to share its column now lives in the legend
+  row under the map. Leaflet's own zoom control moved to `bottomright` to
+  make room.
+- **A place search jumps instead of flying under reduced motion** —
+  `FocusPlace` uses `fitBounds` / `setView` with `animate: false` when
+  `prefers-reduced-motion: reduce` matches.
 
 Nominatim is keyless, like the tiles, so search survives a checkout with no
 environment variables. Its usage policy caps callers at roughly one request a

@@ -1,3 +1,4 @@
+import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import { BoundaryCircle, SEAMS } from "@/components/ui/boundary-circle";
 import {
@@ -46,9 +47,39 @@ export function Browse({ kos, total, cities, filter }: Props) {
             : `${kos.length} dari ${total} kos cocok dengan filter.`}
         </p>
 
+        {/* Below lg the filter folds behind one button, so the first card is
+            not 400px down a phone. A checkbox and `peer-checked:` do the
+            folding: no JavaScript, like the GET form itself. It starts open
+            whenever a filter is set, so the visitor sees what is applied. */}
+        <input
+          type="checkbox"
+          id="filter-toggle"
+          defaultChecked={filtered}
+          className="peer sr-only"
+        />
+        <label
+          htmlFor="filter-toggle"
+          className="mt-8 flex w-full cursor-pointer select-none items-center gap-3 rounded-panel bg-white px-5 py-4 shadow-lift transition-[scale] duration-(--duration-fast) ease-out active:scale-(--press-scale-surface) active:duration-(--duration-press) peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus peer-checked:[&_.chevron]:rotate-180 lg:hidden"
+        >
+          <SlidersHorizontal aria-hidden className="size-5 shrink-0 text-ink" strokeWidth={2} />
+          <span className="min-w-0 flex-1">
+            <span className="block text-base font-extrabold text-ink">
+              Filter &amp; urutkan
+            </span>
+            <span className="block truncate text-sm font-medium text-muted">
+              {filterSummary(filter)}
+            </span>
+          </span>
+          <ChevronDown
+            aria-hidden
+            className="chevron size-5 shrink-0 text-muted transition-transform duration-(--duration-base) ease-out"
+            strokeWidth={2}
+          />
+        </label>
+
         <form
           action="/#browse"
-          className="mt-10 grid gap-4 rounded-panel bg-white p-5 lg:mt-7 short:mt-5 short:p-4 shadow-lift sm:grid-cols-2 lg:grid-cols-[repeat(3,minmax(0,1fr))_auto] lg:items-end"
+          className="mt-3 hidden gap-4 rounded-panel bg-white p-5 shadow-lift peer-checked:grid sm:grid-cols-3 lg:mt-7 lg:grid lg:grid-cols-[repeat(3,minmax(0,1fr))_auto] lg:items-end short:mt-5 short:p-4"
         >
           <Field label="Kota">
             <select
@@ -90,7 +121,7 @@ export function Browse({ kos, total, cities, filter }: Props) {
             </select>
           </Field>
 
-          <div className="flex gap-3 sm:col-span-2 lg:col-span-1">
+          <div className="flex gap-3 sm:col-span-3 lg:col-span-1">
             <button
               type="submit"
               className={buttonClass("primary", "md", "flex-1 lg:flex-none")}
@@ -109,7 +140,7 @@ export function Browse({ kos, total, cities, filter }: Props) {
         </form>
 
         {kos.length > 0 ? (
-          <div className="mt-10 lg:mt-7 short:mt-5">
+          <div className="mt-8 lg:mt-5 short:mt-3">
             <KosCarousel label={`${kos.length} kos`}>
               {kos.map((item) => (
                 <KosCard key={item.id} kos={item} />
@@ -140,6 +171,15 @@ export function Browse({ kos, total, cities, filter }: Props) {
 
 function sortLabel(filter: KosFilter) {
   return SORTS.find((sort) => sort.value === filter.sort)?.label ?? "";
+}
+
+/** "Semua kota, berapa saja, skor tertinggi": what the folded filter holds. */
+function filterSummary(filter: KosFilter) {
+  return [
+    filter.city ?? "Semua kota",
+    filter.maxPrice ? `sampai ${formatRupiah(filter.maxPrice)}` : "berapa saja",
+    sortLabel(filter).toLowerCase(),
+  ].join(", ");
 }
 
 const selectClass = SELECT_CLASS;

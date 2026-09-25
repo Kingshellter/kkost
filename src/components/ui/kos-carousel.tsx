@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Children, useEffect, useRef, useState } from "react";
 
 /**
@@ -7,9 +8,12 @@ import { Children, useEffect, useRef, useState } from "react";
  * however many kos match. The cards are passed in as children and stay server
  * rendered; this only owns the scrolling.
  *
- * Touch and trackpad scroll it natively (with snap points); the ◀ ▶ buttons
- * are for a mouse, and each moves by one visible page. Tabbing through the
- * cards scrolls them into view on its own.
+ * Touch and trackpad scroll it natively (with snap points). A toolbar above
+ * the row says where you are ("1-3 dari 9", which a phone showing one card at
+ * a time otherwise never tells you) and, from `sm`, holds the ◀ ▶ buttons for
+ * a mouse, each moving one visible page. The buttons used to sit on the row's
+ * edges, where they covered the outer cards. Tabbing through the cards
+ * scrolls them into view on its own.
  */
 export function KosCarousel({
   label,
@@ -20,8 +24,12 @@ export function KosCarousel({
   children: React.ReactNode;
 }) {
   const track = useRef<HTMLUListElement>(null);
+  const count = Children.count(children);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(true);
+  /** First visible card (0-based) and how many fit, for the position text. */
+  const [first, setFirst] = useState(0);
+  const [visible, setVisible] = useState(1);
 
   useEffect(() => {
     const el = track.current;
@@ -29,15 +37,21 @@ export function KosCarousel({
     const update = () => {
       setAtStart(el.scrollLeft <= 4);
       setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 4);
+      // One card plus the gap after it is one step of the snap grid.
+      const card = el.firstElementChild as HTMLElement | null;
+      const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
+      const step = card ? card.offsetWidth + gap : el.clientWidth;
+      setFirst(Math.round(el.scrollLeft / step));
+      setVisible(Math.max(1, Math.floor((el.clientWidth + gap) / step)));
     };
     // The observer fires once on observe, which sets the first state; the
     // timeout covers a tab that is not rendering yet (observers wait for it).
     const observer = new ResizeObserver(update);
     observer.observe(el);
-    const first = setTimeout(update, 0);
+    const firstRun = setTimeout(update, 0);
     el.addEventListener("scroll", update, { passive: true });
     return () => {
-      clearTimeout(first);
+      clearTimeout(firstRun);
       observer.disconnect();
       el.removeEventListener("scroll", update);
     };
@@ -53,8 +67,26 @@ export function KosCarousel({
     });
   }
 
+  const start = Math.min(first + 1, count);
+  const end = Math.min(first + visible, count);
+  const scrollable = !(atStart && atEnd);
+
   return (
-    <div className="relative">
+    <div>
+      {scrollable && (
+        // `relative` so the list's shadow allowance (-my-6) below does not
+        // cover these buttons.
+        <div className="relative mb-3 flex items-center justify-between gap-4">
+          <p className="text-sm font-bold tabular-nums text-muted">
+            {end > start ? `${start}-${end}` : start} dari {count}
+          </p>
+          <div className="hidden gap-2 sm:flex">
+            <ArrowButton direction={-1} disabled={atStart} onClick={() => page(-1)} />
+            <ArrowButton direction={1} disabled={atEnd} onClick={() => page(1)} />
+          </div>
+        </div>
+      )}
+
       <ul
         ref={track}
         aria-label={label}
@@ -68,17 +100,6 @@ export function KosCarousel({
           </li>
         ))}
       </ul>
-
-      {!(atStart && atEnd) && (
-        <>
-          <ArrowButton
-            direction={-1}
-            disabled={atStart}
-            onClick={() => page(-1)}
-          />
-          <ArrowButton direction={1} disabled={atEnd} onClick={() => page(1)} />
-        </>
-      )}
     </div>
   );
 }
@@ -92,17 +113,16 @@ function ArrowButton({
   disabled: boolean;
   onClick: () => void;
 }) {
+  const Icon = direction === 1 ? ChevronRight : ChevronLeft;
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
       aria-label={direction === 1 ? "Kos berikutnya" : "Kos sebelumnya"}
-      className={`absolute top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-ink text-xl font-extrabold text-white shadow-float transition-[opacity,background-color,scale] duration-(--duration-fast) ease-out hover:bg-ink-soft active:scale-(--press-scale) active:duration-(--duration-press) disabled:pointer-events-none disabled:opacity-0 sm:flex ${
-        direction === 1 ? "-right-4 lg:-right-6" : "-left-4 lg:-left-6"
-      }`}
+      className="grid size-11 place-items-center rounded-full bg-ink text-white transition-[opacity,background-color,scale] duration-(--duration-fast) ease-out hover:bg-ink-soft active:scale-(--press-scale) active:duration-(--duration-press) disabled:pointer-events-none disabled:opacity-30"
     >
-      <span aria-hidden>{direction === 1 ? "›" : "‹"}</span>
+      <Icon aria-hidden className="size-5" strokeWidth={2.5} />
     </button>
   );
 }

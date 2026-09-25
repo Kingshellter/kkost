@@ -19,11 +19,11 @@ export function KosSidebar({
   const added = useKosStore((s) => s.added);
   const kosList = mergeKos(added, fromServer, filter);
 
+  // Laptop only: on a phone the same list is the card row right below, and a
+  // pin opens its own popup.
   return (
-    <aside className="flex flex-col rounded-panel bg-white p-7 lg:min-h-0">
-      <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-muted">
-        {kosList.length} kos di peta
-      </p>
+    <aside className="hidden flex-col rounded-panel bg-white p-7 lg:flex lg:min-h-0">
+      <p className="text-sm font-bold text-muted">{kosList.length} kos di peta</p>
 
       {kosList.length > 0 ? (
         <ul className="mt-6 max-h-[360px] min-h-0 flex-1 space-y-6 overflow-y-auto lg:max-h-none">

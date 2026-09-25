@@ -73,6 +73,20 @@ Kode masalah (`B-3`, `M-2`, dst.) dipakai lagi di tabel prioritas (bagian 4).
 - Dicatat untuk pass Listing: label "9 KOS DI PETA" (huruf kapital), ruang kosong di tengah kartu kos saat tinggi kartu disamakan, tombol ▶ menimpa kartu ketiga, dan copy "tidak bisa direnovasi".
 - Diterima apa adanya: kolom kiri section Masuk terasa lega di 1280px setelah strip tagline pindah ke footer.
 
+**Fase 4a Listing (25 Sep 2026), peta + Cari kos:**
+
+| Kode | Status | Catatan |
+|---|---|---|
+| **B-5** | Selesai | Setiap pin punya popup (skor, harga, tombol "Lihat kos" ke halaman detail). Hint pindah dari atas peta ke baris legenda. Copy intro diganti "Ketuk pin untuk melihat skornya…". Clustering pin tidak dikerjakan; dengan 9 kos belum perlu. |
+| **G-5** | Selesai | Legenda warna pin di bawah peta, dengan ambang dari `SCORE_HIGH`/`SCORE_MID`. |
+| **M-3** | Selesai | Di layar sentuh peta awalnya terkunci (scroll halaman lewat). Ketuk untuk membuka, "Kunci peta" untuk mengunci lagi. |
+| **M-4** | Selesai | Copy "Klik peta" hilang. Tooltip hover hanya muncul di perangkat yang bisa hover. |
+| **B-6 / M-8** | Selesai | Filter terlipat di bawah `lg` (tanpa JS, otomatis terbuka kalau ada filter). Di 768px 3 kolom rapi. Carousel punya toolbar "1-3 dari 9", dan panah tidak lagi menimpa kartu. |
+| **flyTo** | Selesai | Pencarian tempat melompat tanpa animasi saat reduced motion. |
+| Sidebar | Selesai | Hanya tampil mulai `lg`; label huruf kapital jadi teks biasa. |
+
+Hasil: di 375px halaman 6.709px → 5.952px. Tinggi peta di laptop 423px → 444px (1366×768) dan 576px (1440×900). Semua section tetap 1 layar di 1024/1280/1366/1440.
+
 Yang masih harus dikerjakan:
 - **Fase 4:**
   - G-5: legenda warna pin di peta.

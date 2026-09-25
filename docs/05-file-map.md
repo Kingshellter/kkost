@@ -11,7 +11,7 @@ map exists so you can read *only the right one*.
 | [`src/app/layout.tsx`](../src/app/layout.tsx) | 25 | Root layout. `lang="id"`, Jakarta font variable, `bg-cream text-ink`, site `metadata` (title/description) |
 | [`src/app/page.tsx`](../src/app/page.tsx) | 140 | Route `/`. Renders `ConfirmNotice` for `?konfirmasi=`. Loads the kos list (and its `source`), session and `searchParams`; renders `DataNotice` when not showing the real database; parses the URL filter; fetches the featured kos's reviews; stacks Navbar + 6 sections |
 | [`src/app/kos/[id]/page.tsx`](../src/app/kos/[id]/page.tsx) | 218 | Route `/kos/[id]`. Kos header with a `KosPhoto` banner, `ScoreProvenance` panel, per-facility averages, review list, and either the review form, a sign-in prompt, or "sudah menilai" |
-| [`src/app/globals.css`](../src/app/globals.css) | 326 | Tailwind v4 `@theme inline` tokens, `eyebrow` utility, motion (`.reveal` fade-up, `.drift` / `.drift-page` circle parallax — all scroll-driven, all off for reduced motion), all Leaflet overrides |
+| [`src/app/globals.css`](../src/app/globals.css) | 337 | Tailwind v4 `@theme inline` tokens, `eyebrow` utility, motion (`.reveal` fade-up, `.drift` / `.drift-page` circle parallax — all scroll-driven, all off for reduced motion), all Leaflet overrides |
 | [`src/app/error.tsx`](../src/app/error.tsx) | 55 | Client error boundary in Indonesian — "Coba lagi" (`retry()`, the Next 16 prop name) and a home link. Shown when `fetchKos` throws |
 | [`src/app/auth/confirm/route.ts`](../src/app/auth/confirm/route.ts) | 55 | `GET` handler for the sign-up confirmation link: `verifyOtp` (`token_hash`) or `exchangeCodeForSession` (`code`), then redirects to `/?konfirmasi=berhasil\|masuk\|gagal#login`. Exports the `ConfirmOutcome` type |
 | [`src/app/not-found.tsx`](../src/app/not-found.tsx) | 35 | Indonesian 404 with the navbar, for `notFound()` and unknown routes |
@@ -47,7 +47,7 @@ map exists so you can read *only the right one*.
 | [`score-badge.tsx`](../src/components/ui/score-badge.tsx) | 42 | Circular score chip, 3 sizes, optional text label. Generic — knows nothing about kos |
 | [`kos-score-badge.tsx`](../src/components/ui/kos-score-badge.tsx) | 32 | `ScoreBadge` + the kos rule: `reviews === 0` renders a dark "Baru" chip instead of `0.0`. **Use this for any kos**, never `ScoreBadge` directly |
 | [`kos-card.tsx`](../src/components/ui/kos-card.tsx) | 60 | Kos card for the browse carousel; links to `/kos/[id]` |
-| [`kos-carousel.tsx`](../src/components/ui/kos-carousel.tsx) | 110 | **Client.** `KosCarousel` — one snap-scrolling row of server-rendered cards with ◀ ▶ page buttons (from `sm`), so `#browse` fits one screen |
+| [`kos-carousel.tsx`](../src/components/ui/kos-carousel.tsx) | 128 | **Client.** `KosCarousel` — one snap-scrolling row of server-rendered cards, with a toolbar above it: position ("1-3 dari 9") and ◀ ▶ page buttons (from `sm`), so `#browse` fits one screen |
 | [`kos-photo.tsx`](../src/components/ui/kos-photo.tsx) | 150 | `KosPhoto` — labelled SVG illustration per kos (4 scenes keyed by `photoAccent`). Kos have no photos; photos belong to reviews |
 | [`facility-bar.tsx`](../src/components/ui/facility-bar.tsx) | 23 | Labelled 0–5 progress bar |
 | [`logo.tsx`](../src/components/ui/logo.tsx) | 12 | Wordmark |
@@ -63,8 +63,8 @@ map exists so you can read *only the right one*.
 | [`hero.tsx`](../src/components/sections/hero.tsx) | 204 | — | Headline, live stats eyebrow, city + budget GET form to `/#browse`, `HeroCard` (featured kos with its real per-facility averages and newest review as the quote, captioned when demo), decorative blobs |
 | [`how-it-works.tsx`](../src/components/sections/how-it-works.tsx) | 107 | `#cara-kerja` (+ `#dampak`, `#scoring`) | One screen: the problem (`PROBLEMS` as a compact list) on the left, the six `CRITERIA` with lucide icons on the right, the one-line solution. Replaced `impact.tsx` + `scoring.tsx` in Fase 4a |
 | [`footer.tsx`](../src/components/sections/footer.tsx) | 50 | — | Logo + tagline, `NAV_LINKS`, OpenStreetMap data credit. Rendered on `/` only for now |
-| [`map-section.tsx`](../src/components/sections/map-section.tsx) | 60 | `#peta` | Dark ink band; says how many kos match when the filter narrows; passes the filtered kos list and the `filter` to `<MapFrame/>` + `<KosSidebar/>`; fixes the map's height (440/460/520px) |
-| [`browse.tsx`](../src/components/sections/browse.tsx) | 170 | `#browse` | Filter bar (kota / budget / urutkan) as a GET form, result count, reset link, every filtered kos as a `KosCard` in a `KosCarousel`, empty state |
+| [`map-section.tsx`](../src/components/sections/map-section.tsx) | 101 | `#peta` | Dark ink band; says how many kos match when the filter narrows; passes the filtered kos list and the `filter` to `<MapFrame/>` + `<KosSidebar/>`; fixes the map's height (440/460px, screen-derived on lg); `MapLegend` (pin colours + add-kos hint) under the map |
+| [`browse.tsx`](../src/components/sections/browse.tsx) | 200 | `#browse` | Filter bar (kota / budget / urutkan) as a GET form — folded behind a "Filter & urutkan" checkbox-label below `lg` (`filterSummary`), result count, reset link, every filtered kos as a `KosCard` in a `KosCarousel`, empty state |
 | [`cta.tsx`](../src/components/sections/cta.tsx) | 105 | `#login` | Amber band; copy + either `<AuthCard/>` or a signed-in summary with the verification badge |
 
 ## Map — `src/components/map/` (all client)
@@ -72,9 +72,9 @@ map exists so you can read *only the right one*.
 | File | ~n | Owns |
 |---|---|---|
 | [`map-frame.tsx`](../src/components/map/map-frame.tsx) | 22 | The `dynamic(..., { ssr: false })` boundary + loading state. Exists only for that |
-| [`kos-map.tsx`](../src/components/map/kos-map.tsx) | 330 | `MapContainer`, `OVERLAY_INSET` (fit padding under the search box), OSM `TileLayer`, bottom-right `ZoomControl`, `ClickCatcher`, `FitToKos` (auto-fit + `ResizeObserver`), `FocusPlace` (flies to a search result), `fitPadding`, the three `divIcon`s, draft marker + popup, draft/form/notice/place state, `handleSaved` (toast timer in a ref), `mapBox` ref for returning focus |
+| [`kos-map.tsx`](../src/components/map/kos-map.tsx) | 506 | `MapContainer`, `OVERLAY_INSET` (fit padding under the search box), OSM `TileLayer`, bottom-right `ZoomControl`, `ClickCatcher`, `FitToKos` (auto-fit + `ResizeObserver`), `FocusPlace` (flies to a search result; jumps under reduced motion), `TouchLock` + the lock pill (coarse pointers), a `Popup` per kos pin ("Lihat kos"), hover-only tooltips, `fitPadding`, the three `divIcon`s, draft marker + popup, draft/form/notice/place state, `handleSaved` (toast timer in a ref), `mapBox` ref for returning focus |
 | [`map-search.tsx`](../src/components/map/map-search.tsx) | 240 | Debounced place-search combobox overlaying the map's top-left — results list, keyboard navigation, loading/empty/error states, clear button. Calls `searchPlaces`; the parent owns the map move |
-| [`kos-sidebar.tsx`](../src/components/map/kos-sidebar.tsx) | 75 | "N kos di peta" list (scrolls inside the map row's height), each row linking to `/kos/[id]` — except a `local-` kos, which has no page; empty state for a filter with no match; "Lihat daftar lengkap" link |
+| [`kos-sidebar.tsx`](../src/components/map/kos-sidebar.tsx) | 79 | **`lg` only.** "N kos di peta" list (scrolls inside the map row's height), each row linking to `/kos/[id]` — except a `local-` kos, which has no page; empty state for a filter with no match; "Lihat daftar lengkap" link |
 | [`add-kos-dialog.tsx`](../src/components/map/add-kos-dialog.tsx) | 290 | Modal form — name, area, city, campus (optional), price. Area and city pre-filled by `reverseGeocode` from the clicked point. zod + react-hook-form, Escape-to-close, Tab focus trap, focus returned to the map on close, scroll lock with scrollbar compensation, `saveKos` call, inline server error, unconfigured warning, local `Field` + `inputClass` helpers |
 
 ## Auth — `src/components/auth/`

@@ -2,6 +2,8 @@
 
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { Lock, Move } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -17,6 +19,7 @@ import {
 } from "react-leaflet";
 import { ACCENT_BG, accentForScore } from "@/components/ui/accent";
 import { buttonClass } from "@/components/ui/controls";
+import { KosScoreBadge } from "@/components/ui/kos-score-badge";
 import { SectionLink } from "@/components/ui/section-link";
 import { INDONESIA, type Accent, type Kos } from "@/data/kos";
 import { formatRupiah } from "@/lib/format";
@@ -77,12 +80,13 @@ function fitPadding(map: L.Map): [number, number] {
 }
 
 /**
- * Height of the search-and-hint column over the map's top edge, in pixels.
- * It covers pins at every width — full-width on a phone, a 320px corner box
- * wider up, which still hid a pin at tablet width — so the fit always leaves
- * room for it. Kept in step with the column's markup below.
+ * How far the search box reaches down over the map's top edge, in pixels
+ * (16px inset + a 48px box + a little air). It covers pins at every width —
+ * full-width on a phone, a 320px corner box wider up, which still hid a pin
+ * at tablet width — so the fit always leaves room for it. Kept in step with
+ * the box's markup below.
  */
-const OVERLAY_INSET = 104;
+const OVERLAY_INSET = 72;
 
 /**
  * kkost spans the whole country, so there is no sensible fixed centre. Fit the
@@ -168,15 +172,44 @@ function FocusPlace({ place }: { place: Place | null }) {
   useEffect(() => {
     if (!place) return;
 
+    // A flight across Java is exactly the motion reduced-motion asks to
+    // skip: jump straight to the place instead.
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (place.bounds) {
-      map.flyToBounds(L.latLngBounds(place.bounds), {
-        padding: fitPadding(map),
-        maxZoom: 17,
-      });
+      const bounds = L.latLngBounds(place.bounds);
+      const options = { padding: fitPadding(map), maxZoom: 17 };
+      if (still) map.fitBounds(bounds, { ...options, animate: false });
+      else map.flyToBounds(bounds, options);
+    } else if (still) {
+      map.setView(place.coords, 17, { animate: false });
     } else {
       map.flyTo(place.coords, 17);
     }
   }, [map, place]);
+
+  return null;
+}
+
+/**
+ * On a phone a map that pans under one finger swallows the page's scroll —
+ * the visitor scrolling past it ends up dragging Java around instead. There
+ * the map starts locked: dragging and pinch are off (Leaflet then drops its
+ * `touch-action: none` classes, so the page scrolls straight through), and a
+ * tap or the pill unlocks it. Pins, search and the zoom buttons work either
+ * way.
+ */
+function TouchLock({ locked }: { locked: boolean }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (locked) {
+      map.dragging.disable();
+      map.touchZoom.disable();
+    } else {
+      map.dragging.enable();
+      map.touchZoom.enable();
+    }
+  }, [map, locked]);
 
   return null;
 }
@@ -230,6 +263,23 @@ export default function KosMap({
    */
   const [searchTookOver, setSearchTookOver] = useState(false);
 
+  // KosMap only renders in the browser (ssr: false), so these read the real
+  // device once. A touch-first device gets the lock; only a device that can
+  // hover gets hover tooltips — on a phone the tap opens the popup instead,
+  // and a tooltip would open alongside it.
+  const [coarse] = useState(() => matchMedia("(pointer: coarse)").matches);
+  const [canHover] = useState(() => matchMedia("(hover: hover)").matches);
+  const [locked, setLocked] = useState(coarse);
+
+  /** While locked, a tap on the map means "let me use it", not "add a kos here". */
+  function handleMapClick(point: [number, number]) {
+    if (locked) {
+      setLocked(false);
+      return;
+    }
+    setDraft(point);
+  }
+
   function handlePlacePick(picked: Place) {
     setPlace(picked);
     setSearchTookOver(true);
@@ -275,7 +325,8 @@ export default function KosMap({
           maxZoom={19}
         />
 
-        <ClickCatcher onPick={setDraft} />
+        <ClickCatcher onPick={handleMapClick} />
+        <TouchLock locked={locked} />
         <FitToKos
           points={kosList.map((k) => k.coords)}
           active={!searchTookOver}
@@ -306,13 +357,48 @@ export default function KosMap({
               kos.reviews === 0,
             )}
           >
-            <Tooltip direction="top" offset={[0, -22]}>
-              <span className="font-bold">{kos.name}</span>
-              {" · "}
-              {kos.city}
-              {" · "}
-              {formatRupiah(kos.price)}
-            </Tooltip>
+            {canHover && (
+              <Tooltip direction="top" offset={[0, -22]}>
+                <span className="font-bold">{kos.name}</span>
+                {", "}
+                {kos.city}
+              </Tooltip>
+            )}
+            {/* Spans, not <p>: Leaflet's own CSS gives popup paragraphs a
+                1.3em margin. */}
+            <Popup closeButton={false} minWidth={220} offset={[0, -18]}>
+              <span className="flex items-start gap-3">
+                <span className="min-w-0 flex-1">
+                  <span className="block text-base font-extrabold leading-tight text-ink">
+                    {kos.name}
+                  </span>
+                  <span className="mt-0.5 block text-xs font-medium text-muted">
+                    {kos.area}, {kos.city}
+                  </span>
+                </span>
+                <KosScoreBadge kos={kos} size="sm" />
+              </span>
+              <span className="mt-2 block text-sm font-extrabold text-ink">
+                {formatRupiah(kos.price)}
+                <span className="font-medium text-muted">
+                  {" "}
+                  / bulan, {kos.reviews} review
+                </span>
+              </span>
+              {/* A `local-` kos never reached the database: no page to open. */}
+              {kos.id.startsWith("local-") ? (
+                <span className="mt-2 block text-xs font-medium text-muted">
+                  Belum tersimpan di database.
+                </span>
+              ) : (
+                <Link
+                  href={`/kos/${kos.id}`}
+                  className={buttonClass("dark", "sm", "mt-3 w-full text-white!")}
+                >
+                  Lihat kos
+                </Link>
+              )}
+            </Popup>
           </Marker>
         ))}
 
@@ -333,7 +419,7 @@ export default function KosMap({
               <span className="mt-0.5 block text-xs font-medium text-muted">
                 {signedIn
                   ? `${draft[0].toFixed(5)}, ${draft[1].toFixed(5)}`
-                  : "Melihat kos dan review tidak perlu akun — menambah data perlu."}
+                  : "Melihat kos dan review tidak perlu akun. Menambah data perlu."}
               </span>
               {signedIn ? (
                 <button
@@ -357,21 +443,46 @@ export default function KosMap({
         )}
       </MapContainer>
 
-      {/* One top-left column so the search box and the hint never overlap on a
-          phone-width map. `pointer-events-none` on the column keeps the map
-          draggable between them; the search box opts itself back in. */}
-      <div className="pointer-events-none absolute left-4 right-4 top-4 z-(--z-map-overlay) flex flex-col items-start gap-2 sm:right-auto sm:w-[320px]">
+      {/* The search box, top left. Full width on a phone. The add-kos hint
+          used to sit under it and hid pins; it now lives in the legend row
+          below the map (MapSection). `pointer-events-none` on the wrapper
+          keeps the map usable around the box; the box opts itself back in. */}
+      <div className="pointer-events-none absolute left-4 right-4 top-4 z-(--z-map-overlay) sm:right-auto sm:w-[320px]">
         <MapSearch onPick={handlePlacePick} onClear={() => setPlace(null)} />
-
-        <p className="rounded-full bg-white/95 px-4 py-2 text-xs font-bold text-ink shadow-lift">
-          {signedIn
-            ? "Klik peta untuk menambah kos"
-            : "Klik peta untuk menambah kos — perlu masuk"}
-        </p>
       </div>
 
+      {coarse && (
+        <button
+          type="button"
+          onClick={() => setLocked((value) => !value)}
+          aria-pressed={!locked}
+          className={buttonClass(
+            "dark",
+            "sm",
+            "absolute bottom-4 left-4 z-(--z-map-overlay) px-4 text-sm shadow-lift",
+          )}
+        >
+          {locked ? (
+            <>
+              <Move aria-hidden className="size-4" strokeWidth={2} />
+              Ketuk untuk menggeser peta
+            </>
+          ) : (
+            <>
+              <Lock aria-hidden className="size-4" strokeWidth={2} />
+              Kunci peta
+            </>
+          )}
+        </button>
+      )}
+
       {notice && (
-        <p className="absolute bottom-4 left-1/2 z-(--z-map-overlay) w-[min(92%,380px)] -translate-x-1/2 rounded-full bg-ink px-5 py-3 text-center text-sm font-bold text-white shadow-float">
+        <p
+          className={`absolute left-1/2 z-(--z-map-overlay) w-[min(92%,380px)] -translate-x-1/2 rounded-full bg-ink px-5 py-3 text-center text-sm font-bold text-white shadow-float ${
+            // Clear of the lock pill on a phone.
+            coarse ? "bottom-18" : "bottom-4"
+          }`}
+        >
           {notice}
         </p>
       )}

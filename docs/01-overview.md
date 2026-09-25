@@ -77,7 +77,14 @@ enforced.
 - ✅ **Reviews** — six facility scores 1–5 per reviewer, one review per kos per
   person, `kos.score` recomputed by a database trigger
 - ✅ Interactive map with score pins that **auto-fits to wherever the kos are**,
-  plus the click-to-add flow
+  plus the click-to-add flow. **Every pin opens a popup** (score, price, "Lihat
+  kos" → detail page), a **legend** under the map explains the pin colours,
+  and **on a phone the map starts locked** so it does not trap scrolling (tap
+  to unlock, "Kunci peta" to lock again). The sidebar list shows from `lg`
+  only
+- ✅ **Kos list** (`#browse`): a snap carousel with a "1-3 dari 9" position
+  toolbar; below `lg` the filter folds behind a "Filter & urutkan" button
+  (no JavaScript; opens by itself when a filter is set)
 - ✅ **Place search on the map** — type a street, neighbourhood, campus or
   landmark and the view flies there, with a blue pin marking it. Geocoded by
   Nominatim (OpenStreetMap), keyless like the tiles

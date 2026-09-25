@@ -74,6 +74,19 @@ tree as possible (see `MapFrame`).
   a running `.reveal` animation (or a transform) is a stacking context, and a
   dialog inside one cannot rise above the sticky navbar however high its
   z-index. `AddKosDialog` in `kos-map.tsx` is the reference.
+- **Disclosure without JavaScript**: a `peer sr-only` checkbox, a `<label
+  htmlFor>` styled as the button, and the panel as a later sibling with
+  `hidden peer-checked:grid` (plus `lg:grid` if it is always open on a
+  laptop). Give the label `peer-focus-visible:outline-*` for keyboard users,
+  and `defaultChecked` when the panel holds something already applied. The
+  browse filter is the reference.
+- **Touch-only UI checks `matchMedia("(pointer: coarse)")`; hover-only UI
+  checks `(hover: hover)`** — read once in a lazy `useState` initialiser in a
+  client-only component. The map's lock pill and its hover tooltips are the
+  reference.
+- **Leaflet motion follows reduced motion too**: any `flyTo` / `flyToBounds`
+  needs an `animate: false` path when `prefers-reduced-motion: reduce`
+  matches.
 - **Anchored sections get `scroll-mt-24 lg:scroll-mt-0`** — the navbar is
   sticky below `lg`, and without the margin a `SectionLink` lands under it.
 - A new colour is added to `@theme` in `globals.css`, **its contrast checked**

@@ -320,11 +320,34 @@ default marker asset path under bundlers. Three icons in `kos-map.tsx`:
 the source file, so Tailwind finds and generates them like any other class.
 
 Because Leaflet panes carry their own stacking, map overlays use the z tokens:
-the search column, hint pill and toast are `z-(--z-map-overlay)` (500), and
-`AddKosDialog` is `z-(--z-dialog)` (1000).
+the search box, the touch-lock pill and the toast are `z-(--z-map-overlay)`
+(500); `AddKosDialog` is portalled and `z-(--z-dialog)`.
 
 `.leaflet-container a` sets link colour with more specificity than a utility,
-so a `SectionLink` inside a popup needs `text-white!` to stay white.
+so a link button inside a popup needs `text-white!` to stay white.
+
+**Popups** (`.leaflet-popup-content-wrapper` in `globals.css`) take the box
+radius and `--shadow-float`, with 14×16px content margins. Build their content
+from `<span className="block …">`, not `<p>`: Leaflet's CSS gives popup
+paragraphs a 1.3em margin. Every kos pin opens one: name, area and city,
+`KosScoreBadge`, price and review count, and a "Lihat kos" button to
+`/kos/[id]` (a `local-` kos says "Belum tersimpan di database" instead). The
+hover tooltip (name, city) renders only where `(hover: hover)` matches, so a
+phone never gets a tooltip and a popup from one tap.
+
+**Legend** (`MapLegend` in `map-section.tsx`), under the map on the ink band:
+a dot per score band (teal, amber, rose-deep, ink ring for "Baru") with the
+thresholds formatted from `SCORE_HIGH` / `SCORE_MID`, and the add-kos hint
+that used to be a pill over the map, where it hid pins. On a phone the band
+has `pb-28` because the amber seam circle reaches 100px up into it and would
+sit under the legend's white text.
+
+**Touch lock.** On a `(pointer: coarse)` device the map starts with dragging
+and pinch disabled, so a finger scrolling the page is not caught by it. A
+dark pill bottom-left reads "Ketuk untuk menggeser peta"; tapping it, or any
+empty spot on the map, unlocks (that first tap never opens the add-kos
+draft), and the pill turns into "Kunci peta". Pins, search and the zoom
+buttons work while locked. A fine pointer never sees the pill.
 
 ## Copy language
 
@@ -349,14 +372,18 @@ Measured to fit at 1440×900, 1280×800 and 1366×768. What made that possible:
 - **`#browse` is one swipeable row** — `KosCarousel`
   ([`kos-carousel.tsx`](../src/components/ui/kos-carousel.tsx)): snap
   scrolling, three cards visible on `lg`, two on `sm`, 85% width on a phone
-  (the next card peeks as a swipe hint); ◀ ▶ buttons from `sm`, each moving
-  one visible page. Cards stay server-rendered as children.
+  (the next card peeks as a swipe hint). A toolbar above the row shows the
+  position ("1-3 dari 9", the only place a phone learns how many are left)
+  and, from `sm`, the ◀ ▶ buttons, each moving one visible page. The buttons
+  used to sit on the row's edges and covered the outer cards. Cards stay
+  server-rendered as children.
 - **The map row takes its height from the screen**:
-  `lg:h-[clamp(360px,calc(100svh-345px),600px)]` on the grid, map and sidebar
-  `h-full`, the sidebar list scrolls inside. 345px is everything else in the
-  band — change it if the heading changes. (Removing the eyebrow in Fase 4a
-  made the heading ~60px shorter, so 345px is now conservative; retuning it is
-  part of the Listing pass.)
+  `lg:h-[clamp(360px,calc(100svh-260px),640px)]` on the grid. The left
+  column is the map (`flex-1`) with the legend row under it; the sidebar
+  list scrolls inside. Everything else in the band measures ~240px (padding,
+  heading, intro); 260 leaves room for an intro that wraps at 1024. Change it
+  if the heading changes. Retuned in the Listing pass (was 345px): the map
+  went from 423px to 444px tall at 1366×768 and to 576px at 1440×900.
 - **`short:`** — a custom variant in `globals.css`,
   `(width >= 64rem) and (height <= 860px)`. Registered after the breakpoints,
   so it overrides `lg:`. Only the dense sections use it: `#cara-kerja`
