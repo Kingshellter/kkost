@@ -1,0 +1,161 @@
+@import "tailwindcss";
+
+/*
+ * A laptop with a short screen (1366×768, 1280×800). Sections are one screen
+ * tall from `lg` up; on these the densest ones tighten further so they still
+ * fit. Registered after the breakpoints, so `short:` wins over `lg:`.
+ */
+@custom-variant short (@media (width >= 64rem) and (height <= 860px));
+
+@theme inline {
+  /* Brand palette — sampled from "Review Kos v5 Rounded" */
+  --color-cream: #f1ece3;
+  --color-cream-deep: #e7e1d6;
+  --color-ink: #1c2a4e;
+  --color-ink-soft: #24345c;
+  --color-rose: #f93a5a;
+  --color-amber: #fcb800;
+  --color-amber-soft: #fcd056;
+  --color-blue: #3b59df;
+  --color-sky: #4fc3f7;
+  --color-muted: #7f8493;
+  --color-lavender: #d7d7e2;
+
+  --font-sans: var(--font-jakarta);
+  --font-display: var(--font-jakarta);
+
+  /* The deck is a "Rounded" variant — cards are pill-adjacent */
+  --radius-card: 28px;
+  --radius-panel: 32px;
+
+  --shadow-lift: 0 18px 40px -18px rgb(28 42 78 / 0.28);
+  --shadow-float: 0 30px 70px -28px rgb(28 42 78 / 0.42);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+/*
+ * Motion. Both effects are off for anyone who asked their OS for less motion.
+ *
+ * - Section links glide there — but that lives in `SectionLink`, not here. A
+ *   global `scroll-behavior: smooth` also animated every page load that
+ *   carried a hash: submitting the browse filter reloads `/?kota=…#browse`,
+ *   and the page visibly scrolled down from the top to the results.
+ * - `.reveal` fades a section's content up as it scrolls into view, and
+ *   `.drift` / `.drift-page` move the decorative circles against the scroll.
+ *   All scroll-driven — no JavaScript, no observer — and browsers without
+ *   `animation-timeline` simply show everything standing still.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+
+    /* A decorative circle inside one section: drifts against the scroll
+       while that section crosses the screen. Keep it >= 40px from the
+       section's top and bottom so the drift never pushes it over the edge. */
+    .drift {
+      animation: drift linear both;
+      animation-timeline: view();
+    }
+
+    /* The two halves of a BoundaryCircle. They must share one timeline —
+       the page's own scroll — or they would drift apart at the seam. */
+    .drift-page {
+      animation: drift-page linear both;
+      animation-timeline: scroll(root);
+    }
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: translateY(40px);
+  }
+  to {
+    transform: translateY(-40px);
+  }
+}
+
+/* Small and centred on the seam: the smallest BoundaryCircle has an 80px
+   radius, so a ±32px drift always leaves it straddling both sections. */
+@keyframes drift-page {
+  from {
+    transform: translateY(32px) scale(0.9);
+  }
+  to {
+    transform: translateY(-32px) scale(1.1);
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Section eyebrow pill, reused across all five sections */
+@utility eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  padding: 0.5rem 1.125rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Leaflet paints its own containers; keep it inside our rounded frame */
+.leaflet-container {
+  background: #eee9e1;
+  font-family: inherit;
+}
+
+.leaflet-container a {
+  color: var(--color-blue);
+}
+
+/* Desaturate OSM tiles down to the deck's washed-out basemap */
+.leaflet-tile-pane {
+  filter: grayscale(0.92) brightness(1.06) contrast(0.9);
+}
+
+.leaflet-control-zoom {
+  border: none !important;
+  border-radius: 9999px !important;
+  overflow: hidden;
+  box-shadow: 0 8px 20px -8px rgb(28 42 78 / 0.4);
+}
+
+.leaflet-control-zoom a {
+  border: none !important;
+  color: var(--color-ink) !important;
+  font-weight: 700;
+}
+
+.leaflet-tooltip {
+  border: none;
+  border-radius: 9999px;
+  box-shadow: 0 8px 20px -8px rgb(28 42 78 / 0.35);
+  font-weight: 700;
+  color: var(--color-ink);
+  padding: 5px 12px;
+}

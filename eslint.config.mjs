@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Snapshot of the old UI — reference only, never compiled.
+    "backup/**",
   ]),
 ]);
 
