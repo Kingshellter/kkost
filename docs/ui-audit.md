@@ -131,8 +131,18 @@ Bug yang ditemukan dan diperbaiki di fase ini:
 
 Verifikasi (DOM, 375/768/1280): tidak ada overflow, semua kontrol ≥ 44px, input 16px, panah/Home pada tab, email bertahan antar-tab, tombol mata mengganti `type`, progres dan rata-rata, batas 3 foto dan hapus, validasi lalu error server, dan radio tetap tercentang setelah reset form. Dialog tidak dikirim sungguhan (akan menulis ke database).
 
+**Fase 4a Lainnya (25 Sep 2026):**
+
+| Kode | Status | Catatan |
+|---|---|---|
+| **E-1** | Selesai | Ketiga halaman (404 umum, 404 kos, error) sekarang punya Navbar + Footer dan kartu yang sama (`StatusCard`, judul `text-heading`, tanpa ukuran hardcode). Halaman error memakai `NavbarFrame` tanpa tombol akun, karena `Navbar` async tidak bisa di-import ke client boundary. |
+| Lainnya | Selesai | 404 dipisah: URL asing → "Halaman tidak ditemukan" (sebelumnya selalu "Kos ini tidak ditemukan"), `notFound()` di detail → 404 khusus kos dengan tombol "Buka peta". Title tab: "Halaman tidak ditemukan · kkost", "Kos tidak ditemukan · kkost", "Gagal dimuat · kkost". `error.tsx` mencatat error ke console. Em-dash di copy error dan tooltip "Mahasiswa" dihapus. |
+
+Verifikasi: `/halaman-ngawur`, `/kos/salah`, dan UUID yang tidak ada → HTTP 404 dengan title yang benar. Halaman error dipicu lewat route uji sementara (sudah dihapus). Retry memanggil server lagi, dan menu HP tidak menampilkan "Masuk". HTML Navbar (belum masuk) di `/` dan `/kos/[id]` identik byte per byte dengan sebelum refactor. Di 375 tombol penuh 48px; mulai `sm` berdampingan.
+
+Belum dibuat: `global-error.tsx` untuk error di root layout. Halaman ini harus merender `<html>`/`<body>` sendiri tanpa CSS global; tanpanya Next memakai halaman bawaan.
+
 Yang masih harus dikerjakan:
-- **Fase 4 (lainnya):** E-1, `error.tsx` tanpa Navbar/Footer dan `not-found.tsx` tanpa Footer.
 - **Fase 4:**
   - G-5: legenda warna pin di peta.
   - Eyebrow `text-rose`.
@@ -448,7 +458,7 @@ bawaan Tailwind. Ini dibuat di Fase 2.
 | G-10 | Tidak ada footer | Rendah | Fase 4 |
 | F-1–F-3 | Detail form (progres, file input, koordinat mentah) | Rendah | ✅ Fase 4a Form |
 | M-10 | Tap highlight, safe-area, scroll lock iOS | Rendah | Fase 5 |
-| E-1 | `error.tsx` tanpa Navbar | Rendah | Fase 4 (lainnya) |
+| E-1 | `error.tsx` tanpa Navbar | Rendah | ✅ Fase 4a Lainnya |
 | — | Mode gelap belum ada | Rendah | Fase 2: **putuskan dulu** mau dibuat atau tidak. Brand-nya terang (cream) |
 
 **Catatan yang perlu keputusanmu sebelum Fase 2:**

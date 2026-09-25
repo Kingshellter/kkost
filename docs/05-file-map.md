@@ -12,9 +12,10 @@ map exists so you can read *only the right one*.
 | [`src/app/page.tsx`](../src/app/page.tsx) | 140 | Route `/`. Renders `ConfirmNotice` for `?konfirmasi=`. Loads the kos list (and its `source`), session and `searchParams`; renders `DataNotice` when not showing the real database; parses the URL filter; fetches the featured kos's reviews; stacks Navbar + 6 sections |
 | [`src/app/kos/[id]/page.tsx`](../src/app/kos/[id]/page.tsx) | 300 | Route `/kos/[id]`. Two-column grid from `lg` (sticky aside right). Back link, header (`KosPhoto` banner, name, location, price, score, "Tulis review" + "Lihat lokasi" anchors), per-facility averages as `FacilityBar`s, aside (`ScoreProvenance`, `KosLocation`: OSM + `/?kota=…#peta` links), review list (`#ulasan`), and at `#tulis-review` either an inline `AuthCard` or `ReviewForm` (which itself shows "tersimpan" / "sudah menilai"). `Footer` |
 | [`src/app/globals.css`](../src/app/globals.css) | 345 | Tailwind v4 `@theme inline` tokens, `eyebrow` utility, motion (`.reveal` fade-up, `.drift` / `.drift-page` circle parallax — all scroll-driven, all off for reduced motion), all Leaflet overrides |
-| [`src/app/error.tsx`](../src/app/error.tsx) | 55 | Client error boundary in Indonesian — "Coba lagi" (`retry()`, the Next 16 prop name) and a home link. Shown when `fetchKos` throws |
+| [`src/app/error.tsx`](../src/app/error.tsx) | 64 | Client error boundary in Indonesian: `NavbarFrame` (no account slot), `StatusCard` with "Coba lagi" (`retry()`, the Next 16 prop name) and a home link, the error digest, `Footer`. Logs the error; React `<title>` "Gagal dimuat · kkost". Shown when `fetchKos` throws |
 | [`src/app/auth/confirm/route.ts`](../src/app/auth/confirm/route.ts) | 55 | `GET` handler for the sign-up confirmation link: `verifyOtp` (`token_hash`) or `exchangeCodeForSession` (`code`), then redirects to `/?konfirmasi=berhasil\|masuk\|gagal#login`. Exports the `ConfirmOutcome` type |
-| [`src/app/not-found.tsx`](../src/app/not-found.tsx) | 35 | Indonesian 404 with the navbar, for `notFound()` and unknown routes |
+| [`src/app/not-found.tsx`](../src/app/not-found.tsx) | 38 | 404 for URLs that match no route: navbar, `StatusCard` "Halaman tidak ditemukan" ("Cari kos", "Ke beranda"), footer. `metadata` sets the title |
+| [`src/app/kos/[id]/not-found.tsx`](../src/app/kos/[id]/not-found.tsx) | 38 | 404 for `notFound()` in the kos page: "Kos ini tidak ditemukan" ("Lihat semua kos", "Buka peta"), navbar, footer |
 | [`src/proxy.ts`](../src/proxy.ts) | 40 | Supabase session refresh; no-ops without env vars; matcher excludes static assets. Named `proxy`, not `middleware` — that convention is deprecated in Next 16 |
 
 ## Data & logic
@@ -45,6 +46,7 @@ map exists so you can read *only the right one*.
 | [`controls.ts`](../src/components/ui/controls.ts) | 91 | `buttonClass()` and the field class strings (`INPUT_CLASS`, `SELECT_CLASS`, `TEXTAREA_CLASS`, `LABEL_CLASS`, `FIELD_ERROR_CLASS`, `NOTICE_CLASS`). Every button and form field takes its classes from here |
 | [`spinner.tsx`](../src/components/ui/spinner.tsx) | 14 | `Spinner` — the loading mark inside a busy button (with `aria-busy`) |
 | [`field.tsx`](../src/components/ui/field.tsx) | 41 | `Field` — label + hint + description + error around one form control |
+| [`status-card.tsx`](../src/components/ui/status-card.tsx) | 40 | `StatusCard` — the centred card for 404 and error pages |
 | [`criterion-icon.ts`](../src/components/ui/criterion-icon.ts) | 23 | `CRITERION_ICON` — one lucide icon per facility key |
 | [`score-badge.tsx`](../src/components/ui/score-badge.tsx) | 42 | Circular score chip, 3 sizes, optional text label. Generic — knows nothing about kos |
 | [`kos-score-badge.tsx`](../src/components/ui/kos-score-badge.tsx) | 32 | `ScoreBadge` + the kos rule: `reviews === 0` renders a dark "Baru" chip instead of `0.0`. **Use this for any kos**, never `ScoreBadge` directly |
@@ -60,8 +62,9 @@ map exists so you can read *only the right one*.
 
 | File | ~n | Anchor | Owns |
 |---|---|---|---|
-| [`navbar.tsx`](../src/components/sections/navbar.tsx) | 78 | — | Pill navbar. Reads the session: name + "Mahasiswa" badge (students only) + sign-out form, else a "Masuk" link. Desktop links hidden below `lg` |
-| [`mobile-nav.tsx`](../src/components/sections/mobile-nav.tsx) | 97 | — | **Client.** Disclosure menu for `< lg`. Without it the site has no navigation on a phone |
+| [`navbar.tsx`](../src/components/sections/navbar.tsx) | 40 | — | Async. Reads the session and fills `NavbarFrame`'s account slot: name + "Mahasiswa" badge (students only) + sign-out form, else a "Masuk" link |
+| [`navbar-frame.tsx`](../src/components/sections/navbar-frame.tsx) | 57 | — | The navbar markup without the account: pill, logo, desktop links (from `lg`), `MobileNav`, `account` slot. Synchronous and client-safe, so `error.tsx` can render it |
+| [`mobile-nav.tsx`](../src/components/sections/mobile-nav.tsx) | 102 | — | **Client.** Disclosure menu for `< lg`. Without it the site has no navigation on a phone. `signedIn: boolean \| null`; "Masuk" only when `false` |
 | [`hero.tsx`](../src/components/sections/hero.tsx) | 204 | — | Headline, live stats eyebrow, city + budget GET form to `/#browse`, `HeroCard` (featured kos with its real per-facility averages and newest review as the quote, captioned when demo), decorative blobs |
 | [`how-it-works.tsx`](../src/components/sections/how-it-works.tsx) | 89 | `#cara-kerja` (+ `#dampak`, `#scoring`) | One screen: the problem (`PROBLEMS` as a compact list) on the left, the six `CRITERIA` with lucide icons on the right, the one-line solution. Replaced `impact.tsx` + `scoring.tsx` in Fase 4a |
 | [`footer.tsx`](../src/components/sections/footer.tsx) | 50 | — | Logo + tagline, `NAV_LINKS`, OpenStreetMap data credit. Rendered on `/` only for now |

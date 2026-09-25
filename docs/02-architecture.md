@@ -3,8 +3,21 @@
 ## Page composition
 
 Two routes: `/` and `/kos/[id]`. `app/error.tsx` (client — error boundaries
-must be) and `app/not-found.tsx` replace Next's English defaults; the error
-page is what a visitor sees when `fetchKos` throws on a database failure.
+must be) and two 404 pages replace Next's English defaults: `app/not-found.tsx`
+for any URL that matches no route ("Halaman tidak ditemukan", title via its
+own `metadata` export), and `app/kos/[id]/not-found.tsx` for `notFound()` in
+the kos page ("Kos ini tidak ditemukan", title from that page's
+`generateMetadata`). The error page is what a visitor sees when `fetchKos`
+throws on a database failure. All three have the navbar and the footer
+around a `StatusCard`.
+
+The error page cannot use `Navbar`: that is an async Server Component reading
+the session from cookies, and a Client Component cannot import it. So the
+markup lives in `NavbarFrame` (synchronous, no server imports, an `account`
+slot); `Navbar` reads the user and fills the slot, and `error.tsx` renders
+the frame with no slot and `signedIn={null}`, which also hides "Masuk" in the
+phone menu. The failure may well be the session read itself, so the error
+page does not guess.
 
 [`src/app/page.tsx`](../src/app/page.tsx) is an async Server Component. It
 loads the kos list, the session and `searchParams` in parallel, derives the
@@ -66,7 +79,7 @@ Almost everything is a Server Component. These files carry `"use client"`:
 | `components/map/add-kos-dialog.tsx` | react-hook-form, `useEffect`, DOM writes, reverse-geocode fetch |
 | `components/auth/auth-card.tsx` | `useActionState`, sign-in/sign-up tab state |
 | `components/review/review-form.tsx` | `useActionState`, radio-group state, photo picker; uploads photos from the browser after the action returns |
-| `app/error.tsx` | Error boundaries must be client components |
+| `app/error.tsx` | Error boundaries must be client components. Uses `NavbarFrame` + `Footer` (both client-safe), logs the error with `console.error` |
 | `components/sections/mobile-nav.tsx` | Disclosure state for the mobile menu; closes on Escape, on a link, and on a tap outside it |
 | `store/kos-store.ts` | zustand |
 

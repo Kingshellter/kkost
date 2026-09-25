@@ -10,7 +10,12 @@ import { NAV_LINKS } from "@/data/kos";
  * navigation at all on a phone, which the competition rules call out
  * explicitly ("responsive di berbagai perangkat").
  */
-export function MobileNav({ signedIn }: { signedIn: boolean }) {
+export function MobileNav({
+  signedIn,
+}: {
+  /** `null` when unknown (the error page): no "Masuk" either way. */
+  signedIn: boolean | null;
+}) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -78,7 +83,7 @@ export function MobileNav({ signedIn }: { signedIn: boolean }) {
                 </SectionLink>
               </li>
             ))}
-            {!signedIn && (
+            {signedIn === false && (
               <li>
                 <SectionLink
                   href="/#login"

@@ -1,36 +1,36 @@
-import type { Metadata } from "next";
-import Link from "next/link";
 import { Footer } from "@/components/sections/footer";
 import { Navbar } from "@/components/sections/navbar";
 import { SectionLink } from "@/components/ui/section-link";
 import { buttonClass } from "@/components/ui/controls";
 import { StatusCard } from "@/components/ui/status-card";
 
-export const metadata: Metadata = { title: "Halaman tidak ditemukan · kkost" };
-
 /**
- * Any URL that matches no route. A kos that does not exist has its own page,
- * `kos/[id]/not-found.tsx`, so this one does not talk about kos.
+ * Rendered by `notFound()` in the kos page: the id is well-formed or not, but
+ * no kos has it. The tab title comes from that page's `generateMetadata`
+ * ("Kos tidak ditemukan · kkost").
  */
-export default function NotFound() {
+export default function KosNotFound() {
   return (
     <>
       <Navbar />
       <StatusCard
         code="404"
-        title="Halaman tidak ditemukan"
+        title="Kos ini tidak ditemukan"
         actions={
           <>
             <SectionLink href="/#browse" className={buttonClass("primary", "md")}>
-              Cari kos
+              Lihat semua kos
             </SectionLink>
-            <Link href="/" className={buttonClass("soft", "md")}>
-              Ke beranda
-            </Link>
+            <SectionLink href="/#peta" className={buttonClass("soft", "md")}>
+              Buka peta
+            </SectionLink>
           </>
         }
       >
-        <p>Tautannya mungkin salah ketik atau halamannya sudah dipindah.</p>
+        <p>
+          Tautannya mungkin salah ketik, atau kosnya belum pernah tersimpan ke
+          database.
+        </p>
       </StatusCard>
       <Footer />
     </>

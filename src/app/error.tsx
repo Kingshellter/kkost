@@ -1,13 +1,20 @@
 "use client"; // Error boundaries must be Client Components
 
 import Link from "next/link";
+import { useEffect } from "react";
+import { Footer } from "@/components/sections/footer";
+import { NavbarFrame } from "@/components/sections/navbar-frame";
 import { buttonClass } from "@/components/ui/controls";
-import { Logo } from "@/components/ui/logo";
+import { StatusCard } from "@/components/ui/status-card";
 
 /**
  * Shown when a page throws — most often `fetchKos` failing because the
  * database cannot be reached. It never falls back to demo data (see
  * kos-repository.ts), so this page has to say plainly what happened.
+ *
+ * The navbar is `NavbarFrame` without the account slot: the real `Navbar`
+ * reads the session on the server, which a Client Component cannot import —
+ * and the failure may well be that read.
  */
 export default function Error({
   error,
@@ -16,40 +23,42 @@ export default function Error({
   error: Error & { digest?: string };
   retry: () => void;
 }) {
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
+
   return (
-    <main className="flex flex-1 items-center justify-center px-4 py-24 sm:px-6">
-      <div className="w-full max-w-[520px] rounded-panel bg-white p-8 text-center shadow-float sm:p-10">
-        <div className="flex justify-center">
-          <Logo />
-        </div>
-        <h1 className="mt-7 text-[clamp(1.75rem,5vw,2.25rem)] font-extrabold leading-tight tracking-[-0.02em] text-ink">
-          Halaman ini gagal dimuat
-        </h1>
-        <p className="mx-auto mt-3 max-w-[40ch] text-[15px] font-medium text-muted">
+    <>
+      <title>Gagal dimuat · kkost</title>
+      <NavbarFrame account={null} signedIn={null} />
+      <StatusCard
+        title="Halaman ini gagal dimuat"
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={() => retry()}
+              className={buttonClass("primary", "md")}
+            >
+              Coba lagi
+            </button>
+            <Link href="/" className={buttonClass("soft", "md")}>
+              Ke beranda
+            </Link>
+          </>
+        }
+      >
+        <p>
           Biasanya karena database sedang tidak bisa dihubungi. kkost tidak
-          menggantinya dengan data karangan — coba lagi sebentar lagi.
+          menggantinya dengan data karangan. Coba lagi sebentar lagi.
         </p>
         {error.digest && (
-          <p className="mt-3 text-xs font-medium text-muted">
+          <p className="mt-3 text-sm">
             Kode kesalahan: <code>{error.digest}</code>
           </p>
         )}
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <button
-            type="button"
-            onClick={() => retry()}
-            className={buttonClass("primary", "md", "flex-1")}
-          >
-            Coba lagi
-          </button>
-          <Link
-            href="/"
-            className={buttonClass("soft", "md", "flex-1")}
-          >
-            Ke beranda
-          </Link>
-        </div>
-      </div>
-    </main>
+      </StatusCard>
+      <Footer />
+    </>
   );
 }

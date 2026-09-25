@@ -232,6 +232,17 @@ input is not lost. No `alert()`, no `console.error` as the user-facing path.
   "already reviewed" does), the old child unmounts mid-submit and its result
   state is lost. Pass the flag down and let the component decide, as
   `<ReviewForm alreadyReviewed>` does.
+- **Anything an error boundary shows must be client-safe.** `error.tsx` is a
+  Client Component, so it cannot import an async Server Component (one that
+  reads cookies, the session, or the database). Split such a component into a
+  synchronous frame with slots and a thin async wrapper that fills them —
+  `NavbarFrame` / `Navbar` is the reference — and render the frame in the
+  boundary with the slots left empty rather than guessed.
+- **404s are per segment.** The root `not-found.tsx` answers unknown URLs, so
+  it speaks generally; a route that calls `notFound()` for its own reason gets
+  its own `not-found.tsx` with its own copy (`kos/[id]/not-found.tsx`). Set
+  the root 404's title with a `metadata` export — a React `<title>` there
+  lands after the layout's and loses.
 - **Tabs are the full ARIA pattern or not tabs at all:** `role="tab"` with
   `id` + `aria-controls`, the content in `role="tabpanel"` +
   `aria-labelledby`, only the selected tab at `tabIndex={0}`, and
