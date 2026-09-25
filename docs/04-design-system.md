@@ -110,27 +110,62 @@ panel is `media`; small boxes (notices, thumbnails, rows) are `box`.**
 ### Shadow — always tinted with ink, never black
 
 ```css
---shadow-lift:    0 18px 40px -18px rgb(28 42 78 / .28)   /* cards, bars */
---shadow-float:   0 30px 70px -28px rgb(28 42 78 / .42)   /* raised panels, dialogs */
+/* surfaces: 1px ring (edge) + contact shadow + soft lift */
+--shadow-lift:    0 0 0 1px ink/.05, 0 1px 2px ink/.06, 0 18px 40px -18px ink/.28  /* cards, bars */
+--shadow-float:   0 0 0 1px ink/.06, 0 2px 4px ink/.06, 0 30px 70px -28px ink/.42  /* raised panels, dialogs */
+/* small things on the map: one layer */
 --shadow-control: 0 8px 20px -8px rgb(28 42 78 / .4)      /* Leaflet zoom + tooltip */
 --shadow-pin:     0 8px 20px -6px rgb(28 42 78 / .55)     /* map markers (Fase 3) */
 ```
 
+The 1px ring (added in Fase 2b) is the card's edge: white on cream is only
+1.17:1, so a soft shadow alone left every card fuzzy. A ring inside
+`box-shadow` draws that edge without the layout a `border` would add. Because
+the tokens are consumed as `shadow-[var(--shadow-lift)]`, every existing card,
+panel and bar picked it up at once.
+
 ### Motion
+
+Reviewed against Emil Kowalski's design-engineering principles in Fase 2b.
 
 | Token | Value | For |
 |---|---|---|
-| `ease-out-soft` (`--ease-out-soft`) | `cubic-bezier(0.23, 1, 0.32, 1)` | anything entering, press feedback |
-| `ease-in-out-soft` | `cubic-bezier(0.77, 0, 0.175, 1)` | something on screen moving to a new place |
+| `ease-out` (`--ease-out`) | `cubic-bezier(0.23, 1, 0.32, 1)` | entering, press feedback, anything answering the user |
+| `ease-in-out` | `cubic-bezier(0.77, 0, 0.175, 1)` | something on screen moving to a new place |
+| `ease-drawer` | `cubic-bezier(0.32, 0.72, 0, 1)` | bottom sheets (iOS-like) |
 | `--duration-press` | 100ms | `:active` press |
-| `--duration-fast` | 150ms | hover, colour changes |
+| `--duration-fast` | 150ms | hover, colour changes — also the default for bare `transition-*` |
 | `--duration-base` | 200ms | menu, dropdown, toast |
-| `--duration-slow` | 300ms | dialog, sheet |
+| `--duration-slow` | 300ms | dialog, sheet — the ceiling for UI motion |
+| `--press-scale` | 0.97 | `active:scale-(--press-scale)` on anything pressable |
+| `--enter-scale` | 0.96 | popover/dialog start (with opacity 0) — never from `scale(0)` |
+| `--enter-y` | 8px | menu/toast start offset |
 
-Durations are plain `:root` properties (Tailwind has no namespace for them):
-`duration-(--duration-fast)`. Under `prefers-reduced-motion: reduce` all four
-are `0ms` — a safety net under the component-level checks, still to be reviewed
-in Fase 2b.
+Rules that come with them:
+
+- **`ease-out` and `ease-in-out` are Tailwind's own names, overridden** with the
+  strong curves — the built-in ones are too weak. There is no strong ease-in:
+  UI never starts slow.
+- **Bare `transition-colors` / `transition-transform` default to
+  `--duration-fast` with `ease`** (`--default-transition-*` in `@theme`), which
+  is right for hover and colour. Press and entrances set `ease-out` explicitly.
+- **An exit is one step shorter than its entrance** (`slow → base`,
+  `base → fast`): the system answering should be quicker than the thing
+  arriving.
+- **Hover is already touch-safe.** Tailwind v4 compiles `hover:` inside
+  `@media (hover: hover)`, so a tap never leaves a card stuck lifted.
+- **Reduced motion means less motion, not none.** Under
+  `prefers-reduced-motion: reduce` the durations are kept (opacity and colour
+  still ease, so a change stays followable) and only the movement tokens
+  collapse: `--press-scale` and `--enter-scale` → 1, `--enter-y` → 0. A
+  component built on these tokens is reduced-motion-safe for free.
+- **Focus** is an `outline` of `--focus-width` (2px) at `--focus-offset` (2px)
+  in `--color-focus`, not a border-colour change — an outline cannot fight a
+  `box-shadow` and survives forced-colors mode. Applied in Fase 3b.
+
+Durations and the movement/focus tokens are plain `:root` properties (Tailwind
+has no namespace for them): `duration-(--duration-fast)`,
+`scale-(--press-scale)`.
 
 ### Z-index
 

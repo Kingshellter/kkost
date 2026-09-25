@@ -82,16 +82,37 @@
   /* Deprecated: one use left (the map search results). Replaced in Fase 3. */
   --radius-card: 28px;
 
-  /* Shadows are tinted with ink, never black. */
-  --shadow-lift: 0 18px 40px -18px rgb(28 42 78 / 0.28);
-  --shadow-float: 0 30px 70px -28px rgb(28 42 78 / 0.42);
+  /*
+   * Shadows are tinted with ink, never black. The surfaces ones stack three
+   * layers: a 1px ring that draws the edge (white on cream is only 1.17:1,
+   * so a soft shadow alone leaves it fuzzy — and a ring costs no layout,
+   * unlike a border), a tight contact shadow, then the soft lift.
+   */
+  --shadow-lift:
+    0 0 0 1px rgb(28 42 78 / 0.05), 0 1px 2px rgb(28 42 78 / 0.06),
+    0 18px 40px -18px rgb(28 42 78 / 0.28);
+  --shadow-float:
+    0 0 0 1px rgb(28 42 78 / 0.06), 0 2px 4px rgb(28 42 78 / 0.06),
+    0 30px 70px -28px rgb(28 42 78 / 0.42);
   --shadow-control: 0 8px 20px -8px rgb(28 42 78 / 0.4);
   --shadow-pin: 0 8px 20px -6px rgb(28 42 78 / 0.55);
 
-  /* Strong ease-out for anything entering or answering a press; in-out for
-     something already on screen moving to a new place. */
-  --ease-out-soft: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-in-out-soft: cubic-bezier(0.77, 0, 0.175, 1);
+  /*
+   * Easing. Tailwind's own ease-out / ease-in-out are too weak to read as
+   * intentional, so the strong curves replace them under the same names —
+   * `ease-out` in a class now means the right thing. There is deliberately
+   * no strong ease-in: UI never starts slow.
+   *   ease-out    — entering, press feedback, anything answering the user
+   *   ease-in-out — something already on screen moving to a new place
+   *   ease-drawer — bottom sheets (iOS-like)
+   * Plain `transition-*` classes default to --duration-fast with `ease`,
+   * which suits hover and colour changes.
+   */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --default-transition-duration: var(--duration-fast);
+  --default-transition-timing-function: ease;
 }
 
 /*
@@ -100,10 +121,25 @@
  * `z-(--z-dialog)`.
  */
 :root {
+  /* UI motion stays under 300ms. An exit takes one step less than its
+     entrance (slow → base, base → fast): the system answering should be
+     quicker than the thing arriving. */
   --duration-press: 100ms;
   --duration-fast: 150ms;
   --duration-base: 200ms;
   --duration-slow: 300ms;
+
+  /* How far things move. Press: `active:scale-(--press-scale)` on anything
+     pressable. Enter: popovers and dialogs start at --enter-scale with
+     opacity 0 (never from scale 0); menus and toasts start --enter-y away. */
+  --press-scale: 0.97;
+  --enter-scale: 0.96;
+  --enter-y: 8px;
+
+  /* Focus is an outline in --color-focus, not a border colour change: it
+     cannot fight a box-shadow and survives forced-colors mode. */
+  --focus-width: 2px;
+  --focus-offset: 2px;
 
   /* Leaflet panes stack up to ~400, hence the jump for map overlays. */
   --z-nav: 30;
@@ -111,12 +147,16 @@
   --z-dialog: 1000;
 }
 
+/*
+ * Less motion, not none: durations are kept, so opacity and colour still
+ * ease and changes stay followable. Only the movement collapses — nothing
+ * scales or slides.
+ */
 @media (prefers-reduced-motion: reduce) {
   :root {
-    --duration-press: 0ms;
-    --duration-fast: 0ms;
-    --duration-base: 0ms;
-    --duration-slow: 0ms;
+    --press-scale: 1;
+    --enter-scale: 1;
+    --enter-y: 0px;
   }
 }
 

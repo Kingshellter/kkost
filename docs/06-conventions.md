@@ -41,8 +41,15 @@ tree as possible (see `MapFrame`).
   - radius: `rounded-full` for controls, `rounded-panel` / `rounded-media` /
     `rounded-box` for surfaces. No `rounded-[22px]`.
   - shadow: `shadow-lift`, `shadow-float`, `shadow-control`, `shadow-pin`.
-  - motion: `duration-(--duration-fast)` etc. with `ease-out-soft` /
-    `ease-in-out-soft`; never Tailwind's bare `duration-150`.
+  - motion: `duration-(--duration-*)` with `ease-out` (entering, press) or
+    `ease-in-out` (moving on screen) — both are the strong curves; never a
+    bare `duration-150` or `ease-in`. Pressables get
+    `active:scale-(--press-scale)`; entrances start from `--enter-scale` /
+    `--enter-y`, never `scale(0)`. Movement written with these tokens turns
+    itself off under reduced motion; hard-coded movement must be gated with
+    `motion-safe:` instead. Exits run one duration step shorter than entrances.
+  - focus: an outline in `--color-focus` (`--focus-width`/`--focus-offset`),
+    never `outline-none` without a replacement.
   - z-index: `z-(--z-nav)`, `z-(--z-map-overlay)`, `z-(--z-dialog)`; no new
     literal z values.
 - Older code still spells radii/shadows as `rounded-[var(--radius-panel)]` /
