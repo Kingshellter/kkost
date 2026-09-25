@@ -63,8 +63,19 @@ export function AuthCard() {
         role="tablist"
         aria-label="Masuk atau daftar"
         onKeyDown={onTabKey}
-        className="flex gap-1 rounded-full bg-cream p-1"
+        className="relative flex gap-1 rounded-full bg-cream p-1"
       >
+        {/* One ink pill slides under the selected tab instead of each tab
+            filling in place — it shows which way the switch went. Moving on
+            screen, so ease-in-out. Width: half the row less half the 4px
+            gap and the 4px padding each side; shift: its own width plus the
+            gap. Reduced motion: it jumps, and the text colour still eases. */}
+        <span
+          aria-hidden
+          className={`absolute inset-y-1 left-1 w-[calc(50%-0.375rem)] rounded-full bg-ink transition-transform duration-(--duration-base) ease-in-out motion-reduce:transition-none ${
+            mode === "signup" ? "translate-x-[calc(100%+0.25rem)]" : "translate-x-0"
+          }`}
+        />
         {MODES.map((m) => (
           <button
             key={m}
@@ -78,8 +89,8 @@ export function AuthCard() {
             aria-controls={panelId}
             tabIndex={mode === m ? 0 : -1}
             onClick={() => setMode(m)}
-            className={`min-h-11 flex-1 select-none rounded-full text-sm font-extrabold transition-[background-color,color,scale] duration-(--duration-fast) ease-out active:scale-(--press-scale) active:duration-(--duration-press) ${
-              mode === m ? "bg-ink text-white" : "text-muted hover:text-ink"
+            className={`relative min-h-11 flex-1 select-none rounded-full text-sm font-extrabold transition-[color,scale] duration-(--duration-base) ease-out active:scale-(--press-scale) active:duration-(--duration-press) ${
+              mode === m ? "text-white" : "text-muted hover:text-ink"
             }`}
           >
             {TAB_LABEL[m]}

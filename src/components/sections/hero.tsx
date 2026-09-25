@@ -26,7 +26,7 @@ export function Hero({ featured, reviews, stats, cities, filter }: Props) {
       {/* Decorative blobs from the deck */}
       <div
         aria-hidden
-        className="drift pointer-events-none absolute -right-40 top-10 h-[300px] w-[300px] rounded-full bg-amber lg:-right-44 lg:top-10 lg:h-[540px] lg:w-[540px]"
+        className="pointer-events-none absolute -right-40 top-10 h-[300px] w-[300px] rounded-full bg-amber lg:-right-44 lg:top-10 lg:h-[540px] lg:w-[540px]"
       />
       <BoundaryCircle edge="bottom" circle={SEAMS.heroImpact} />
 

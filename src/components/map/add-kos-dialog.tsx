@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X } from "lucide-react";
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -15,6 +15,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { useScrollLock } from "@/components/ui/use-scroll-lock";
 import { formatRupiah } from "@/lib/format";
 import { reverseGeocode } from "@/lib/geocode";
+import { durationMs } from "@/lib/motion";
 import { createClient } from "@/utils/supabase/client";
 import {
   isSupabaseConfigured,
@@ -85,6 +86,22 @@ export function AddKosDialog({
   const [serverError, setServerError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
+  // Every way out goes through `close`: the dialog fades and shrinks on
+  // --duration-fast, then `after` runs and the parent unmounts it. The first
+  // call wins; inert meanwhile, so a second Escape or a stray keystroke
+  // cannot act on a dialog that is leaving.
+  const [exit, setExit] = useState<{ after: () => void } | null>(null);
+  const closing = exit !== null;
+  const close = useCallback(
+    (after: () => void) => setExit((prev) => prev ?? { after }),
+    [],
+  );
+  useEffect(() => {
+    if (!exit) return;
+    const timer = setTimeout(exit.after, durationMs("--duration-fast"));
+    return () => clearTimeout(timer);
+  }, [exit]);
+
   const {
     register,
     handleSubmit,
@@ -126,7 +143,7 @@ export function AddKosDialog({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onCancel();
+        close(onCancel);
         return;
       }
       if (e.key !== "Tab" || !formRef.current) return;
@@ -149,7 +166,7 @@ export function AddKosDialog({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onCancel]);
+  }, [close, onCancel]);
 
   // Hand focus back to the map on close, whether cancelled or saved.
   useEffect(() => {
@@ -187,16 +204,22 @@ export function AddKosDialog({
       setServerError(result.message);
       return;
     }
-    onSaved(input, result);
+    close(() => onSaved(input, result));
   }
 
+  // Enter: backdrop fades in while the panel grows from --enter-scale
+  // (@starting-style, no JS). Exit: the same in reverse on the shorter
+  // --duration-fast, keyed off `data-closing`. Centred origin: a modal is
+  // not anchored to its trigger. Under reduced motion --enter-scale is 1,
+  // so only the fade remains.
   return (
     <div
-      className="fixed inset-0 z-(--z-dialog) flex items-start justify-center overflow-y-auto overscroll-contain bg-ink/60 px-gutter pb-safe pt-4"
+      className="fixed inset-0 z-(--z-dialog) flex items-start justify-center overflow-y-auto overscroll-contain bg-ink/60 px-gutter pb-safe pt-4 transition-opacity duration-(--duration-base) ease-out starting:opacity-0 data-closing:opacity-0 data-closing:duration-(--duration-fast)"
       role="dialog"
       aria-modal="true"
       aria-labelledby="add-kos-title"
-      onClick={(e) => e.target === e.currentTarget && onCancel()}
+      data-closing={closing || undefined}
+      onClick={(e) => e.target === e.currentTarget && close(onCancel)}
     >
       {/* noValidate: every message comes from the zod schema, in
           Indonesian, instead of the browser's own bubbles. */}
@@ -204,13 +227,15 @@ export function AddKosDialog({
         ref={formRef}
         noValidate
         onSubmit={handleSubmit(onSubmit)}
-        className="relative my-auto w-full max-w-[440px] rounded-panel bg-white p-6 shadow-float sm:p-8"
+        inert={closing}
+        data-closing={closing || undefined}
+        className="relative my-auto w-full max-w-[440px] rounded-panel bg-white p-6 shadow-float transition-[opacity,scale] duration-(--duration-base) ease-out starting:scale-(--enter-scale) starting:opacity-0 data-closing:scale-(--enter-scale) data-closing:opacity-0 data-closing:duration-(--duration-fast) sm:p-8"
       >
         {/* On a phone the form is taller than the screen and "Batal" sits
             below the fold; this is the way out from the top. */}
         <button
           type="button"
-          onClick={onCancel}
+          onClick={() => close(onCancel)}
           aria-label="Tutup"
           className="absolute right-3 top-3 grid size-11 place-items-center rounded-full text-muted transition-colors duration-(--duration-fast) hover:bg-cream hover:text-ink active:bg-cream-deep sm:right-4 sm:top-4"
         >
@@ -320,7 +345,7 @@ export function AddKosDialog({
         <div className="mt-7 flex gap-3">
           <button
             type="button"
-            onClick={onCancel}
+            onClick={() => close(onCancel)}
             className={buttonClass("soft", "md", "flex-1")}
           >
             Batal

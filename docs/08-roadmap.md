@@ -118,6 +118,10 @@ kode, muat ulang manual — HMR tidak jalan dari IP LAN.
       Search peta: tombol Enter bertuliskan "Cari"/"Search".
 - [ ] **Tidak ada zoom otomatis** saat mengetuk input mana pun (iOS).
 - [ ] **Tarik untuk refresh** di atas halaman masih berfungsi (disengaja).
+- [ ] **Animasi (Fase 6):** buka/tutup menu HP, buka/tutup dialog tambah
+      kos, toast setelah menambah kos. Semuanya halus, tidak patah-patah,
+      dan tidak terasa lambat. Dengan "Kurangi gerakan" (iOS: Aksesibilitas →
+      Gerakan) aktif, yang tersisa hanya memudar.
 
 ## 4. Sebelum submit (wajib — pengumpulan BATCH II ditutup 27 September 2026)
 

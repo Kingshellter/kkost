@@ -79,9 +79,24 @@ tree as possible (see `MapFrame`).
   shrinking the text.
 - Leaflet `divIcon` HTML uses Tailwind classes too, not inline colours.
 - **A modal renders through `createPortal(…, document.body)`.** Anything with
-  a running `.reveal` animation (or a transform) is a stacking context, and a
-  dialog inside one cannot rise above the sticky navbar however high its
-  z-index. `AddKosDialog` in `kos-map.tsx` is the reference.
+  a transform, a running animation or its own z-index is a stacking context,
+  and a dialog inside one cannot rise above the sticky navbar however high
+  its z-index. `AddKosDialog` in `kos-map.tsx` is the reference.
+- **Motion (Fase 6):** enter with `starting:` (`@starting-style`); leave by
+  setting a `data-*` attribute that transitions back to the start values,
+  then unmount after `durationMs("--duration-fast")` from `lib/motion.ts` —
+  not on `transitionend`. Something that opens and closes (a menu) stays
+  mounted and toggles `invisible` + `pointer-events-none`, with `visibility`
+  in the transition list so it flips at the right end. Transitions, never
+  keyframes, for anything that can fire twice in a second (a toast). Name the
+  properties (`transition-[opacity,scale]`), never `transition-all`; only
+  `opacity`, `transform`, `scale`, `translate`. Enter on `--duration-base`
+  or `-slow` with `ease-out`, exit on `--duration-fast`; `--ease-in-out` only
+  for something moving on screen. Anything that moves without the
+  `--enter-*` / `--press-*` tokens needs its own reduced-motion rule.
+- **A live region must exist before its text changes.** A toast that mounts
+  with its message is not reliably announced; keep an `sr-only`
+  `role="status"` mounted and mark the visible toast `aria-hidden`.
 - **Disclosure without JavaScript**: a `peer sr-only` checkbox, a `<label
   htmlFor>` styled as the button, and the panel as a later sibling with
   `hidden peer-checked:grid` (plus `lg:grid` if it is always open on a

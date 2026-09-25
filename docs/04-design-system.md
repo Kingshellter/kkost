@@ -272,8 +272,7 @@ All of them are Server Components — no `"use client"`, no hooks — except `Se
 - **Inside one section** (hero amber, map-band ring and blob, CTA amber-soft):
   may run off the screen's left or right edge, **never** the section's top or
   bottom — every coloured section is `overflow-hidden`, so a circle crossing
-  the seam gets sliced by a hard line. Keep ≥ 40px from the top and bottom:
-  `.drift` moves them ±40px.
+  the seam gets sliced by a hard line.
 - **Across a seam** — `BoundaryCircle` ([`boundary-circle.tsx`](../src/components/ui/boundary-circle.tsx)).
   Rendered twice, `edge="bottom"` in the upper section and `edge="top"` in
   the lower one, with the same `SEAMS` entry, so each section clips its own
@@ -282,35 +281,48 @@ All of them are Server Components — no `"use client"`, no hooks — except `Se
   section's text. Both sections need `relative overflow-hidden`, and the
   section's content wrapper needs `relative` so it paints over the circle.
   Current seams: hero → `#cara-kerja` (lavender), map band → `#browse` (amber),
-  `#browse` → `#login` (ring). The smallest has an 80px radius, which is why
-  `.drift-page` moves only ±32px.
+  `#browse` → `#login` (ring). All static since Fase 6.
 
 Check 375, 1024 and 1440px after moving any circle.
 
 ## Motion
 
-Both in [`globals.css`](../src/app/globals.css), both disabled under
-`prefers-reduced-motion: reduce`:
+Dial MOTION 3: motion only where it tells the user something. All of it is a
+CSS transition built from the tokens (see **Motion** under Tokens) — no
+library, no keyframes, no scroll-driven effects. Entrances use Tailwind's
+`starting:` variant (`@starting-style`); exits flip a `data-*` attribute and
+unmount after `durationMs("--duration-fast")` (`lib/motion.ts`), never on
+`transitionend`, which does not fire when nothing transitions. Entering takes
+`--duration-base` (or `-slow`), leaving the shorter `--duration-fast`.
 
-- **Smooth scrolling only on a click** — `SectionLink` calls
-  `scrollIntoView({ behavior: "smooth" })` when it is clicked on `/`.
-  **Never set `scroll-behavior: smooth` on `html`**: that also animates every
-  page load that carries a hash, and the browse and hero filters are GET forms
-  that reload `/?kota=…#browse` — the page visibly slid down from the top on
-  every "Terapkan". Page loads land on the section instantly.
-- **`.reveal`** — fades a block up 40px as it enters the viewport, as a
-  scroll-driven animation (`animation-timeline: view()`, range `entry 0%` to
-  `entry 40%`). Behind `@supports`, so a browser without scroll timelines shows
-  the content untouched rather than hidden. Put it on a section's inner
-  container, not on the coloured `<section>` itself, and not on the hero —
-  it is above the fold. Currently on `#cara-kerja`, the map band,
-  `#browse` and `#login`.
-- **`.drift`** — a circle inside one section moves from +40px to −40px while
-  that section crosses the screen (`view()` timeline).
-- **`.drift-page`** — the two halves of a `BoundaryCircle`, +32px → −32px and
-  scale 0.9 → 1.1 over the whole page (`scroll(root)` timeline). A shared
-  timeline is the point: per-element `view()` timelines would move the two
-  halves by different amounts and split the circle at the seam.
+| Element | Purpose | Enter | Exit |
+|---|---|---|---|
+| `AddKosDialog` | bridge the page ↔ modal jump | backdrop fade + panel `scale(--enter-scale)`→1, base, `ease-out`, centred origin | reverse on fast; `inert` while leaving, first close wins |
+| `MobileNav` panel | show where it came from | `origin-top-right` scale + fade, base | reverse on fast; `invisible` when closed (out of Tab order) |
+| Map toast | feedback after a save | rises `--enter-y` + fade, base | sinks + fade on fast, then unmounts; announced through an always-mounted `sr-only` `role="status"` |
+| `SavedCard` (review) | a 1,400px form becomes a small card | rises `--enter-y` + fade, slow; the check follows 75ms later from `--enter-scale` (the site's only stagger — a once-per-kos moment) | — |
+| `AuthCard` tab pill | which way the switch went | one ink pill slides `translate-x`, base, `--ease-in-out` (on-screen movement); `motion-reduce:transition-none` | — |
+
+Plus, from Fase 3: press feedback (`active:scale-(--press-scale)`) on every
+control, colour/border transitions on fields, the review form's progress bar
+(`scaleX`, base).
+
+Rejected at the "should this animate" gate (Fase 6): kos cards appearing
+(a list read many times a day), page transitions to the detail page, the
+filter (a URL reload), the search dropdown (typing wants instant), a pulsing
+map skeleton.
+
+**Removed in Fase 6:** `.reveal` (a scroll-linked fade that could leave a
+section half transparent, and moved the sign-in form and the map) and
+`.drift` / `.drift-page` (decorative circles moving on scroll, no purpose).
+The circles are static now.
+
+**Smooth scrolling only on a click** — `SectionLink` calls
+`scrollIntoView({ behavior: "smooth" })` when it is clicked on `/`.
+**Never set `scroll-behavior: smooth` on `html`**: that also animates every
+page load that carries a hash, and the browse and hero filters are GET forms
+that reload `/?kota=…#browse` — the page visibly slid down from the top on
+every "Terapkan". Page loads land on the section instantly.
 
 ## Leaflet styling
 

@@ -7,8 +7,8 @@
  * as one whole circle. Drawing it once would not work: it would either be
  * sliced flat at the seam, or sit on top of the next section's text.
  *
- * Both halves animate on the page's own scroll timeline (`.drift-page`), so
- * they move by exactly the same amount and never come apart.
+ * Static: the halves used to drift on the page's scroll timeline, removed in
+ * Fase 6 along with every other decorative motion.
  */
 export function BoundaryCircle({
   edge,
@@ -22,7 +22,7 @@ export function BoundaryCircle({
   return (
     <div
       aria-hidden
-      className={`drift-page pointer-events-none absolute rounded-full ${
+      className={`pointer-events-none absolute rounded-full ${
         edge === "top" ? "top-0 -translate-y-1/2" : "bottom-0 translate-y-1/2"
       } ${circle}`}
     />

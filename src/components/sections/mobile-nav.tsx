@@ -48,55 +48,60 @@ export function MobileNav({
         <span className="sr-only">{open ? "Tutup menu" : "Buka menu"}</span>
         <span
           aria-hidden
-          className={`h-[2px] w-4 rounded-full bg-ink transition-transform ${
+          className={`h-[2px] w-4 rounded-full bg-ink transition-transform duration-(--duration-base) ease-out ${
             open ? "translate-y-[7px] rotate-45" : ""
           }`}
         />
         <span
           aria-hidden
-          className={`h-[2px] w-4 rounded-full bg-ink transition-opacity ${
+          className={`h-[2px] w-4 rounded-full bg-ink transition-opacity duration-(--duration-base) ease-out ${
             open ? "opacity-0" : ""
           }`}
         />
         <span
           aria-hidden
-          className={`h-[2px] w-4 rounded-full bg-ink transition-transform ${
+          className={`h-[2px] w-4 rounded-full bg-ink transition-transform duration-(--duration-base) ease-out ${
             open ? "-translate-y-[7px] -rotate-45" : ""
           }`}
         />
       </button>
 
-      {open && (
-        <div
-          id="mobile-nav"
-          className="absolute left-4 right-4 top-[calc(100%+8px)] rounded-panel bg-white p-4 shadow-float sm:left-6 sm:right-6"
-        >
-          <ul className="space-y-1">
-            {NAV_LINKS.map((link) => (
-              <li key={link.href}>
-                <SectionLink
-                  href={link.href}
-                  onClick={() => setOpen(false)}
-                  className="block rounded-full px-4 py-3 text-base font-bold text-ink transition-colors duration-(--duration-fast) hover:bg-cream active:bg-cream-deep"
-                >
-                  {link.label}
-                </SectionLink>
-              </li>
-            ))}
-            {signedIn === false && (
-              <li>
-                <SectionLink
-                  href="/#login"
-                  onClick={() => setOpen(false)}
-                  className={buttonClass("dark", "md", "mt-1 w-full")}
-                >
-                  Masuk
-                </SectionLink>
-              </li>
-            )}
-          </ul>
-        </div>
-      )}
+      {/* Always rendered, so it can leave as well as arrive: it grows out
+          of the hamburger's corner (origin top right) on --duration-base
+          and shrinks back on the shorter --duration-fast. `invisible` takes
+          the closed panel out of the Tab order and the accessibility tree;
+          visibility flips at the end of the closing transition, at the
+          start of the opening one. Reduced motion: fade only. */}
+      <div
+        id="mobile-nav"
+        data-open={open || undefined}
+        className="invisible pointer-events-none absolute left-4 right-4 top-[calc(100%+8px)] origin-top-right scale-(--enter-scale) rounded-panel bg-white p-4 opacity-0 shadow-float transition-[opacity,scale,visibility] duration-(--duration-fast) ease-out data-open:visible data-open:pointer-events-auto data-open:scale-100 data-open:opacity-100 data-open:duration-(--duration-base) sm:left-6 sm:right-6"
+      >
+        <ul className="space-y-1">
+          {NAV_LINKS.map((link) => (
+            <li key={link.href}>
+              <SectionLink
+                href={link.href}
+                onClick={() => setOpen(false)}
+                className="block rounded-full px-4 py-3 text-base font-bold text-ink transition-colors duration-(--duration-fast) hover:bg-cream active:bg-cream-deep"
+              >
+                {link.label}
+              </SectionLink>
+            </li>
+          ))}
+          {signedIn === false && (
+            <li>
+              <SectionLink
+                href="/#login"
+                onClick={() => setOpen(false)}
+                className={buttonClass("dark", "md", "mt-1 w-full")}
+              >
+                Masuk
+              </SectionLink>
+            </li>
+          )}
+        </ul>
+      </div>
     </div>
   );
 }

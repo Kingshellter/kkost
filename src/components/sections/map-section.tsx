@@ -26,18 +26,18 @@ export function MapSection({
       {/* Decorative ring + blob from the deck */}
       <div
         aria-hidden
-        className="drift pointer-events-none absolute -right-40 top-10 h-[420px] w-[420px] rounded-full border-[18px] border-white/[0.06]"
+        className="pointer-events-none absolute -right-40 top-10 h-[420px] w-[420px] rounded-full border-[18px] border-white/[0.06]"
       />
       <div
         aria-hidden
-        className="drift pointer-events-none absolute -left-48 bottom-10 h-[380px] w-[380px] rounded-full bg-white/[0.04]"
+        className="pointer-events-none absolute -left-48 bottom-10 h-[380px] w-[380px] rounded-full bg-white/[0.04]"
       />
       {/* The seam circle reaches 100px up into this band. On a phone the
           legend is the last thing in it, so the bottom padding (pb-28) keeps
           the legend's white text off the amber. */}
       <BoundaryCircle edge="bottom" circle={SEAMS.mapBrowse} />
 
-      <div className="reveal relative mx-auto w-full max-w-page">
+      <div className="relative mx-auto w-full max-w-page">
         <div>
           <h2 className="font-extrabold text-white text-title">
             Semua kos di peta

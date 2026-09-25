@@ -157,6 +157,23 @@ Catatan: `.leaflet-container a { color }` di `globals.css` ternyata kalah dari `
 
 **Butuh HP asli:** kilatan tap, hover yang tertinggal, poni di landscape, scroll lock iOS, keyboard, dan zoom input tidak bisa direproduksi di emulasi. Checklist ada di `08-roadmap.md` bagian 3b.
 
+**Fase 6 Animasi (25 Sep 2026), pakai skill `animate`:**
+
+| # | Animasi | Status | Terukur (375px, pane terlihat) |
+|---|---|---|---|
+| 1 | Dialog tambah kos | Selesai | Masuk: di 40ms opacity 0,34 / scale 0,97. Keluar (Esc): di 50ms opacity 0,27, hilang dari DOM setelah ±150ms. Esc kedua diabaikan (`inert`). Fokus kembali ke peta, scroll pulih. |
+| 2 | Menu HP (**M-7**) | Selesai | Buka: di 60ms opacity 0,77 / scale 0,99. Tutup: di 60ms opacity 0,12 dan masih `visible`, lalu `hidden`. Link tidak bisa difokus saat tertutup. |
+| 3 | Toast peta | Selesai | Naik 8px + fade, turun + fade saat hilang. Tetap di tengah (offset 0px) sepanjang animasi. Sekarang diumumkan pembaca layar (region `sr-only` `role="status"` yang selalu terpasang). |
+| 4 | Kartu "Review kamu tersimpan" (F-2) | Selesai | Kartu naik 8px + fade 300ms. Ikon centang menyusul 75ms kemudian dari scale 0,96. |
+| 5 | Indikator tab Masuk/Daftar (F-1) | Selesai | Satu pill bergeser; tepinya tepat 0px dari tab aktif di kedua mode. Diam di bawah reduced motion. |
+| — | `.reveal`, `.drift`, `.drift-page` | **Dihapus** (keputusan pengguna) | Tidak ada lagi gerak berbasis scroll. Lingkaran tetap ada, diam. |
+
+Ditolak di gerbang "perlu animasi atau tidak": kartu kos muncul, transisi ke halaman detail, filter (reload URL), dropdown search (mengetik butuh instan), skeleton peta yang berdenyut.
+
+Semua memakai token (`--duration-*`, `ease-out`, `--ease-in-out`, `--enter-scale`, `--enter-y`), hanya `opacity`/`scale`/`translate`, tanpa `transition-all`, tanpa keyframes, tanpa library. Keluar memakai timer dari token (`lib/motion.ts`), bukan `transitionend`.
+
+**Butuh mata/HP:** rasa gerak (putar 2–5× lebih lambat di DevTools → Animations) dan kehalusan di HP asli.
+
 Yang masih harus dikerjakan:
 - **Fase 4:**
   - G-5: legenda warna pin di peta.
@@ -465,7 +482,7 @@ bawaan Tailwind. Ini dibuat di Fase 2.
 | M-6 / G-11 | Tidak ada navigasi tetap di HP | Sedang | Fase 3 (Navbar/Bottom nav) |
 | M-7 | Menu HP tidak menutup saat ketuk luar | Sedang | Fase 3 |
 | 3.1 | `.reveal` terikat scroll, `.drift` tanpa tujuan | Sedang | Fase 6 |
-| 3.2 | Transisi dialog/menu/toast/form hilang | Sedang | Fase 6 |
+| 3.2 | Transisi dialog/menu/toast/form hilang | Sedang | ✅ Fase 6 |
 | D-4 | Tidak ada peta lokasi di detail | Sedang | Fase 4 (Detail) |
 | G-8 | Ikon campur (teks glyph, SVG manual, lucide tak terpakai) | Rendah | Fase 3 |
 | B-3, B-4 | Pola 3 kartu + nomor 01/02/03, semua rata tengah | Rendah | Fase 4 (Beranda) |

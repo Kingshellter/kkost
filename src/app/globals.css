@@ -249,72 +249,14 @@
 }
 
 /*
- * Motion. Both effects are off for anyone who asked their OS for less motion.
- *
- * - Section links glide there — but that lives in `SectionLink`, not here. A
- *   global `scroll-behavior: smooth` also animated every page load that
- *   carried a hash: submitting the browse filter reloads `/?kota=…#browse`,
- *   and the page visibly scrolled down from the top to the results.
- * - `.reveal` fades a section's content up as it scrolls into view, and
- *   `.drift` / `.drift-page` move the decorative circles against the scroll.
- *   All scroll-driven — no JavaScript, no observer — and browsers without
- *   `animation-timeline` simply show everything standing still.
+ * Motion lives in the tokens above (--duration-*, --ease-*, --press-*,
+ * --enter-*) and in each component's own transition. There is no
+ * scroll-driven motion: the old `.reveal` fade and the `.drift` circles
+ * were removed in Fase 6 (a scroll-linked fade could leave a section half
+ * transparent, and the circles moved for no reason). Section links glide
+ * inside `SectionLink`; never set `scroll-behavior: smooth` on html — it
+ * animated every page load that carried a hash.
  */
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .reveal {
-      animation: reveal linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 40%;
-    }
-
-    /* A decorative circle inside one section: drifts against the scroll
-       while that section crosses the screen. Keep it >= 40px from the
-       section's top and bottom so the drift never pushes it over the edge. */
-    .drift {
-      animation: drift linear both;
-      animation-timeline: view();
-    }
-
-    /* The two halves of a BoundaryCircle. They must share one timeline —
-       the page's own scroll — or they would drift apart at the seam. */
-    .drift-page {
-      animation: drift-page linear both;
-      animation-timeline: scroll(root);
-    }
-  }
-}
-
-@keyframes drift {
-  from {
-    transform: translateY(40px);
-  }
-  to {
-    transform: translateY(-40px);
-  }
-}
-
-/* Small and centred on the seam: the smallest BoundaryCircle has an 80px
-   radius, so a ±32px drift always leaves it straddling both sections. */
-@keyframes drift-page {
-  from {
-    transform: translateY(32px) scale(0.9);
-  }
-  to {
-    transform: translateY(-32px) scale(1.1);
-  }
-}
-
-@keyframes reveal {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
 
 body {
   background: var(--color-cream);

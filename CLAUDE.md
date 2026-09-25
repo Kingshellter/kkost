@@ -95,9 +95,11 @@ state. To test on a real phone, open `http://<LAN-IP>:3000`.
   (~150–300ms for UI feedback), ease-out for things entering. Animate only
   `transform` and `opacity`. Never animate layout properties or cause layout
   shift.
-- **Always respect `prefers-reduced-motion`.** Every animation sits behind
-  `@media (prefers-reduced-motion: no-preference)` or is disabled under
-  `reduce` — follow the existing `.reveal` / `.drift` blocks in `globals.css`.
+- **Always respect `prefers-reduced-motion`.** Build motion from the tokens
+  in `globals.css` (`--duration-*`, `--press-scale`, `--enter-scale`,
+  `--enter-y`): under `reduce` the scale and distance tokens collapse to
+  1 / 0px, so only fades remain. Anything else that moves gets
+  `motion-reduce:transition-none` or sits behind `motion-safe:`.
   Never set `scroll-behavior: smooth` on `html` (why: `docs/04-design-system.md`).
 - All user-facing copy in **Indonesian**; numbers through `lib/format.ts`.
   Code, comments and docs in English.

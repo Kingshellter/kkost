@@ -72,6 +72,11 @@ enforced.
   (OpenStreetMap link at the kos's coordinates, and "Lihat di peta kkost" →
   `/?kota=<city>#peta`). From `lg` the aside is a sticky right column. Footer
   on this page too. Redesigned in UI-revamp Fase 4a
+- ✅ **Motion (UI-revamp Fase 6, 25 Sep 2026)** — five transitions, all CSS
+  and token-built: the add-kos dialog and the phone menu open and close, the
+  map toast rises and sinks, the review's saved card rises in, and the
+  sign-in tabs share one sliding pill. The scroll-driven `.reveal` fade and
+  the drifting circles are gone. Reduced motion leaves only fades
 - ✅ **Mobile pass (UI-revamp Fase 5, 25 Sep 2026)** — `viewport-fit=cover`
   with safe-area gutters (`px-gutter`), an iOS-proof scroll lock for the
   add-kos dialog, no tap flash on map links, instant taps (`touch-action:

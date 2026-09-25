@@ -21,7 +21,7 @@ export function HowItWorks() {
     >
       <BoundaryCircle edge="top" circle={SEAMS.heroImpact} />
 
-      <div className="reveal relative mx-auto grid w-full max-w-page gap-14 lg:grid-cols-[5fr_7fr] lg:gap-16">
+      <div className="relative mx-auto grid w-full max-w-page gap-14 lg:grid-cols-[5fr_7fr] lg:gap-16">
         <div id="dampak" className="scroll-mt-24 lg:scroll-mt-0">
           <h2 className="max-w-[16ch] text-balance font-extrabold text-ink text-title">
             Iklan kos ditulis oleh orang yang menyewakannya

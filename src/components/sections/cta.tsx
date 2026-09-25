@@ -16,10 +16,10 @@ export async function Cta() {
       <BoundaryCircle edge="top" circle={SEAMS.browseCta} />
       <div
         aria-hidden
-        className="drift pointer-events-none absolute -right-52 bottom-10 h-[420px] w-[420px] rounded-full bg-amber-soft"
+        className="pointer-events-none absolute -right-52 bottom-10 h-[420px] w-[420px] rounded-full bg-amber-soft"
       />
 
-      <div className="reveal relative mx-auto grid w-full max-w-page items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)] lg:gap-16">
+      <div className="relative mx-auto grid w-full max-w-page items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)] lg:gap-16">
         <div>
           {/* Two sentences, so the break is the full stop, not decoration. */}
           <h2 className="font-extrabold text-ink text-title">

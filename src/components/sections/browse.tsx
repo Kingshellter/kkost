@@ -37,7 +37,7 @@ export function Browse({ kos, total, cities, filter }: Props) {
       <BoundaryCircle edge="top" circle={SEAMS.mapBrowse} />
       <BoundaryCircle edge="bottom" circle={SEAMS.browseCta} />
 
-      <div className="reveal relative mx-auto w-full max-w-page">
+      <div className="relative mx-auto w-full max-w-page">
         <h2 className="font-extrabold text-ink text-title">
           Cari kos yang cocok
         </h2>

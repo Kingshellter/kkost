@@ -23,6 +23,7 @@ import { KosScoreBadge } from "@/components/ui/kos-score-badge";
 import { SectionLink } from "@/components/ui/section-link";
 import { INDONESIA, type Accent, type Kos } from "@/data/kos";
 import { formatRupiah } from "@/lib/format";
+import { durationMs } from "@/lib/motion";
 import type { Place } from "@/lib/geocode";
 import type { KosFilter } from "@/lib/kos-browse";
 import { toKos, type NewKosInput, type SaveResult } from "@/lib/kos-repository";
@@ -241,11 +242,14 @@ export default function KosMap({
   /** Same point, once "Tambah kos" opens the form. */
   const [formAt, setFormAt] = useState<[number, number] | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  /** False while the toast fades out; the text stays until it has. */
+  const [noticeShown, setNoticeShown] = useState(false);
   /** The map's box — where focus returns when the add-kos dialog closes. */
   const mapBox = useRef<HTMLDivElement>(null);
   /**
-   * The toast's pending hide. Kept so a second save restarts the countdown —
-   * otherwise the first save's timer hides the second toast early.
+   * The toast's pending step — the fade after 6s, then the removal once the
+   * fade is done. Kept so a second save restarts the countdown; otherwise the
+   * first save's timer hides the second toast early.
    */
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -303,8 +307,15 @@ export default function KosMap({
         ? `"${input.name}" berhasil ditambahkan.`
         : `"${input.name}" ditambahkan ke peta (belum tersimpan ke database).`,
     );
+    setNoticeShown(true);
     if (noticeTimer.current) clearTimeout(noticeTimer.current);
-    noticeTimer.current = setTimeout(() => setNotice(null), 6000);
+    noticeTimer.current = setTimeout(() => {
+      setNoticeShown(false);
+      noticeTimer.current = setTimeout(
+        () => setNotice(null),
+        durationMs("--duration-fast"),
+      );
+    }, 6000);
   }
 
   return (
@@ -489,9 +500,22 @@ export default function KosMap({
         </button>
       )}
 
+      {/* Rises --enter-y into place as it mounts (@starting-style) and sinks
+          back out on --duration-fast before it unmounts. A transition, not
+          keyframes: a second save mid-fade retargets instead of restarting.
+          `translate-y` and the centring `-translate-x-1/2` share one
+          `translate`, each through its own variable. */}
+      {/* The announcement: a live region only speaks reliably when it is
+          already in the page before its text changes, so it stays mounted
+          and the visible toast below is aria-hidden. */}
+      <p role="status" className="sr-only">
+        {notice}
+      </p>
       {notice && (
         <p
-          className={`absolute left-1/2 z-(--z-map-overlay) w-[min(92%,380px)] -translate-x-1/2 rounded-full bg-ink px-5 py-3 text-center text-sm font-bold text-white shadow-float ${
+          aria-hidden
+          data-hidden={!noticeShown || undefined}
+          className={`absolute left-1/2 z-(--z-map-overlay) w-[min(92%,380px)] -translate-x-1/2 rounded-full bg-ink px-5 py-3 text-center text-sm font-bold text-white shadow-float transition-[opacity,translate] duration-(--duration-base) ease-out starting:translate-y-(--enter-y) starting:opacity-0 data-hidden:translate-y-(--enter-y) data-hidden:opacity-0 data-hidden:duration-(--duration-fast) ${
             // Clear of the lock pill on a phone.
             coarse ? "bottom-20" : "bottom-4"
           }`}
@@ -500,10 +524,10 @@ export default function KosMap({
         </p>
       )}
 
-      {/* Portalled to <body>: the map sits inside a `.reveal` block, whose
-          animation makes a stacking context, and the sticky navbar would
-          otherwise paint over the dialog's backdrop. KosMap only ever runs
-          in the browser (ssr: false), so `document` is always there. */}
+      {/* Portalled to <body>, so no ancestor of the map (a stacking
+          context, a transform, an overflow clip) can trap the dialog under
+          the sticky navbar or inside the section. KosMap only ever runs in
+          the browser (ssr: false), so `document` is always there. */}
       {formAt &&
         createPortal(
           <AddKosDialog

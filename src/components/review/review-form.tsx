@@ -450,6 +450,11 @@ function PhotoPicker({
  * Replaces the form once the review is saved. Focus moves to the heading, so
  * a screen reader announces it and the page scrolls to it — the form above
  * was far taller, and without this the visitor is left looking at the footer.
+ *
+ * Motion: the card rises --enter-y into place on --duration-slow, and the
+ * check follows 75ms later from --enter-scale — a once-per-kos moment, so it
+ * gets the one stagger on the site. Both from @starting-style; reduced
+ * motion leaves the fades.
  */
 function SavedCard({ photoError }: { photoError?: string | null }) {
   const heading = useRef<HTMLHeadingElement>(null);
@@ -458,10 +463,13 @@ function SavedCard({ photoError }: { photoError?: string | null }) {
   }, []);
 
   return (
-    <div role="status" className="rounded-panel bg-white p-8 text-center shadow-lift">
+    <div
+      role="status"
+      className="rounded-panel bg-white p-8 text-center shadow-lift transition-[opacity,translate] duration-(--duration-slow) ease-out starting:translate-y-(--enter-y) starting:opacity-0"
+    >
       <CircleCheck
         aria-hidden
-        className="mx-auto size-10 text-teal"
+        className="mx-auto size-10 text-teal transition-[opacity,scale] delay-75 duration-(--duration-slow) ease-out starting:scale-(--enter-scale) starting:opacity-0"
         strokeWidth={2}
       />
       <h2
