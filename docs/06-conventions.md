@@ -81,9 +81,14 @@ tree as possible (see `MapFrame`).
   and `defaultChecked` when the panel holds something already applied. The
   browse filter is the reference.
 - **Touch-only UI checks `matchMedia("(pointer: coarse)")`; hover-only UI
-  checks `(hover: hover)`** — read once in a lazy `useState` initialiser in a
-  client-only component. The map's lock pill and its hover tooltips are the
-  reference.
+  checks `(hover: hover)`** — through a live subscription
+  (`useSyncExternalStore` on the query's `change` event, `useMediaQuery` in
+  `kos-map.tsx`), **never read once into state**: a 2-in-1 laptop or an iPad
+  with a trackpad changes its primary pointer while the page is open, and a
+  snapshot left the map locked on a desktop. Keep the user's own toggle as
+  separate state and derive the result (`locked = coarse && !unlocked`), so
+  no effect has to sync the two. The map's lock pill and its hover tooltips
+  are the reference.
 - **Leaflet motion follows reduced motion too**: any `flyTo` / `flyToBounds`
   needs an `animate: false` path when `prefers-reduced-motion: reduce`
   matches.

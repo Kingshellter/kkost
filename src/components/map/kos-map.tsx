@@ -5,7 +5,7 @@ import L from "leaflet";
 import { Lock, Move } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import {
   MapContainer,
@@ -263,18 +263,21 @@ export default function KosMap({
    */
   const [searchTookOver, setSearchTookOver] = useState(false);
 
-  // KosMap only renders in the browser (ssr: false), so these read the real
-  // device once. A touch-first device gets the lock; only a device that can
-  // hover gets hover tooltips — on a phone the tap opens the popup instead,
-  // and a tooltip would open alongside it.
-  const [coarse] = useState(() => matchMedia("(pointer: coarse)").matches);
-  const [canHover] = useState(() => matchMedia("(hover: hover)").matches);
-  const [locked, setLocked] = useState(coarse);
+  // A touch-first device gets the lock; only a device that can hover gets
+  // hover tooltips — on a phone the tap opens the popup instead, and a
+  // tooltip would open alongside it. Both are live: a 2-in-1 laptop or an
+  // iPad with a trackpad changes its primary pointer while the page is open.
+  const coarse = useMediaQuery("(pointer: coarse)");
+  const canHover = useMediaQuery("(hover: hover)");
+  // The user's choice, not the lock itself: a fine pointer is never locked,
+  // so switching away from touch unlocks without an effect to sync it.
+  const [unlocked, setUnlocked] = useState(false);
+  const locked = coarse && !unlocked;
 
   /** While locked, a tap on the map means "let me use it", not "add a kos here". */
   function handleMapClick(point: [number, number]) {
     if (locked) {
-      setLocked(false);
+      setUnlocked(true);
       return;
     }
     setDraft(point);
@@ -366,7 +369,15 @@ export default function KosMap({
             )}
             {/* Spans, not <p>: Leaflet's own CSS gives popup paragraphs a
                 1.3em margin. */}
-            <Popup closeButton={false} minWidth={220} offset={[0, -18]}>
+            {/* The pan that brings an edge pin's popup into view stops short
+                of the search box and the rounded corners. */}
+            <Popup
+              closeButton={false}
+              minWidth={220}
+              offset={[0, -18]}
+              autoPanPaddingTopLeft={[16, OVERLAY_INSET]}
+              autoPanPaddingBottomRight={[16, 16]}
+            >
               <span className="flex items-start gap-3">
                 <span className="min-w-0 flex-1">
                   <span className="block text-base font-extrabold leading-tight text-ink">
@@ -454,12 +465,14 @@ export default function KosMap({
       {coarse && (
         <button
           type="button"
-          onClick={() => setLocked((value) => !value)}
+          onClick={() => setUnlocked((value) => !value)}
           aria-pressed={!locked}
           className={buttonClass(
             "dark",
             "sm",
-            "absolute bottom-4 left-4 z-(--z-map-overlay) px-4 text-sm shadow-lift",
+            // bottom-6 clears Leaflet's attribution line; min-h-11 keeps a
+            // 44px target with the smaller text the phone width needs.
+            "absolute bottom-6 left-4 z-(--z-map-overlay) min-h-11 px-4 text-sm shadow-lift",
           )}
         >
           {locked ? (
@@ -480,7 +493,7 @@ export default function KosMap({
         <p
           className={`absolute left-1/2 z-(--z-map-overlay) w-[min(92%,380px)] -translate-x-1/2 rounded-full bg-ink px-5 py-3 text-center text-sm font-bold text-white shadow-float ${
             // Clear of the lock pill on a phone.
-            coarse ? "bottom-18" : "bottom-4"
+            coarse ? "bottom-20" : "bottom-4"
           }`}
         >
           {notice}
@@ -502,5 +515,23 @@ export default function KosMap({
           document.body,
         )}
     </div>
+  );
+}
+
+/**
+ * A media query that stays current. `useSyncExternalStore` subscribes to the
+ * query's own change event, so there is no effect copying it into state. The
+ * server snapshot is never used — KosMap is `ssr: false` — but the hook
+ * requires one.
+ */
+function useMediaQuery(query: string) {
+  return useSyncExternalStore(
+    (onChange) => {
+      const list = matchMedia(query);
+      list.addEventListener("change", onChange);
+      return () => list.removeEventListener("change", onChange);
+    },
+    () => matchMedia(query).matches,
+    () => false,
   );
 }

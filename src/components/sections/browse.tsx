@@ -66,7 +66,7 @@ export function Browse({ kos, total, cities, filter }: Props) {
             <span className="block text-base font-extrabold text-ink">
               Filter &amp; urutkan
             </span>
-            <span className="block truncate text-sm font-medium text-muted">
+            <span className="line-clamp-2 text-sm font-medium text-muted">
               {filterSummary(filter)}
             </span>
           </span>

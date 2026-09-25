@@ -87,6 +87,15 @@ Kode masalah (`B-3`, `M-2`, dst.) dipakai lagi di tabel prioritas (bagian 4).
 
 Hasil: di 375px halaman 6.709px → 5.952px. Tinggi peta di laptop 423px → 444px (1366×768) dan 576px (1440×900). Semua section tetap 1 layar di 1024/1280/1366/1440.
 
+**Fase 4b Listing (25 Sep 2026), verifikasi 375px + 1280px (diukur lewat DOM karena browser pane tersembunyi):**
+- **Bug diperbaiki:** tipe pointer dibaca sekali saat mount, sehingga peta bisa tetap terkunci di desktop. Sekarang dibaca live (`useSyncExternalStore`), jadi kunci dan tooltip ikut berubah saat perangkat berganti mouse/sentuh tanpa reload.
+- Pill kunci: 40px → 44px, dan dinaikkan ke `bottom-6` supaya tidak menumpuk dengan atribusi Leaflet. Toast di HP naik ke `bottom-20`.
+- Tombol zoom Leaflet di layar sentuh: 30px → 44px.
+- Ringkasan filter di HP tidak lagi terpotong (2 baris, bukan ellipsis).
+- Popup pin: auto-pan diberi padding supaya tidak masuk ke bawah kotak search. Auto-pan-nya sendiri tidak bisa diuji selama pane tersembunyi (rAF berhenti).
+- Diterima apa adanya: tinggi kartu disamakan dalam carousel (harga sejajar), jadi kartu yang isinya pendek punya ruang ±45–65px sebelum harga.
+- Masih lolos: tidak ada tap target < 44px di kedua section, tidak ada overflow, 1280×800 tetap 1 layar per section, peta dan sidebar sejajar.
+
 Yang masih harus dikerjakan:
 - **Fase 4:**
   - G-5: legenda warna pin di peta.

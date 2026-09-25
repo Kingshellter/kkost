@@ -316,6 +316,14 @@ body {
   font-weight: 700;
 }
 
+/* Leaflet's touch buttons are 30px; a finger needs 44. The doubled class
+   outranks leaflet.css whichever stylesheet loads last. */
+.leaflet-container.leaflet-touch .leaflet-bar a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+}
+
 /* Popups are small panels: the box radius and the raised shadow. */
 .leaflet-popup-content-wrapper {
   border-radius: var(--radius-box);

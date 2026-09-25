@@ -347,7 +347,15 @@ and pinch disabled, so a finger scrolling the page is not caught by it. A
 dark pill bottom-left reads "Ketuk untuk menggeser peta"; tapping it, or any
 empty spot on the map, unlocks (that first tap never opens the add-kos
 draft), and the pill turns into "Kunci peta". Pins, search and the zoom
-buttons work while locked. A fine pointer never sees the pill.
+buttons work while locked. A fine pointer never sees the pill, and the pointer
+type is followed live, so a device that switches to a mouse unlocks at once.
+The pill sits at `bottom-6` (clear of Leaflet's attribution line) with
+`min-h-11`; the save toast moves up to `bottom-20` on touch so the two never
+overlap. Edge-pin popups auto-pan inside `OVERLAY_INSET` at the top (never
+under the search box) and 16px elsewhere.
+
+**Zoom buttons are 44px on touch** (`.leaflet-container.leaflet-touch
+.leaflet-bar a` in `globals.css`; Leaflet's own touch size is 30px).
 
 ## Copy language
 
