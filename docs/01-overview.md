@@ -71,7 +71,9 @@ enforced.
   phone, 1,061px at 1280×800, so it is no longer one screen on a laptop
 - ✅ **Section entrances + seam transitions (26 Sep 2026)** — every landing
   section plays a short entrance every time it comes into view, scrolling
-  down or back up (hidden again only once wholly off screen)
+  down or back up (hidden again only once wholly off screen). A navbar,
+  menu or footer link makes its target play on arrival, also from
+  `/kos/[id]`; sections passed on the way stay still
   (headings rise from a mask, content rises one beat apart), the hero on
   page load, and the circle on each seam between two sections grows in as
   the seam arrives. Reduced motion keeps only the fades

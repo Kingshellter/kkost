@@ -32,6 +32,7 @@ export function BoundaryCircle({
     // a half never vanishes while it is still on screen.
     <Reveal
       margin={200}
+      seam={edge}
       className={`pointer-events-none absolute inset-x-0 h-px ${
         edge === "top" ? "top-0" : "bottom-0"
       }`}

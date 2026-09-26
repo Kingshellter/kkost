@@ -51,7 +51,7 @@ map exists so you can read *only the right one*.
 | [`use-scroll-lock.ts`](../src/components/ui/use-scroll-lock.ts) | 48 | `useScrollLock()` — freezes the page behind a modal (body `position: fixed` at the scroll offset, restored on release; works on iOS) with scrollbar compensation |
 | [`reveal-classes.ts`](../src/components/ui/reveal-classes.ts) | 44 | `REVEAL_*` / `LOAD_*` entrance class sets and `step(n)` |
 | [`mask-line.tsx`](../src/components/ui/mask-line.tsx) | 25 | `MaskLine` — one headline line rising from under its mask |
-| [`reveal.tsx`](../src/components/ui/reveal.tsx) | 73 | **Client.** `Reveal` — two IntersectionObservers: `data-reveal="hidden"` once the block is wholly off screen (+ `margin`), `"shown"` when it is back in the top 85%. Never hides a block on screen at load |
+| [`reveal.tsx`](../src/components/ui/reveal.tsx) | 172 | **Client.** `Reveal` — two IntersectionObservers: `data-reveal="hidden"` once the block is wholly off screen (+ `margin`), `"shown"` when it is back in the top 85%. Never hides a block on screen at load. Also `replayOnArrival(section)` / `expectArrival(id)` for section links: hold every show while the page scrolls, then play what is on screen |
 | [`criterion-icon.ts`](../src/components/ui/criterion-icon.ts) | 23 | `CRITERION_ICON` — one lucide icon per facility key |
 | [`score-badge.tsx`](../src/components/ui/score-badge.tsx) | 42 | Circular score chip, 3 sizes, optional text label. Generic — knows nothing about kos |
 | [`kos-score-badge.tsx`](../src/components/ui/kos-score-badge.tsx) | 32 | `ScoreBadge` + the kos rule: `reviews === 0` renders a dark "Baru" chip instead of `0.0`. **Use this for any kos**, never `ScoreBadge` directly |
@@ -60,8 +60,8 @@ map exists so you can read *only the right one*.
 | [`kos-photo.tsx`](../src/components/ui/kos-photo.tsx) | 150 | `KosPhoto` — labelled SVG illustration per kos (4 scenes keyed by `photoAccent`). Kos have no photos; photos belong to reviews |
 | [`facility-bar.tsx`](../src/components/ui/facility-bar.tsx) | 23 | Labelled 0–5 progress bar |
 | [`logo.tsx`](../src/components/ui/logo.tsx) | 12 | Wordmark |
-| [`boundary-circle.tsx`](../src/components/ui/boundary-circle.tsx) | 63 | `BoundaryCircle` + `SEAMS` — a decorative circle drawn as two halves, one in each of two adjacent sections, so it sits whole across the seam. Each half hangs from a 1px `Reveal` strip on the seam, so both halves grow in together. |
-| [`section-link.tsx`](../src/components/ui/section-link.tsx) | 35 | **Client.** `SectionLink` — a `Link` to a `/#section` that scrolls itself on `/`, where `Link` ignores a click on the hash already in the URL. Used by the navbar and mobile menu |
+| [`boundary-circle.tsx`](../src/components/ui/boundary-circle.tsx) | 64 | `BoundaryCircle` + `SEAMS` — a decorative circle drawn as two halves, one in each of two adjacent sections, so it sits whole across the seam. Each half hangs from a 1px `Reveal` strip on the seam, so both halves grow in together. |
+| [`section-link.tsx`](../src/components/ui/section-link.tsx) | 51 | **Client.** `SectionLink` — a `Link` to a `/#section` that scrolls itself on `/`, where `Link` ignores a click on the hash already in the URL. Used by the navbar and mobile menu. The target section plays its entrance on arrival (`replayOnArrival` on `/`, `expectArrival` from another route); modified clicks (new tab) are left to the browser |
 
 ## Sections — `src/components/sections/` (Server Components except `mobile-nav`)
 

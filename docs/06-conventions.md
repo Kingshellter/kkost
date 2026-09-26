@@ -114,6 +114,10 @@ tree as possible (see `MapFrame`).
   only scale or slide. Marketing surfaces only, never a list read daily.
   Entrances replay on every pass (the user's call, 26 Sep 2026), so keep
   them short: `--duration-reveal` and at most a few beats per block.
+  **Links to a section go through `SectionLink`**, never a bare `<a
+  href="#…">`: it is what holds the entrances during the scroll and plays
+  the target on arrival. A new way of jumping to a section (a button that
+  scrolls) must call `replayOnArrival(section)` before it scrolls.
   Put the entrance classes on a wrapper, never on an element with its own
   transition (a button, the filter label, a hover card): the wrapper keeps
   them apart. Wrapping must not break layout contracts: siblings for `peer`
