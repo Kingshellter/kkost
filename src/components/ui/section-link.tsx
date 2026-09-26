@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ComponentProps } from "react";
-import { expectArrival, replayOnArrival } from "./reveal";
+import { glideTo, stopGlide } from "@/lib/scroll";
+import { expectArrival, holdForArrival } from "./reveal";
 
 /**
  * A link to a section of the landing page, e.g. `/#login`.
@@ -14,8 +15,11 @@ import { expectArrival, replayOnArrival } from "./reveal";
  * nothing), and smooth scrolling belongs to a click — not to CSS, where it
  * also animated every page load that carried a hash.
  *
- * Either way the target section plays its entrance when the visitor gets
- * there, not while the page is still scrolling past it (`replayOnArrival`).
+ * On `/` the page glides there (`glideTo`: shorter and softer than the
+ * browser's smooth scroll); the sections on the way play their entrances
+ * as a lead-in, and the target is held until the page is nearly there
+ * (`holdForArrival`). From another route the page opens at the section and
+ * the target plays once Next has scrolled to it (`expectArrival`).
  */
 export function SectionLink({
   href,
@@ -40,9 +44,8 @@ export function SectionLink({
           return;
         }
         event.preventDefault();
-        replayOnArrival(target);
-        const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-        target.scrollIntoView({ behavior: still ? "auto" : "smooth" });
+        stopGlide();
+        glideTo(target, holdForArrival(target));
         history.replaceState(history.state, "", href);
       }}
       {...rest}

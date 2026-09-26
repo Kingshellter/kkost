@@ -14,8 +14,9 @@ import { useLayoutEffect, useRef, type ReactNode } from "react";
  * - show: "shown" once it is back in the top 85% of the screen (entering
  *   from above counts straight away).
  *
- * A section link (`SectionLink`) holds every show while its smooth scroll
- * runs and plays the target section on arrival: see `replayOnArrival`.
+ * A section link (`SectionLink`) holds only its target section while the
+ * page glides there, and plays it on arrival (`holdForArrival`); the
+ * sections passed on the way play as usual, as a lead-in.
  *
  * Server-rendered without the attribute, so the content is visible without
  * JavaScript and when the page loads with the block already on screen (a
@@ -56,7 +57,7 @@ export function Reveal({
       // After this commit's other `Reveal`s have registered too.
       queueMicrotask(() => {
         const section = document.getElementById(id);
-        if (section) replayOnArrival(section);
+        if (section) whenScrollSettles(holdForArrival(section));
       });
     }
 
@@ -69,8 +70,8 @@ export function Reveal({
     const show = new IntersectionObserver(
       ([entry]) => {
         // Only after a hide: a block on screen at load keeps no attribute.
-        // While a section link scrolls, arrival decides instead.
-        if (held || !entry.isIntersecting) return;
+        // A block held for an arrival waits for its release instead.
+        if (held.has(block) || !entry.isIntersecting) return;
         if (block.dataset.reveal === "hidden") block.dataset.reveal = "shown";
       },
       { rootMargin: `${margin}px 0px -15% 0px` },
@@ -93,10 +94,8 @@ export function Reveal({
 
 /** Every mounted `Reveal` block, with its margin. */
 const blocks = new Map<HTMLElement, number>();
-/** True while a section link's scroll runs: no block shows on the way. */
-let held = false;
-/** Bumped per arrival, so only the latest one releases the hold. */
-let arrivalId = 0;
+/** Blocks waiting for an arrival: their show observer stands aside. */
+const held = new Set<HTMLElement>();
 /** A section id to play once the landing page mounts (link from elsewhere). */
 let arrival: string | null = null;
 
@@ -116,36 +115,41 @@ function takeArrival() {
 }
 
 /**
- * Plays `section`'s entrance when the scroll that is about to happen (or
- * just happened) comes to rest. Its blocks, and the far half of both its
- * seam circles, are hidden now; every show is held until the page stops
- * moving, so the sections passed on the way do not play for nobody; then
- * each hidden block on screen shows, the target's included.
+ * Makes `section` play its entrance on arrival rather than on the way. Its
+ * blocks, and the far half of both its seam circles, are hidden and held
+ * now; the returned `release` shows those of them that are on screen (down
+ * to the bottom edge, counting how far a seam circle reaches). Every other
+ * block keeps playing as it scrolls past. Call `release` once the page has
+ * arrived: `glideTo`'s `onArrive`, or `whenScrollSettles` after a jump.
  */
-export function replayOnArrival(section: Element) {
-  const id = ++arrivalId;
-  held = true;
+export function holdForArrival(section: Element): () => void {
   const prev = section.previousElementSibling;
   const next = section.nextElementSibling;
+  const mine: HTMLElement[] = [];
   for (const block of blocks.keys()) {
     const partner =
       (block.dataset.seam === "bottom" && prev?.contains(block)) ||
       (block.dataset.seam === "top" && next?.contains(block));
-    if (section.contains(block) || partner) block.dataset.reveal = "hidden";
+    if (!section.contains(block) && !partner) continue;
+    block.dataset.reveal = "hidden";
+    held.add(block);
+    mine.push(block);
   }
-  whenScrollSettles(() => {
-    if (id !== arrivalId) return;
-    held = false;
-    // Everything the visitor can see plays, down to the bottom edge (not
-    // the usual 85% line) and counting how far a seam circle reaches.
-    for (const [block, margin] of blocks) {
-      if (block.dataset.reveal !== "hidden") continue;
+
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    for (const block of mine) {
+      held.delete(block);
+      const margin = blocks.get(block);
+      if (margin === undefined || block.dataset.reveal !== "hidden") continue;
       const box = block.getBoundingClientRect();
       if (box.bottom + margin > 0 && box.top - margin < innerHeight) {
         block.dataset.reveal = "shown";
       }
     }
-  });
+  };
 }
 
 /**
@@ -154,7 +158,7 @@ export function replayOnArrival(section: Element) {
  * every browser fires, and which never fires when there was nothing to
  * scroll (the link's section already in place).
  */
-function whenScrollSettles(done: () => void) {
+export function whenScrollSettles(done: () => void) {
   let lastY = scrollY;
   let still = 0;
   let frames = 0;

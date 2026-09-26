@@ -117,7 +117,9 @@ tree as possible (see `MapFrame`).
   **Links to a section go through `SectionLink`**, never a bare `<a
   href="#…">`: it is what holds the entrances during the scroll and plays
   the target on arrival. A new way of jumping to a section (a button that
-  scrolls) must call `replayOnArrival(section)` before it scrolls.
+  scrolls) does the same: `stopGlide()`, then
+  `glideTo(section, holdForArrival(section))`. Never
+  `scrollIntoView({ behavior: "smooth" })`: it cannot say when it lands.
   Put the entrance classes on a wrapper, never on an element with its own
   transition (a button, the filter label, a hover card): the wrapper keeps
   them apart. Wrapping must not break layout contracts: siblings for `peer`

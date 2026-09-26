@@ -31,6 +31,7 @@ map exists so you can read *only the right one*.
 | [`src/lib/kos-browse.ts`](../src/lib/kos-browse.ts) | 115 | URL filter for the landing page: `SORTS`, `BUDGETS`, `KosFilter`, `parseKosFilter` (zod, never throws), `isNarrowed`, `hasFilter`, `matchesKosFilter`, `applyKosFilter`, `cityOptions`, `summarizeKos` (the hero's live numbers) |
 | [`src/lib/scores.ts`](../src/lib/scores.ts) | 17 | `averageFor(reviews, key)` — display-only per-facility mean, used by the hero card and the detail page |
 | [`src/lib/motion.ts`](../src/lib/motion.ts) | 17 | `durationMs("--duration-fast")` — a motion token's duration in ms, read from the CSS variable; exit timers use it so they never disagree with the transition |
+| [`src/lib/scroll.ts`](../src/lib/scroll.ts) | 95 | `glideTo(target, onArrive)` — the section links' own smooth scroll: ease-in-out, 320–640ms by distance (glide tokens), `onArrive` at 90% of the way, stopped by any wheel/touch/key/pointer input, instant under reduced motion. `stopGlide()` |
 | [`src/lib/auth.ts`](../src/lib/auth.ts) | 61 | `getSessionUser()` — the only trusted source of the current user. `isCampusEmail`. `RECOVERY_COOKIE` / `RECOVERY_PATH` / `RECOVERY_MAX_AGE` for the password reset |
 | [`src/lib/auth-actions.ts`](../src/lib/auth-actions.ts) | 197 | `"use server"`: `signIn`, `signUp`, `signOut`, `requestPasswordReset`, `updatePassword`, plus Indonesian error translation |
 | [`src/lib/review-actions.ts`](../src/lib/review-actions.ts) | 70 | `"use server"`: `submitReview` — reads the author from the session, validates, revalidates both routes, returns the new `reviewId` |
@@ -53,7 +54,7 @@ map exists so you can read *only the right one*.
 | [`confirm-toast.tsx`](../src/components/ui/confirm-toast.tsx) | 78 | **Client.** `ConfirmToast` — the `?konfirmasi=` message as a toast under the navbar: removes the parameter from the URL on mount, `autoHide` after 5s, × to close, enter/leave on the motion tokens, unmount via `durationMs` |
 | [`reveal-classes.ts`](../src/components/ui/reveal-classes.ts) | 44 | `REVEAL_*` / `LOAD_*` entrance class sets and `step(n)` |
 | [`mask-line.tsx`](../src/components/ui/mask-line.tsx) | 25 | `MaskLine` — one headline line rising from under its mask |
-| [`reveal.tsx`](../src/components/ui/reveal.tsx) | 172 | **Client.** `Reveal` — two IntersectionObservers: `data-reveal="hidden"` once the block is wholly off screen (+ `margin`), `"shown"` when it is back in the top 85%. Never hides a block on screen at load. Also `replayOnArrival(section)` / `expectArrival(id)` for section links: hold every show while the page scrolls, then play what is on screen |
+| [`reveal.tsx`](../src/components/ui/reveal.tsx) | 176 | **Client.** `Reveal` — two IntersectionObservers: `data-reveal="hidden"` once the block is wholly off screen (+ `margin`), `"shown"` when it is back in the top 85%. Never hides a block on screen at load. Also `holdForArrival(section)` (hide and hold only the target and its seam partners; returns `release`), `expectArrival(id)` and `whenScrollSettles` for section links |
 | [`criterion-icon.ts`](../src/components/ui/criterion-icon.ts) | 23 | `CRITERION_ICON` — one lucide icon per facility key |
 | [`score-badge.tsx`](../src/components/ui/score-badge.tsx) | 42 | Circular score chip, 3 sizes, optional text label. Generic — knows nothing about kos |
 | [`kos-score-badge.tsx`](../src/components/ui/kos-score-badge.tsx) | 32 | `ScoreBadge` + the kos rule: `reviews === 0` renders a dark "Baru" chip instead of `0.0`. **Use this for any kos**, never `ScoreBadge` directly |
@@ -63,7 +64,7 @@ map exists so you can read *only the right one*.
 | [`facility-bar.tsx`](../src/components/ui/facility-bar.tsx) | 23 | Labelled 0–5 progress bar |
 | [`logo.tsx`](../src/components/ui/logo.tsx) | 12 | Wordmark |
 | [`boundary-circle.tsx`](../src/components/ui/boundary-circle.tsx) | 64 | `BoundaryCircle` + `SEAMS` — a decorative circle drawn as two halves, one in each of two adjacent sections, so it sits whole across the seam. Each half hangs from a 1px `Reveal` strip on the seam, so both halves grow in together. |
-| [`section-link.tsx`](../src/components/ui/section-link.tsx) | 51 | **Client.** `SectionLink` — a `Link` to a `/#section` that scrolls itself on `/`, where `Link` ignores a click on the hash already in the URL. Used by the navbar and mobile menu. The target section plays its entrance on arrival (`replayOnArrival` on `/`, `expectArrival` from another route); modified clicks (new tab) are left to the browser |
+| [`section-link.tsx`](../src/components/ui/section-link.tsx) | 54 | **Client.** `SectionLink` — a `Link` to a `/#section` that scrolls itself on `/`, where `Link` ignores a click on the hash already in the URL. Used by the navbar and mobile menu. On `/` it glides there (`glideTo`) and the target plays its entrance on arrival (`holdForArrival`); from another route, `expectArrival`; modified clicks (new tab) are left to the browser |
 
 ## Sections — `src/components/sections/` (Server Components except `mobile-nav`)
 

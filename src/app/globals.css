@@ -163,8 +163,7 @@
   /*
    * Landing-section entrances and the seam circles (reveal-classes.ts): a
    * reveal on a marketing surface, replayed each time a block comes back
-   * into view, so it may run past the
-   * 300ms UI ceiling. Everything starts `--stagger-step × n` after its block
+   * into view, so it may run past the 300ms UI ceiling. Everything starts `--stagger-step × n` after its block
    * scrolls into view (the hero: after the page opens).
    *   --reveal-shift  how far a block rises (or the icon stack slides)
    *   --reveal-line   a headline line's start, under its overflow mask
@@ -172,6 +171,10 @@
    *   --reveal-swipe  the highlight bar's start scaleX
    */
   --duration-reveal: 500ms;
+  /* A section link's scroll (lib/scroll.ts): scales with the distance
+     between these two, so a short hop is quick and a long one is not slow. */
+  --duration-glide-min: 320ms;
+  --duration-glide-max: 640ms;
   --stagger-step: 60ms;
   --reveal-shift: 16px;
   --reveal-line: 110%;

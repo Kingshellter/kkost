@@ -73,7 +73,8 @@ enforced.
   section plays a short entrance every time it comes into view, scrolling
   down or back up (hidden again only once wholly off screen). A navbar,
   menu or footer link makes its target play on arrival, also from
-  `/kos/[id]`; sections passed on the way stay still
+  `/kos/[id]`. On `/` the page glides there (320–640ms, ease-in-out) and the
+  sections passed on the way play their entrances as a lead-in
   (headings rise from a mask, content rises one beat apart), the hero on
   page load, and the circle on each seam between two sections grows in as
   the seam arrives. Reduced motion keeps only the fades
