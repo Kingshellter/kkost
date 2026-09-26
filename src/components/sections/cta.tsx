@@ -1,6 +1,9 @@
 import { AuthCard } from "@/components/auth/auth-card";
 import { BoundaryCircle, SEAMS } from "@/components/ui/boundary-circle";
 import { buttonClass } from "@/components/ui/controls";
+import { MaskLine } from "@/components/ui/mask-line";
+import { Reveal } from "@/components/ui/reveal";
+import { REVEAL_GROW, REVEAL_RISE, step } from "@/components/ui/reveal-classes";
 import { SectionLink } from "@/components/ui/section-link";
 import { getSessionUser } from "@/lib/auth";
 
@@ -14,28 +17,39 @@ export async function Cta() {
     >
       {/* Decorative ring + blob from the deck */}
       <BoundaryCircle edge="top" circle={SEAMS.browseCta} />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-52 bottom-10 h-[420px] w-[420px] rounded-full bg-amber-soft"
-      />
+      <Reveal className="pointer-events-none absolute -right-52 bottom-10 size-[420px]">
+        <div
+          aria-hidden
+          style={step(2)}
+          className={`size-full rounded-full bg-amber-soft ${REVEAL_GROW}`}
+        />
+      </Reveal>
 
-      <div className="relative mx-auto grid w-full max-w-page items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)] lg:gap-16">
+      <Reveal className="relative mx-auto grid w-full max-w-page items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)] lg:gap-16">
         <div>
-          {/* Two sentences, so the break is the full stop, not decoration. */}
+          {/* Two sentences, one line each: the break is the full stop. */}
           <h2 className="font-extrabold text-ink text-title">
-            Pernah ngekos?
-            <br />
-            Ceritakan.
+            <MaskLine beat={0}>Pernah ngekos?</MaskLine>
+            <MaskLine beat={1}>Ceritakan.</MaskLine>
           </h2>
 
-          <p className="mt-5 max-w-[44ch] text-lg leading-relaxed text-ink">
+          <p
+            style={step(3)}
+            className={`mt-5 max-w-[44ch] text-lg leading-relaxed text-ink ${REVEAL_RISE}`}
+          >
             Lima menit darimu bisa menyelamatkan mahasiswa berikutnya dari
             setahun yang buruk. Satu review per kos, per orang.
           </p>
         </div>
 
-        {user ? <SignedInCard name={user.displayName} isStudent={user.isStudent} /> : <AuthCard />}
-      </div>
+        <div style={step(4)} className={REVEAL_RISE}>
+          {user ? (
+            <SignedInCard name={user.displayName} isStudent={user.isStudent} />
+          ) : (
+            <AuthCard />
+          )}
+        </div>
+      </Reveal>
     </section>
   );
 }

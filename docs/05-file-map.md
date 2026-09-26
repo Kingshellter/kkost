@@ -49,6 +49,8 @@ map exists so you can read *only the right one*.
 | [`field.tsx`](../src/components/ui/field.tsx) | 41 | `Field` — label + hint + description + error around one form control |
 | [`status-card.tsx`](../src/components/ui/status-card.tsx) | 40 | `StatusCard` — the centred card for 404 and error pages |
 | [`use-scroll-lock.ts`](../src/components/ui/use-scroll-lock.ts) | 48 | `useScrollLock()` — freezes the page behind a modal (body `position: fixed` at the scroll offset, restored on release; works on iOS) with scrollbar compensation |
+| [`reveal-classes.ts`](../src/components/ui/reveal-classes.ts) | 41 | `REVEAL_*` / `LOAD_*` entrance class sets and `step(n)` |
+| [`mask-line.tsx`](../src/components/ui/mask-line.tsx) | 25 | `MaskLine` — one headline line rising from under its mask |
 | [`reveal.tsx`](../src/components/ui/reveal.tsx) | 54 | **Client.** `Reveal` — flips `data-reveal` hidden → shown once, when the block scrolls into view (never hides a block already on screen) |
 | [`criterion-icon.ts`](../src/components/ui/criterion-icon.ts) | 23 | `CRITERION_ICON` — one lucide icon per facility key |
 | [`score-badge.tsx`](../src/components/ui/score-badge.tsx) | 42 | Circular score chip, 3 sizes, optional text label. Generic — knows nothing about kos |
@@ -58,7 +60,7 @@ map exists so you can read *only the right one*.
 | [`kos-photo.tsx`](../src/components/ui/kos-photo.tsx) | 150 | `KosPhoto` — labelled SVG illustration per kos (4 scenes keyed by `photoAccent`). Kos have no photos; photos belong to reviews |
 | [`facility-bar.tsx`](../src/components/ui/facility-bar.tsx) | 23 | Labelled 0–5 progress bar |
 | [`logo.tsx`](../src/components/ui/logo.tsx) | 12 | Wordmark |
-| [`boundary-circle.tsx`](../src/components/ui/boundary-circle.tsx) | 45 | `BoundaryCircle` + `SEAMS` — a decorative circle drawn as two halves, one in each of two adjacent sections, so it sits whole across the seam |
+| [`boundary-circle.tsx`](../src/components/ui/boundary-circle.tsx) | 60 | `BoundaryCircle` + `SEAMS` — a decorative circle drawn as two halves, one in each of two adjacent sections, so it sits whole across the seam. Each half hangs from a 1px `Reveal` strip on the seam, so both halves grow in together. |
 | [`section-link.tsx`](../src/components/ui/section-link.tsx) | 35 | **Client.** `SectionLink` — a `Link` to a `/#section` that scrolls itself on `/`, where `Link` ignores a click on the hash already in the URL. Used by the navbar and mobile menu |
 
 ## Sections — `src/components/sections/` (Server Components except `mobile-nav`)
@@ -68,12 +70,12 @@ map exists so you can read *only the right one*.
 | [`navbar.tsx`](../src/components/sections/navbar.tsx) | 40 | — | Async. Reads the session and fills `NavbarFrame`'s account slot: name + "Mahasiswa" badge (students only) + sign-out form, else a "Masuk" link |
 | [`navbar-frame.tsx`](../src/components/sections/navbar-frame.tsx) | 57 | — | The navbar markup without the account: pill, logo, desktop links (from `lg`), `MobileNav`, `account` slot. Synchronous and client-safe, so `error.tsx` can render it |
 | [`mobile-nav.tsx`](../src/components/sections/mobile-nav.tsx) | 107 | — | **Client.** Disclosure menu for `< lg`, always mounted; grows from the hamburger corner and shrinks back (`data-open`, `invisible` when closed). Without it the site has no navigation on a phone. `signedIn: boolean \| null`; "Masuk" only when `false` |
-| [`hero.tsx`](../src/components/sections/hero.tsx) | 204 | — | Headline, live stats eyebrow, city + budget GET form to `/#browse`, `HeroCard` (featured kos with its real per-facility averages and newest review as the quote, captioned when demo), decorative blobs |
-| [`how-it-works.tsx`](../src/components/sections/how-it-works.tsx) | 167 | `#cara-kerja` (+ `#dampak` on the heading, `#scoring` on the cards) | From the Claude Design file "Fasilitas Section v2": two-line heading (amber bar under "tidak") + one problem sentence, six numbered `CRITERIA` cards (a row on a phone, 2 / 3 columns at `sm` / `lg`), amber panel with the stacked icons and the plain-average sentence, and a dot on the seam circle's rim. `REVEAL_*` class sets + `step(n)` drive the entrance inside three `Reveal` blocks |
-| [`footer.tsx`](../src/components/sections/footer.tsx) | 50 | — | Logo + tagline, `NAV_LINKS`, OpenStreetMap data credit. Rendered on `/` only for now |
-| [`map-section.tsx`](../src/components/sections/map-section.tsx) | 101 | `#peta` | Dark ink band; says how many kos match when the filter narrows; passes the filtered kos list and the `filter` to `<MapFrame/>` + `<KosSidebar/>`; fixes the map's height (440/460px, screen-derived on lg); `MapLegend` (pin colours + add-kos hint) under the map |
-| [`browse.tsx`](../src/components/sections/browse.tsx) | 200 | `#browse` | Filter bar (kota / budget / urutkan) as a GET form — folded behind a "Filter & urutkan" checkbox-label below `lg` (`filterSummary`), result count, reset link, every filtered kos as a `KosCard` in a `KosCarousel`, empty state |
-| [`cta.tsx`](../src/components/sections/cta.tsx) | 105 | `#login` | Amber band; copy + either `<AuthCard/>` or a signed-in summary with the verification badge |
+| [`hero.tsx`](../src/components/sections/hero.tsx) | 237 | — | Headline, live stats eyebrow, city + budget GET form to `/#browse`, `HeroCard` (featured kos with its real per-facility averages and newest review as the quote, captioned when demo), decorative blobs. Entrance on page load (`LOAD_*`). |
+| [`how-it-works.tsx`](../src/components/sections/how-it-works.tsx) | 149 | `#cara-kerja` (+ `#dampak` on the heading, `#scoring` on the cards) | From the Claude Design file "Fasilitas Section v2": two-line heading (amber bar under "tidak") + one problem sentence, six numbered `CRITERIA` cards (a row on a phone, 2 / 3 columns at `sm` / `lg`), amber panel with the stacked icons and the plain-average sentence, and a dot on the seam circle's rim. `REVEAL_*` class sets + `step(n)` drive the entrance inside three `Reveal` blocks |
+| [`footer.tsx`](../src/components/sections/footer.tsx) | 52 | — | Logo + tagline, `NAV_LINKS`, OpenStreetMap data credit. Rendered on `/` only for now. Entrance: one `Reveal`. |
+| [`map-section.tsx`](../src/components/sections/map-section.tsx) | 121 | `#peta` | Dark ink band; says how many kos match when the filter narrows; passes the filtered kos list and the `filter` to `<MapFrame/>` + `<KosSidebar/>`; fixes the map's height (440/460px, screen-derived on lg); `MapLegend` (pin colours + add-kos hint) under the map. Entrance: `Reveal` blocks for the heading, the map + sidebar, the ring and the blob. |
+| [`browse.tsx`](../src/components/sections/browse.tsx) | 224 | `#browse` | Filter bar (kota / budget / urutkan) as a GET form — folded behind a "Filter & urutkan" checkbox-label below `lg` (`filterSummary`), result count, reset link, every filtered kos as a `KosCard` in a `KosCarousel`, empty state. Entrance: heading + filter in one `Reveal` (the filter wrapper keeps `peer` siblings), cards in another. |
+| [`cta.tsx`](../src/components/sections/cta.tsx) | 91 | `#login` | Amber band; copy + either `<AuthCard/>` or a signed-in summary with the verification badge. Entrance: `MaskLine` heading, copy, card; the blob grows. |
 
 ## Map — `src/components/map/` (all client)
 

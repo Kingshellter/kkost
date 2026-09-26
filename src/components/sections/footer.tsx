@@ -1,4 +1,6 @@
 import { Logo } from "@/components/ui/logo";
+import { Reveal } from "@/components/ui/reveal";
+import { REVEAL_RISE, step } from "@/components/ui/reveal-classes";
 import { SectionLink } from "@/components/ui/section-link";
 import { NAV_LINKS } from "@/data/kos";
 
@@ -10,15 +12,15 @@ import { NAV_LINKS } from "@/data/kos";
 export function Footer() {
   return (
     <footer className="px-gutter py-10">
-      <div className="mx-auto flex max-w-page flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+      <Reveal className="mx-auto flex max-w-page flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className={REVEAL_RISE}>
           <Logo />
           <p className="mt-3 text-sm font-medium text-muted">
             Gratis mencari, gratis menilai. Seluruh Indonesia.
           </p>
         </div>
 
-        <nav aria-label="Footer">
+        <nav aria-label="Footer" style={step(1)} className={REVEAL_RISE}>
           <ul className="flex flex-wrap gap-x-6">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
@@ -32,7 +34,7 @@ export function Footer() {
             ))}
           </ul>
         </nav>
-      </div>
+      </Reveal>
 
       <p className="mx-auto mt-8 max-w-page border-t border-cream-deep pt-6 text-xs font-medium text-muted">
         Data peta ©{" "}

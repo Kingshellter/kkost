@@ -161,9 +161,10 @@
   --hover-lift: 2px;
 
   /*
-   * Section entrance ("Cara kerja" only): a once-per-visit reveal on a
-   * marketing surface, so it may run past the 300ms UI ceiling. Everything
-   * starts `--stagger-step × n` after the section scrolls into view.
+   * Landing-section entrances and the seam circles (reveal-classes.ts): a
+   * once-per-visit reveal on a marketing surface, so it may run past the
+   * 300ms UI ceiling. Everything starts `--stagger-step × n` after its block
+   * scrolls into view (the hero: after the page opens).
    *   --reveal-shift  how far a block rises (or the icon stack slides)
    *   --reveal-line   a headline line's start, under its overflow mask
    *   --reveal-pop    an icon's start scale (never 0)

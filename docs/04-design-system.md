@@ -269,6 +269,8 @@ grounds, so they take dark text; the rest take white.
 | `field.tsx` | `label, hint?, description?, error?` | A `<label>` wrapped around one control: `LABEL_CLASS` title, muted `(hint)`, a `description` that stays readable while typing (placeholders vanish on the first keystroke), and `FIELD_ERROR_CLASS` under it. Used by `AuthCard` and `AddKosDialog`. Not for a control with a button inside it (the password field): the button's name would join the label's. |
 | `status-card.tsx` | `code?, title, children, actions` | The `<main>` of a page with nothing to show: one centred card, optional `code` ("404") in `text-action`, `h1` in `text-heading`, muted body, actions stacked on a phone and side by side from `sm`. No hooks, so both the 404 pages (server) and `error.tsx` (client) use it. |
 | `Reveal` | `as?: "div" \| "ul"`, `className`, `children` | **Client.** Wraps one block of a section and flips its `data-reveal` from `hidden` to `shown` the first time it scrolls into view; children style both states with `group-data-[reveal=…]/reveal:` classes (`REVEAL_*` in `how-it-works.tsx`). Renders without the attribute on the server, and hides only while still below the fold, so no-JS visitors and hash links always see the content. |
+| `MaskLine` | `beat`, `children` | One headline line in an `overflow-hidden` mask (4px bottom room for descenders, `text-balance`), rising on `REVEAL_LINE` at `step(beat)`. Every section heading on `/` except the hero's h1 is built from these. |
+| `reveal-classes.ts` *(not a component)* | — | `REVEAL_RISE` / `_LINE` / `_POP` / `_GROW` / `_BASE` (keyed to the nearest `Reveal`), `LOAD_RISE` / `_POP` / `_GROW` (hero, `starting:`), and `step(n)`. The one place entrance classes are spelled out. |
 | `criterion-icon.ts` *(not a component)* | — | `CRITERION_ICON[facilityKey]` → lucide icon. Shared by "Cara kerja" and the review form, so a facility looks the same where it is explained and where it is scored. |
 | `Spinner` | — | The mark inside a loading button: a 16px broken ring in `currentColor`, turning every 600ms (faster than Tailwind's 1s — reads as a quicker wait). `motion-safe:` only; under reduced motion it stands still. `aria-hidden` — the label and `aria-busy` carry the meaning. |
 | `SectionLink` | `Link` props, `href: "/#…"` | Link to a landing-page section. **Always root the hash at `/`** — the navbar also renders on `/kos/[id]`, where a bare `#login` only changes the URL. On `/` it scrolls to the element itself, because `Link` does nothing when the clicked hash is already in the URL. The one client component here. Also used for the CTA and sidebar "#browse" links and the map popup's "Masuk atau daftar". |
@@ -311,6 +313,9 @@ unmount after `durationMs("--duration-fast")` (`lib/motion.ts`), never on
 | `MobileNav` panel | show where it came from | `origin-top-right` scale + fade, base | reverse on fast; `invisible` when closed (out of Tab order) |
 | Map toast | feedback after a save | rises `--enter-y` + fade, base | sinks + fade on fast, then unmounts; announced through an always-mounted `sr-only` `role="status"` |
 | `SavedCard` (review) | a 1,400px form becomes a small card | rises `--enter-y` + fade, slow; the check follows 75ms later from `--enter-scale` (the site's only stagger — a once-per-kos moment) | — |
+| **Seam circles** (`BoundaryCircle`) | the move from one section to the next | both halves of the circle on a seam fade in and grow from `--reveal-pop` around their centre (which lies on the seam), when the seam reaches 85% of the screen. Each half hangs from a 1px `Reveal` strip on the seam line, so both fire at the same scroll position | — |
+| **Hero** (`LOAD_*`, page load) | opening the page | `@starting-style`, no JavaScript: the amber blob grows, then eyebrow → headline → subline → search → featured card rise one `--stagger-step` apart; the quote bubble grows last, from its top-left | — |
+| **Section openings** (`Reveal` + `MaskLine`) | first look at each section, once per visit | each heading line rises from under its mask, then the intro and the content blocks rise one beat apart. Map: map + legend, then the lg sidebar; decorative ring and blob grow. Browse: filter, then the first cards (delay capped at 3 beats). CTA: two headline lines, copy, then the sign-in card; the blob grows. Footer: logo, then links. A filter reload lands on `#browse` already on screen, so it never replays | — |
 | "Cara kerja" (`Reveal`) | first look at the six criteria: explanation, once per visit | three blocks, each when it comes into view (`IntersectionObserver`, 15% above the bottom edge): headline lines rise from an `overflow-hidden` mask, the amber bar under "tidak" grows `scaleX` from the left, the paragraph rises; cards rise one `--stagger-step` apart and their icons grow from `--reveal-pop`; the panel rises, then its six icons slide in from the left. All `--duration-reveal`, `ease-out`, transitions (not keyframes). A block already on screen at load is never hidden; nothing moves under `reduce`, only the fades stay | — |
 | `AuthCard` tab pill | which way the switch went | one ink pill slides `translate-x`, base, `--ease-in-out` (on-screen movement); the tabs' text colour runs on the same curve and duration so a label turns white as the pill arrives; `motion-reduce:transition-none` on both | — |
 
@@ -325,7 +330,8 @@ control, colour/border transitions on fields, the review form's progress bar
 (`scaleX`, base).
 
 Rejected at the "should this animate" gate (Fase 6): kos cards appearing
-(a list read many times a day), page transitions to the detail page, the
+on every filter change (a list read many times a day; the once-per-visit
+entrance above never replays on a filter reload), page transitions to the detail page, the
 filter (a URL reload), the search dropdown (typing wants instant), a pulsing
 map skeleton.
 
@@ -336,7 +342,8 @@ Fase 6 removed, and a lift on a card that is not a link promises a click.
 **Removed in Fase 6:** `.reveal` (a scroll-linked fade that could leave a
 section half transparent, and moved the sign-in form and the map) and
 `.drift` / `.drift-page` (decorative circles moving on scroll, no purpose).
-The circles are static now.
+The circles no longer move with scrolling; since 26 Sep 2026 they only grow
+in once (see seam circles above).
 
 **Smooth scrolling only on a click** — `SectionLink` calls
 `scrollIntoView({ behavior: "smooth" })` when it is clicked on `/`.

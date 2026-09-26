@@ -1,28 +1,16 @@
-import type { CSSProperties } from "react";
 import { ACCENT_BG, ACCENT_ON } from "@/components/ui/accent";
 import { BoundaryCircle, SEAMS } from "@/components/ui/boundary-circle";
 import { CRITERION_ICON } from "@/components/ui/criterion-icon";
+import { MaskLine } from "@/components/ui/mask-line";
 import { Reveal } from "@/components/ui/reveal";
+import {
+  REVEAL_BASE,
+  REVEAL_GROW,
+  REVEAL_POP,
+  REVEAL_RISE,
+  step,
+} from "@/components/ui/reveal-classes";
 import { CRITERIA } from "@/data/kos";
-
-/*
- * Entrance classes, keyed to the nearest `<Reveal>` (group/reveal). Hidden
- * values apply only while it says "hidden"; the transition and its stagger
- * delay only once it says "shown", so hiding is instant and nothing waits on
- * a delay afterwards. Every distance is a token that collapses to 0 (or 1)
- * under reduced motion, which leaves the fades and their order.
- */
-const REVEAL_BASE =
-  "group-data-[reveal=shown]/reveal:transition-[opacity,translate,scale] group-data-[reveal=shown]/reveal:duration-(--duration-reveal) group-data-[reveal=shown]/reveal:ease-out group-data-[reveal=shown]/reveal:delay-[calc(var(--stagger-step)*var(--step,0))]";
-/** Fades in and rises `--reveal-shift`. */
-const REVEAL_RISE = `${REVEAL_BASE} group-data-[reveal=hidden]/reveal:opacity-0 group-data-[reveal=hidden]/reveal:translate-y-(--reveal-shift)`;
-/** A headline line coming up from under its `overflow-hidden` mask. */
-const REVEAL_LINE = `${REVEAL_BASE} group-data-[reveal=hidden]/reveal:opacity-0 group-data-[reveal=hidden]/reveal:translate-y-(--reveal-line)`;
-/** Grows from `--reveal-pop`. No fade: it sits inside a block that fades. */
-const REVEAL_POP = `${REVEAL_BASE} group-data-[reveal=hidden]/reveal:scale-(--reveal-pop)`;
-
-/** Which beat of the entrance an element plays on (× `--stagger-step`). */
-const step = (n: number) => ({ "--step": n }) as CSSProperties;
 
 /**
  * "Cara kerja": the problem in one line, the six things tenants score as
@@ -49,7 +37,7 @@ export function HowItWorks() {
         <span
           aria-hidden
           style={step(4)}
-          className={`block size-4.5 rounded-full bg-amber ${REVEAL_RISE} group-data-[reveal=hidden]/reveal:scale-(--reveal-pop)`}
+          className={`block size-4.5 rounded-full bg-amber ${REVEAL_GROW}`}
         />
       </Reveal>
 
@@ -59,24 +47,18 @@ export function HowItWorks() {
             id="dampak"
             className="scroll-mt-24 font-extrabold text-ink text-display lg:scroll-mt-0 lg:text-display-split"
           >
-            <span className="block overflow-hidden pb-1">
-              <span style={step(0)} className={`block text-balance ${REVEAL_LINE}`}>
-                Enam hal yang{" "}
-                <span className="relative isolate inline-block">
-                  tidak
-                  <span
-                    aria-hidden
-                    style={step(6)}
-                    className={`absolute -inset-x-0.5 bottom-[0.08em] -z-10 h-[0.2em] origin-left rounded-sm bg-amber ${REVEAL_BASE} group-data-[reveal=hidden]/reveal:scale-x-(--reveal-swipe)`}
-                  />
-                </span>
+            <MaskLine beat={0}>
+              Enam hal yang{" "}
+              <span className="relative isolate inline-block">
+                tidak
+                <span
+                  aria-hidden
+                  style={step(6)}
+                  className={`absolute -inset-x-0.5 bottom-[0.08em] -z-10 h-[0.2em] origin-left rounded-sm bg-amber ${REVEAL_BASE} group-data-[reveal=hidden]/reveal:scale-x-(--reveal-swipe)`}
+                />
               </span>
-            </span>
-            <span className="block overflow-hidden pb-1">
-              <span style={step(1)} className={`block text-balance ${REVEAL_LINE}`}>
-                ada di iklan kos
-              </span>
-            </span>
+            </MaskLine>
+            <MaskLine beat={1}>ada di iklan kos</MaskLine>
           </h2>
 
           <p

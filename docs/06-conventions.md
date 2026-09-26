@@ -100,7 +100,9 @@ tree as possible (see `MapFrame`).
   or `-slow` with `ease-out`, exit on `--duration-fast`; `--ease-in-out` only
   for something moving on screen. Anything that moves without the
   `--enter-*` / `--press-*` tokens needs its own reduced-motion rule.
-- **A section entrance goes through `Reveal`** (`components/ui/reveal.tsx`),
+- **Every landing section has an entrance** (26 Sep 2026). Classes come from
+  `components/ui/reveal-classes.ts`, headings are built from `MaskLine`, and a
+  section below the fold goes through `Reveal` (`components/ui/reveal.tsx`),
   one per block, never one for a whole tall section (on a phone the lower
   half would play off screen). Style both states on the children with
   `group-data-[reveal=hidden]/reveal:` (start values, from `--reveal-*`
@@ -109,6 +111,12 @@ tree as possible (see `MapFrame`).
   hover never inherits the stagger delay. Order with `style={step(n)}`
   (`--step` × `--stagger-step`). Only the outer block fades; icons inside it
   only scale or slide. Marketing surfaces only, never a list read daily.
+  Put the entrance classes on a wrapper, never on an element with its own
+  transition (a button, the filter label, a hover card): the wrapper keeps
+  them apart. Wrapping must not break layout contracts: siblings for `peer`
+  stay siblings, a grid item that used to stretch gets `grid` on its wrapper.
+  The hero is on screen at load, so it uses `LOAD_*` (`starting:`) instead
+  of `Reveal`: it plays on first paint, with no JavaScript and no flash.
 - **Implementing a Claude Design file:** export it as a project archive into
   `design/` (git-ignored). Map its colours, radii and durations to the
   nearest tokens rather than copying hex values, keep lucide icons, and

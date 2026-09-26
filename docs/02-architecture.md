@@ -30,7 +30,7 @@ RootLayout (app/layout.tsx)  — html lang="id", Jakarta font, bg-cream
     ├── <Navbar/>                       server  ← sticky below lg
     ├── <main>
     │   ├── <Hero/>          #(top)     server  ← all kos: live stats, featured kos
-    │   ├── <HowItWorks/>    #cara-kerja server ← heading + problem (#dampak) + six criteria (#scoring) + score panel; three <Reveal> client islands play the entrance
+    │   ├── <HowItWorks/>    #cara-kerja server ← heading + problem (#dampak) + six criteria (#scoring) + score panel; three <Reveal> client islands play the entrance (every section below the fold, and each BoundaryCircle half, does the same; the hero animates from CSS alone)
     │   ├── <MapSection/>    #peta      server  ← filtered kos; hosts the client island
     │   ├── <Browse/>        #browse    server  ← filtered kos + filter form
     │   └── <Cta/>           #login     server

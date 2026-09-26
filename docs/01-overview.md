@@ -69,6 +69,11 @@ enforced.
   descriptions went. Rebuilt the same day from the Claude Design file
   "Fasilitas Section v2" (source in `design/`, git-ignored): 1,341px on a
   phone, 1,061px at 1280×800, so it is no longer one screen on a laptop
+- ✅ **Section entrances + seam transitions (26 Sep 2026)** — every landing
+  section plays a short entrance once per visit when it comes into view
+  (headings rise from a mask, content rises one beat apart), the hero on
+  page load, and the circle on each seam between two sections grows in as
+  the seam arrives. Reduced motion keeps only the fades
 - ✅ **Kos detail page at `/kos/[id]`** — header (name, location, price,
   score, a "Tulis review" / "Masuk untuk menulis" shortcut to the form),
   per-facility averages as bars, review list (six scores per review as a

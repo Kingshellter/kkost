@@ -2,6 +2,9 @@ import { KosSidebar } from "@/components/map/kos-sidebar";
 import { MapFrame } from "@/components/map/map-frame";
 import { SCORE_HIGH, SCORE_MID } from "@/components/ui/accent";
 import { BoundaryCircle, SEAMS } from "@/components/ui/boundary-circle";
+import { MaskLine } from "@/components/ui/mask-line";
+import { Reveal } from "@/components/ui/reveal";
+import { REVEAL_GROW, REVEAL_RISE, step } from "@/components/ui/reveal-classes";
 import type { Kos } from "@/data/kos";
 import { formatNumber } from "@/lib/format";
 import { isNarrowed, type KosFilter } from "@/lib/kos-browse";
@@ -23,46 +26,63 @@ export function MapSection({
       id="peta"
       className="relative scroll-mt-24 overflow-hidden bg-ink px-gutter pb-28 pt-section lg:scroll-mt-0 lg:flex lg:min-h-svh lg:flex-col lg:justify-center lg:py-14"
     >
-      {/* Decorative ring + blob from the deck */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-40 top-10 h-[420px] w-[420px] rounded-full border-[18px] border-white/[0.06]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -left-48 bottom-10 h-[380px] w-[380px] rounded-full bg-white/[0.04]"
-      />
+      {/* Decorative ring + blob from the deck; they grow in with the band. */}
+      <Reveal className="pointer-events-none absolute -right-40 top-10 size-[420px]">
+        <div
+          aria-hidden
+          style={step(1)}
+          className={`size-full rounded-full border-[18px] border-white/[0.06] ${REVEAL_GROW}`}
+        />
+      </Reveal>
+      <Reveal className="pointer-events-none absolute -left-48 bottom-10 size-[380px]">
+        <div
+          aria-hidden
+          className={`size-full rounded-full bg-white/[0.04] ${REVEAL_GROW}`}
+        />
+      </Reveal>
       {/* The seam circle reaches 100px up into this band. On a phone the
           legend is the last thing in it, so the bottom padding (pb-28) keeps
           the legend's white text off the amber. */}
       <BoundaryCircle edge="bottom" circle={SEAMS.mapBrowse} />
 
       <div className="relative mx-auto w-full max-w-page">
-        <div>
+        <Reveal>
           <h2 className="font-extrabold text-white text-title">
-            Semua kos di peta
+            <MaskLine beat={0}>Semua kos di peta</MaskLine>
           </h2>
-          <p className="mt-5 max-w-[52ch] text-lg text-white/70 lg:mt-4">
+          <p
+            style={step(2)}
+            className={`mt-5 max-w-[52ch] text-lg text-white/70 lg:mt-4 ${REVEAL_RISE}`}
+          >
             {narrowed
               ? `Menampilkan ${kos.length} kos yang cocok dengan filter di bawah.`
               : "Ketuk pin untuk melihat skornya dan membuka halaman kos."}
           </p>
-        </div>
+        </Reveal>
 
         {/* On a laptop the map row's height comes from the screen: everything
             else in the band is ~240px (padding, heading, intro), and 260
             leaves room for an intro that wraps at 1024. The legend takes its
             share of the row; the sidebar scrolls inside it. */}
-        <div className="mt-8 grid gap-7 lg:h-[clamp(360px,calc(100svh-260px),640px)] lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="flex min-h-0 flex-col gap-4">
+        <Reveal className="mt-8 grid gap-7 lg:h-[clamp(360px,calc(100svh-260px),640px)] lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div
+            style={step(1)}
+            className={`flex min-h-0 flex-col gap-4 ${REVEAL_RISE}`}
+          >
             <div className="h-[440px] overflow-hidden rounded-panel shadow-float sm:h-[460px] lg:h-auto lg:min-h-0 lg:flex-1">
               <MapFrame kos={kos} signedIn={signedIn} filter={filter} />
             </div>
             <MapLegend signedIn={signedIn} />
           </div>
 
-          <KosSidebar kos={kos} filter={filter} />
-        </div>
+          {/* The sidebar is lg-only; so is its wrapper, or it adds a gap on phones. */}
+          <div
+            style={step(3)}
+            className={`hidden min-h-0 grid-rows-[minmax(0,1fr)] lg:grid ${REVEAL_RISE}`}
+          >
+            <KosSidebar kos={kos} filter={filter} />
+          </div>
+        </Reveal>
       </div>
     </section>
   );

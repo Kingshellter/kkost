@@ -1,3 +1,6 @@
+import { Reveal } from "./reveal";
+import { REVEAL_GROW } from "./reveal-classes";
+
 /**
  * A decorative circle sitting across the line where two sections meet.
  *
@@ -7,8 +10,13 @@
  * as one whole circle. Drawing it once would not work: it would either be
  * sliced flat at the seam, or sit on top of the next section's text.
  *
- * Static: the halves used to drift on the page's scroll timeline, removed in
- * Fase 6 along with every other decorative motion.
+ * The transition between sections: when the seam reaches the screen, both
+ * halves fade in and grow from `--reveal-pop` together. Each half hangs from
+ * a 1px `Reveal` strip lying exactly on the seam, so the two observers fire
+ * at the same scroll position, and each circle's centre is on the seam, so
+ * growing from the centre keeps the halves meeting as one circle. (They used
+ * to drift on the scroll timeline; that went in Fase 6. This plays once and
+ * is never tied to scroll position.)
  */
 export function BoundaryCircle({
   edge,
@@ -20,12 +28,18 @@ export function BoundaryCircle({
   circle: string;
 }) {
   return (
-    <div
-      aria-hidden
-      className={`pointer-events-none absolute rounded-full ${
-        edge === "top" ? "top-0 -translate-y-1/2" : "bottom-0 translate-y-1/2"
-      } ${circle}`}
-    />
+    <Reveal
+      className={`pointer-events-none absolute inset-x-0 h-px ${
+        edge === "top" ? "top-0" : "bottom-0"
+      }`}
+    >
+      <div
+        aria-hidden
+        className={`absolute rounded-full ${
+          edge === "top" ? "top-0 -translate-y-1/2" : "bottom-0 translate-y-1/2"
+        } ${circle} ${REVEAL_GROW}`}
+      />
+    </Reveal>
   );
 }
 

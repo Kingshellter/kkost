@@ -4,6 +4,12 @@ import { buttonClass } from "@/components/ui/controls";
 import { FacilityBar } from "@/components/ui/facility-bar";
 import { KosPhoto } from "@/components/ui/kos-photo";
 import { KosScoreBadge } from "@/components/ui/kos-score-badge";
+import {
+  LOAD_GROW,
+  LOAD_POP,
+  LOAD_RISE,
+  step,
+} from "@/components/ui/reveal-classes";
 import { CRITERIA, type Kos, type Review } from "@/data/kos";
 import { formatCampus, formatNumber, formatRupiah } from "@/lib/format";
 import { BUDGETS, type KosFilter } from "@/lib/kos-browse";
@@ -19,6 +25,12 @@ type Props = {
   filter: KosFilter;
 };
 
+/**
+ * The first screen. Its entrance plays on page load (LOAD_* classes, from
+ * `@starting-style`): the amber blob grows, then eyebrow, headline,
+ * subline, search and the featured card rise one beat apart, and the quote
+ * bubble grows last.
+ */
 export function Hero({ featured, reviews, stats, cities, filter }: Props) {
   // On a laptop hero + navbar fill exactly one screen; 5.5rem is the navbar.
   return (
@@ -26,7 +38,8 @@ export function Hero({ featured, reviews, stats, cities, filter }: Props) {
       {/* Decorative blobs from the deck */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-40 top-10 h-[300px] w-[300px] rounded-full bg-amber lg:-right-44 lg:top-10 lg:h-[540px] lg:w-[540px]"
+        style={step(0)}
+        className={`pointer-events-none absolute -right-40 top-10 h-[300px] w-[300px] rounded-full bg-amber lg:-right-44 lg:top-10 lg:h-[540px] lg:w-[540px] ${LOAD_GROW}`}
       />
       <BoundaryCircle edge="bottom" circle={SEAMS.heroImpact} />
 
@@ -34,7 +47,10 @@ export function Hero({ featured, reviews, stats, cities, filter }: Props) {
         <div>
           {/* The page's only eyebrow. Real counts, as a sentence rather than
               a dotted strip. */}
-          <p className="eyebrow bg-white text-action shadow-lift">
+          <p
+            style={step(1)}
+            className={`eyebrow bg-white text-action shadow-lift ${LOAD_RISE}`}
+          >
             {formatNumber(stats.reviews)} review dari {formatNumber(stats.kos)}{" "}
             kos di {formatNumber(stats.cities)} kota
           </p>
@@ -42,7 +58,10 @@ export function Hero({ featured, reviews, stats, cities, filter }: Props) {
           {/* Phrases kept whole instead of <br>s: the lines break where the
               sentence does. The display sizes are set so "orang yang
               pernah" fits from a 320px phone to the split layout at 1024. */}
-          <h1 className="mt-8 font-extrabold text-ink text-display lg:text-display-split">
+          <h1
+            style={step(2)}
+            className={`mt-8 font-extrabold text-ink text-display lg:text-display-split ${LOAD_RISE}`}
+          >
             Pilih kos dari{" "}
             <span className="whitespace-nowrap">orang yang pernah</span>{" "}
             <span className="whitespace-nowrap">
@@ -50,7 +69,10 @@ export function Hero({ featured, reviews, stats, cities, filter }: Props) {
             </span>
           </h1>
 
-          <p className="mt-7 max-w-[34ch] text-lg leading-relaxed text-ink-soft sm:max-w-[48ch]">
+          <p
+            style={step(3)}
+            className={`mt-7 max-w-[34ch] text-lg leading-relaxed text-ink-soft sm:max-w-[48ch] ${LOAD_RISE}`}
+          >
             {/* The problem first: a judge should get it in the first ten
                 seconds. No claim that reviewers are verified tenants — only
                 a .ac.id address is checked, and that is not proof of rent.
@@ -66,7 +88,8 @@ export function Hero({ featured, reviews, stats, cities, filter }: Props) {
           {/* Same GET contract as the browse filter: lands on /?kota=…#browse. */}
           <form
             action="/#browse"
-            className="mt-10 flex max-w-[620px] flex-col gap-3 rounded-panel bg-white p-3 shadow-lift sm:flex-row sm:items-center sm:gap-0 sm:rounded-full sm:py-2.5 sm:pl-3 sm:pr-2.5"
+            style={step(4)}
+            className={`${LOAD_RISE} mt-10 flex max-w-[620px] flex-col gap-3 rounded-panel bg-white p-3 shadow-lift sm:flex-row sm:items-center sm:gap-0 sm:rounded-full sm:py-2.5 sm:pl-3 sm:pr-2.5`}
           >
             <label className={fieldClass}>
               <span className="shrink-0 text-sm font-bold text-muted">
@@ -143,7 +166,10 @@ function HeroCard({ kos, reviews }: { kos: Kos; reviews: Review[] }) {
   const quote = reviews.find((review) => review.body);
 
   return (
-    <div className="relative mx-auto w-full max-w-[480px] lg:mx-0">
+    <div
+      style={step(5)}
+      className={`relative mx-auto w-full max-w-[480px] lg:mx-0 ${LOAD_RISE}`}
+    >
       <article className="rounded-panel bg-white p-7 shadow-float">
         <div className="flex items-start gap-4">
           {/* Decoration, not information: on a phone it squeezed the
@@ -191,7 +217,10 @@ function HeroCard({ kos, reviews }: { kos: Kos; reviews: Review[] }) {
       </article>
 
       {quote?.body && (
-        <figure className="relative -mt-6 ml-2 w-fit max-w-[320px] rounded-media bg-blue px-5 py-4 shadow-lift sm:-ml-6">
+        <figure
+          style={step(9)}
+          className={`relative -mt-6 ml-2 w-fit max-w-[320px] origin-top-left rounded-media bg-blue px-5 py-4 shadow-lift sm:-ml-6 ${LOAD_POP}`}
+        >
           <blockquote className="line-clamp-3 text-base font-bold leading-snug text-white">
             &ldquo;{quote.body}&rdquo;
           </blockquote>

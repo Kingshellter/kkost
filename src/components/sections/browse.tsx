@@ -8,6 +8,9 @@ import {
 } from "@/components/ui/controls";
 import { KosCard } from "@/components/ui/kos-card";
 import { KosCarousel } from "@/components/ui/kos-carousel";
+import { MaskLine } from "@/components/ui/mask-line";
+import { Reveal } from "@/components/ui/reveal";
+import { REVEAL_RISE, step } from "@/components/ui/reveal-classes";
 import type { Kos } from "@/data/kos";
 import { formatRupiah } from "@/lib/format";
 import { BUDGETS, SORTS, hasFilter, type KosFilter } from "@/lib/kos-browse";
@@ -38,131 +41,152 @@ export function Browse({ kos, total, cities, filter }: Props) {
       <BoundaryCircle edge="bottom" circle={SEAMS.browseCta} />
 
       <div className="relative mx-auto w-full max-w-page">
-        <h2 className="font-extrabold text-ink text-title">
-          Cari kos yang cocok
-        </h2>
-        <p className="mt-4 text-lg font-medium text-ink-soft lg:mt-3" aria-live="polite">
-          {kos.length === total
-            ? `${total} kos, diurutkan dari ${sortLabel(filter).toLowerCase()}.`
-            : `${kos.length} dari ${total} kos cocok dengan filter.`}
-        </p>
+        <Reveal>
+          <h2 className="font-extrabold text-ink text-title">
+            <MaskLine beat={0}>Cari kos yang cocok</MaskLine>
+          </h2>
+          <p
+            style={step(2)}
+            className={`mt-4 text-lg font-medium text-ink-soft lg:mt-3 ${REVEAL_RISE}`}
+            aria-live="polite"
+          >
+            {kos.length === total
+              ? `${total} kos, diurutkan dari ${sortLabel(filter).toLowerCase()}.`
+              : `${kos.length} dari ${total} kos cocok dengan filter.`}
+          </p>
 
-        {/* Below lg the filter folds behind one button, so the first card is
-            not 400px down a phone. A checkbox and `peer-checked:` do the
-            folding: no JavaScript, like the GET form itself. It starts open
-            whenever a filter is set, so the visitor sees what is applied. */}
-        <input
-          type="checkbox"
-          id="filter-toggle"
-          defaultChecked={filtered}
-          className="peer sr-only"
-        />
-        <label
-          htmlFor="filter-toggle"
-          className="mt-8 flex w-full cursor-pointer select-none items-center gap-3 rounded-panel bg-white px-5 py-4 shadow-lift transition-[scale] duration-(--duration-fast) ease-out active:scale-(--press-scale-surface) active:duration-(--duration-press) peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus peer-checked:[&_.chevron]:rotate-180 lg:hidden"
-        >
-          <SlidersHorizontal aria-hidden className="size-5 shrink-0 text-ink" strokeWidth={2} />
-          <span className="min-w-0 flex-1">
-            <span className="block text-base font-extrabold text-ink">
-              Filter &amp; urutkan
-            </span>
-            <span className="line-clamp-2 text-sm font-medium text-muted">
-              {filterSummary(filter)}
-            </span>
-          </span>
-          <ChevronDown
-            aria-hidden
-            className="chevron size-5 shrink-0 text-muted transition-transform duration-(--duration-base) ease-in-out motion-reduce:transition-none"
-            strokeWidth={2}
-          />
-        </label>
-
-        <form
-          action="/#browse"
-          className="mt-3 hidden gap-4 rounded-panel bg-white p-5 shadow-lift peer-checked:grid sm:grid-cols-3 lg:mt-7 lg:grid lg:grid-cols-[repeat(3,minmax(0,1fr))_auto] lg:items-end short:mt-5 short:p-4"
-        >
-          <Field label="Kota">
-            <select
-              name="kota"
-              defaultValue={filter.city ?? ""}
-              className={selectClass}
+          {/* One wrapper for the whole filter, so the checkbox, its label and
+              the form stay siblings (`peer`) while they rise together. */}
+          <div style={step(3)} className={REVEAL_RISE}>
+            {/* Below lg the filter folds behind one button, so the first card is
+                not 400px down a phone. A checkbox and `peer-checked:` do the
+                folding: no JavaScript, like the GET form itself. It starts open
+                whenever a filter is set, so the visitor sees what is applied. */}
+            <input
+              type="checkbox"
+              id="filter-toggle"
+              defaultChecked={filtered}
+              className="peer sr-only"
+            />
+            <label
+              htmlFor="filter-toggle"
+              className="mt-8 flex w-full cursor-pointer select-none items-center gap-3 rounded-panel bg-white px-5 py-4 shadow-lift transition-[scale] duration-(--duration-fast) ease-out active:scale-(--press-scale-surface) active:duration-(--duration-press) peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus peer-checked:[&_.chevron]:rotate-180 lg:hidden"
             >
-              <option value="">Semua kota</option>
-              {cities.map((city) => (
-                <option key={city} value={city}>
-                  {city}
-                </option>
-              ))}
-            </select>
-          </Field>
+              <SlidersHorizontal aria-hidden className="size-5 shrink-0 text-ink" strokeWidth={2} />
+              <span className="min-w-0 flex-1">
+                <span className="block text-base font-extrabold text-ink">
+                  Filter &amp; urutkan
+                </span>
+                <span className="line-clamp-2 text-sm font-medium text-muted">
+                  {filterSummary(filter)}
+                </span>
+              </span>
+              <ChevronDown
+                aria-hidden
+                className="chevron size-5 shrink-0 text-muted transition-transform duration-(--duration-base) ease-in-out motion-reduce:transition-none"
+                strokeWidth={2}
+              />
+            </label>
 
-          <Field label="Budget per bulan">
-            <select
-              name="harga"
-              defaultValue={filter.maxPrice?.toString() ?? ""}
-              className={selectClass}
+            <form
+              action="/#browse"
+              className="mt-3 hidden gap-4 rounded-panel bg-white p-5 shadow-lift peer-checked:grid sm:grid-cols-3 lg:mt-7 lg:grid lg:grid-cols-[repeat(3,minmax(0,1fr))_auto] lg:items-end short:mt-5 short:p-4"
             >
-              <option value="">Berapa saja</option>
-              {BUDGETS.map((budget) => (
-                <option key={budget} value={budget}>
-                  Sampai {formatRupiah(budget)}
-                </option>
-              ))}
-            </select>
-          </Field>
+              <Field label="Kota">
+                <select
+                  name="kota"
+                  defaultValue={filter.city ?? ""}
+                  className={selectClass}
+                >
+                  <option value="">Semua kota</option>
+                  {cities.map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </select>
+              </Field>
 
-          <Field label="Urutkan">
-            <select name="urut" defaultValue={filter.sort} className={selectClass}>
-              {SORTS.map((sort) => (
-                <option key={sort.value} value={sort.value}>
-                  {sort.label}
-                </option>
-              ))}
-            </select>
-          </Field>
+              <Field label="Budget per bulan">
+                <select
+                  name="harga"
+                  defaultValue={filter.maxPrice?.toString() ?? ""}
+                  className={selectClass}
+                >
+                  <option value="">Berapa saja</option>
+                  {BUDGETS.map((budget) => (
+                    <option key={budget} value={budget}>
+                      Sampai {formatRupiah(budget)}
+                    </option>
+                  ))}
+                </select>
+              </Field>
 
-          <div className="flex gap-3 sm:col-span-3 lg:col-span-1">
-            <button
-              type="submit"
-              className={buttonClass("primary", "md", "flex-1 lg:flex-none")}
-            >
-              Terapkan
-            </button>
-            {filtered && (
-              <Link
-                href="/#browse"
-                className={buttonClass("soft", "md", "flex-1 lg:flex-none")}
-              >
-                Reset
-              </Link>
-            )}
+              <Field label="Urutkan">
+                <select name="urut" defaultValue={filter.sort} className={selectClass}>
+                  {SORTS.map((sort) => (
+                    <option key={sort.value} value={sort.value}>
+                      {sort.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <div className="flex gap-3 sm:col-span-3 lg:col-span-1">
+                <button
+                  type="submit"
+                  className={buttonClass("primary", "md", "flex-1 lg:flex-none")}
+                >
+                  Terapkan
+                </button>
+                {filtered && (
+                  <Link
+                    href="/#browse"
+                    className={buttonClass("soft", "md", "flex-1 lg:flex-none")}
+                  >
+                    Reset
+                  </Link>
+                )}
+              </div>
+            </form>
           </div>
-        </form>
+        </Reveal>
 
         {kos.length > 0 ? (
-          <div className="mt-8 lg:mt-5 short:mt-3">
+          <Reveal className="mt-8 lg:mt-5 short:mt-3">
             <KosCarousel label={`${kos.length} kos`}>
-              {kos.map((item) => (
-                <KosCard key={item.id} kos={item} />
+              {/* The first cards rise one beat apart; later ones are off
+                  screen in the row, so their delay is capped. `grid` lets
+                  the card fill the slide as it did without the wrapper. */}
+              {kos.map((item, i) => (
+                <div
+                  key={item.id}
+                  style={step(Math.min(i, 3))}
+                  className={`grid ${REVEAL_RISE}`}
+                >
+                  <KosCard kos={item} />
+                </div>
               ))}
             </KosCarousel>
-          </div>
+          </Reveal>
         ) : (
-          <div className="mt-12 rounded-panel bg-white p-10 text-center shadow-lift">
-            <p className="text-xl font-extrabold text-ink">
-              Tidak ada kos yang cocok
-            </p>
-            <p className="mx-auto mt-2 max-w-[40ch] text-base font-medium text-muted">
-              Coba kota lain atau naikkan budget. Kalau kamu tahu kos di sini
-              yang belum terdaftar, tambahkan lewat peta di atas.
-            </p>
-            <Link
-              href="/#browse"
-              className={buttonClass("dark", "md", "mt-6")}
-            >
-              Hapus filter
-            </Link>
-          </div>
+          <Reveal className="mt-12">
+            <div className={`rounded-panel bg-white p-10 text-center shadow-lift ${REVEAL_RISE}`}>
+              <p className="text-xl font-extrabold text-ink">
+                Tidak ada kos yang cocok
+              </p>
+              <p className="mx-auto mt-2 max-w-[40ch] text-base font-medium text-muted">
+                Coba kota lain atau naikkan budget. Kalau kamu tahu kos di sini
+                yang belum terdaftar, tambahkan lewat peta di atas.
+              </p>
+              <Link
+                href="/#browse"
+                className={buttonClass("dark", "md", "mt-6")}
+              >
+                Hapus filter
+              </Link>
+            </div>
+          </Reveal>
         )}
       </div>
     </section>
