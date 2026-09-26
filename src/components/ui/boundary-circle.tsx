@@ -15,8 +15,8 @@ import { REVEAL_GROW } from "./reveal-classes";
  * a 1px `Reveal` strip lying exactly on the seam, so the two observers fire
  * at the same scroll position, and each circle's centre is on the seam, so
  * growing from the centre keeps the halves meeting as one circle. (They used
- * to drift on the scroll timeline; that went in Fase 6. This plays once and
- * is never tied to scroll position.)
+ * to drift on the scroll timeline; that went in Fase 6. This replays each
+ * time the seam comes back into view, but is never tied to scroll position.)
  */
 export function BoundaryCircle({
   edge,
@@ -28,7 +28,10 @@ export function BoundaryCircle({
   circle: string;
 }) {
   return (
+    // margin: the largest circle reaches 190px either side of the seam, so
+    // a half never vanishes while it is still on screen.
     <Reveal
+      margin={200}
       className={`pointer-events-none absolute inset-x-0 h-px ${
         edge === "top" ? "top-0" : "bottom-0"
       }`}

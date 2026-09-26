@@ -3,14 +3,17 @@ import type { CSSProperties } from "react";
 /*
  * Entrance classes for the landing sections. Two triggers, one look:
  *
- * - REVEAL_* key to the nearest `<Reveal>` (group/reveal): hidden values
+ * - REVEAL_* key to the enclosing `<Reveal>` (group/reveal; never nest
+ *   one inside another, the classes match any ancestor): hidden values
  *   apply only while it says "hidden"; the transition and its stagger delay
  *   only once it says "shown", so hiding is instant and nothing waits on a
  *   delay afterwards.
  * - LOAD_* are for the hero, which is on screen when the page opens: they
  *   start from `@starting-style` (Tailwind `starting:`), so they play on the
- *   first paint with no JavaScript and no flash. Only on wrappers that have
- *   no other transition, because their delay stays on.
+ *   first paint with no JavaScript and no flash. They also carry the REVEAL
+ *   hidden values, so inside a `<Reveal>` the hero replays when scrolled back
+ *   to. Only on wrappers that have no other transition, because their delay
+ *   stays on.
  *
  * Every distance is a `--reveal-*` token that collapses to 0 (or 1) under
  * reduced motion, which leaves the fades and their order. Delays are
@@ -34,8 +37,8 @@ export const REVEAL_GROW = `${REVEAL_POP} group-data-[reveal=hidden]/reveal:opac
 const LOAD_BASE =
   "transition-[opacity,translate,scale] duration-(--duration-reveal) ease-out delay-[calc(var(--stagger-step)*var(--step,0))]";
 /** Hero: fades in and rises `--reveal-shift` on page load. */
-export const LOAD_RISE = `${LOAD_BASE} starting:opacity-0 starting:translate-y-(--reveal-shift)`;
+export const LOAD_RISE = `${LOAD_BASE} starting:opacity-0 starting:translate-y-(--reveal-shift) group-data-[reveal=hidden]/reveal:opacity-0 group-data-[reveal=hidden]/reveal:translate-y-(--reveal-shift)`;
 /** Hero: grows from `--reveal-pop` on page load, no fade (inside a fading block). */
-export const LOAD_POP = `${LOAD_BASE} starting:scale-(--reveal-pop)`;
+export const LOAD_POP = `${LOAD_BASE} starting:scale-(--reveal-pop) group-data-[reveal=hidden]/reveal:scale-(--reveal-pop)`;
 /** Hero: fades in and grows from `--reveal-pop` on page load. */
-export const LOAD_GROW = `${LOAD_BASE} starting:opacity-0 starting:scale-(--reveal-pop)`;
+export const LOAD_GROW = `${LOAD_BASE} starting:opacity-0 starting:scale-(--reveal-pop) group-data-[reveal=hidden]/reveal:opacity-0 group-data-[reveal=hidden]/reveal:scale-(--reveal-pop)`;

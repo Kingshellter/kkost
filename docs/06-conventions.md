@@ -103,7 +103,8 @@ tree as possible (see `MapFrame`).
 - **Every landing section has an entrance** (26 Sep 2026). Classes come from
   `components/ui/reveal-classes.ts`, headings are built from `MaskLine`, and a
   section below the fold goes through `Reveal` (`components/ui/reveal.tsx`),
-  one per block, never one for a whole tall section (on a phone the lower
+  one per block (never nested; the group classes match any ancestor), never
+  one for a whole tall section (on a phone the lower
   half would play off screen). Style both states on the children with
   `group-data-[reveal=hidden]/reveal:` (start values, from `--reveal-*`
   tokens) and put the transition and delay under
@@ -111,6 +112,8 @@ tree as possible (see `MapFrame`).
   hover never inherits the stagger delay. Order with `style={step(n)}`
   (`--step` × `--stagger-step`). Only the outer block fades; icons inside it
   only scale or slide. Marketing surfaces only, never a list read daily.
+  Entrances replay on every pass (the user's call, 26 Sep 2026), so keep
+  them short: `--duration-reveal` and at most a few beats per block.
   Put the entrance classes on a wrapper, never on an element with its own
   transition (a button, the filter label, a hover card): the wrapper keeps
   them apart. Wrapping must not break layout contracts: siblings for `peer`

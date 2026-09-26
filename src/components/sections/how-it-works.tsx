@@ -20,7 +20,7 @@ import { CRITERIA } from "@/data/kos";
  * hero.
  *
  * The entrance plays in three `Reveal` blocks (header, cards, panel), each
- * once, when it reaches the screen. `#dampak` and `#scoring` survive on the
+ * time one reaches the screen. `#dampak` and `#scoring` survive on the
  * header and the cards, so older links still land. Deliberately free of
  * statistics: nothing here cites a number the project cannot source.
  */

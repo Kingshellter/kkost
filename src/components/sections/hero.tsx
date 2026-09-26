@@ -4,6 +4,7 @@ import { buttonClass } from "@/components/ui/controls";
 import { FacilityBar } from "@/components/ui/facility-bar";
 import { KosPhoto } from "@/components/ui/kos-photo";
 import { KosScoreBadge } from "@/components/ui/kos-score-badge";
+import { Reveal } from "@/components/ui/reveal";
 import {
   LOAD_GROW,
   LOAD_POP,
@@ -29,21 +30,25 @@ type Props = {
  * The first screen. Its entrance plays on page load (LOAD_* classes, from
  * `@starting-style`): the amber blob grows, then eyebrow, headline,
  * subline, search and the featured card rise one beat apart, and the quote
- * bubble grows last.
+ * bubble grows last. Blob and content sit in two `Reveal`s (not one around
+ * the section: the seam circle has its own), so it replays when scrolled
+ * back to.
  */
 export function Hero({ featured, reviews, stats, cities, filter }: Props) {
   // On a laptop hero + navbar fill exactly one screen; 5.5rem is the navbar.
   return (
     <section className="relative overflow-hidden px-gutter pb-section pt-14 lg:flex lg:min-h-[calc(100svh-5.5rem)] lg:flex-col lg:justify-center lg:py-12">
       {/* Decorative blobs from the deck */}
-      <div
-        aria-hidden
-        style={step(0)}
-        className={`pointer-events-none absolute -right-40 top-10 h-[300px] w-[300px] rounded-full bg-amber lg:-right-44 lg:top-10 lg:h-[540px] lg:w-[540px] ${LOAD_GROW}`}
-      />
+      <Reveal className="pointer-events-none absolute -right-40 top-10 size-[300px] lg:-right-44 lg:top-10 lg:size-[540px]">
+        <div
+          aria-hidden
+          style={step(0)}
+          className={`size-full rounded-full bg-amber ${LOAD_GROW}`}
+        />
+      </Reveal>
       <BoundaryCircle edge="bottom" circle={SEAMS.heroImpact} />
 
-      <div className="relative mx-auto grid w-full max-w-page items-center gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:gap-10 xl:grid-cols-[minmax(0,1fr)_minmax(0,480px)]">
+      <Reveal className="relative mx-auto grid w-full max-w-page items-center gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:gap-10 xl:grid-cols-[minmax(0,1fr)_minmax(0,480px)]">
         <div>
           {/* The page's only eyebrow. Real counts, as a sentence rather than
               a dotted strip. */}
@@ -137,7 +142,7 @@ export function Hero({ featured, reviews, stats, cities, filter }: Props) {
         </div>
 
         {featured && <HeroCard kos={featured} reviews={reviews} />}
-      </div>
+      </Reveal>
     </section>
   );
 }

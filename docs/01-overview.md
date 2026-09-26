@@ -60,7 +60,7 @@ enforced.
 - ✅ Landing page at `/` — navbar, hero, **Cara kerja** (`#cara-kerja`:
   a two-line heading with an amber highlight + one sentence of problem, the
   six criteria as numbered cards, an amber panel with the stacked icons and
-  how the score is made, all with a once-per-visit entrance), map (`#peta`),
+  how the score is made, all with an entrance that replays on every pass), map (`#peta`),
   browse (`#browse`), sign-in (`#login`), footer. Redesigned in UI-revamp
   Fase 4a (25 Sep 2026): the old `#dampak` and `#scoring` sections were merged
   so the kos list starts at ±4,500px on a phone instead of ±6,800px (page
@@ -70,7 +70,8 @@ enforced.
   "Fasilitas Section v2" (source in `design/`, git-ignored): 1,341px on a
   phone, 1,061px at 1280×800, so it is no longer one screen on a laptop
 - ✅ **Section entrances + seam transitions (26 Sep 2026)** — every landing
-  section plays a short entrance once per visit when it comes into view
+  section plays a short entrance every time it comes into view, scrolling
+  down or back up (hidden again only once wholly off screen)
   (headings rise from a mask, content rises one beat apart), the hero on
   page load, and the circle on each seam between two sections grows in as
   the seam arrives. Reduced motion keeps only the fades

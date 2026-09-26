@@ -162,7 +162,8 @@
 
   /*
    * Landing-section entrances and the seam circles (reveal-classes.ts): a
-   * once-per-visit reveal on a marketing surface, so it may run past the
+   * reveal on a marketing surface, replayed each time a block comes back
+   * into view, so it may run past the
    * 300ms UI ceiling. Everything starts `--stagger-step × n` after its block
    * scrolls into view (the hero: after the page opens).
    *   --reveal-shift  how far a block rises (or the icon stack slides)
