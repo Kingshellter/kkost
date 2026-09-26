@@ -160,6 +160,22 @@
      mouse only (see the custom hover variant). */
   --hover-lift: 2px;
 
+  /*
+   * Section entrance ("Cara kerja" only): a once-per-visit reveal on a
+   * marketing surface, so it may run past the 300ms UI ceiling. Everything
+   * starts `--stagger-step × n` after the section scrolls into view.
+   *   --reveal-shift  how far a block rises (or the icon stack slides)
+   *   --reveal-line   a headline line's start, under its overflow mask
+   *   --reveal-pop    an icon's start scale (never 0)
+   *   --reveal-swipe  the highlight bar's start scaleX
+   */
+  --duration-reveal: 500ms;
+  --stagger-step: 60ms;
+  --reveal-shift: 16px;
+  --reveal-line: 110%;
+  --reveal-pop: 0.6;
+  --reveal-swipe: 0;
+
   /* Focus is an outline in --color-focus, not a border colour change: it
      cannot fight a box-shadow and survives forced-colors mode. */
   --focus-width: 2px;
@@ -188,6 +204,10 @@
     --enter-scale: 1;
     --enter-y: 0px;
     --hover-lift: 0px;
+    --reveal-shift: 0px;
+    --reveal-line: 0%;
+    --reveal-pop: 1;
+    --reveal-swipe: 1;
   }
 }
 
@@ -268,7 +288,9 @@
 
 /*
  * Motion lives in the tokens above (--duration-*, --ease-*, --press-*,
- * --enter-*) and in each component's own transition. There is no
+ * --enter-*, --reveal-*) and in each component's own transition. The one
+ * entrance tied to scrolling is `Reveal` (reveal.tsx): it fires once when a
+ * block comes into view, it is not linked to scroll position. There is no
  * scroll-driven motion: the old `.reveal` fade and the `.drift` circles
  * were removed in Fase 6 (a scroll-linked fade could leave a section half
  * transparent, and the circles moved for no reason). Section links glide

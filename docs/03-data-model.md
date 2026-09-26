@@ -70,7 +70,7 @@ Three conventions worth burning in:
 |---|---|
 | `INDONESIA` | `{ center: [-2.5, 118], zoom: 5 }` — the map's fallback view when there is nothing to fit to |
 | `KOS_LIST` | 4 demo kos with **invented** scores — shown only when Supabase is not configured, never on a database error (see [Reads](#reads)) |
-| `CRITERIA` | The six scoring criteria (`key`, number, title, description, accent). `number` is no longer shown on `/` — `HowItWorks` pairs each `key` with a lucide icon instead. `description` is a 3–5 word hint shown under the title in "Cara kerja"; keep it that short |
+| `CRITERIA` | The six scoring criteria (`key`, number, title, description, accent). `number` ("01"–"06") is shown again on the "Cara kerja" cards since 26 Sep 2026, next to the lucide icon. `description` is a 3–5 word hint shown under the title in "Cara kerja"; keep it that short |
 | `NAV_LINKS` | Navbar anchors, in page order, rooted at `/` (`/#peta`, not `#peta`): Cara kerja, Peta, Cari kos so they work from `/kos/[id]` too. `as const` — `SectionLink` requires the `/#…` literal type |
 
 `INDONESIA`, `CRITERIA` and `NAV_LINKS` are static copy, all in Indonesian. `KOS_LIST` exists only

@@ -151,6 +151,9 @@ Reviewed against Emil Kowalski's design-engineering principles in Fase 2b.
 | `--press-scale-surface` | 0.985 | the same for a whole card — 3% of a card moves its edges ~10px |
 | `--enter-scale` | 0.96 | popover/dialog start (with opacity 0) — never from `scale(0)` |
 | `--enter-y` | 8px | menu/toast start offset |
+| `--duration-reveal` | 500ms | "Cara kerja" entrance only: a once-per-visit reveal on a marketing surface, so it may pass the 300ms UI ceiling |
+| `--stagger-step` | 60ms | one beat of that entrance; an element waits `--stagger-step × --step` |
+| `--reveal-shift` / `--reveal-line` / `--reveal-pop` / `--reveal-swipe` | 16px / 110% / 0.6 / 0 | its start values: rise (or slide), headline line under its mask, icon scale (never 0), highlight scaleX. Under `reduce` they become 0px / 0% / 1 / 1 |
 | `--hover-lift` | 2px | how far a button or kos card rises under a mouse (`hover:-translate-y-(--hover-lift)`) |
 
 Rules that come with them:
@@ -265,11 +268,12 @@ grounds, so they take dark text; the rest take white.
 | `controls.ts` *(not a component)* | — | **Every button and form field gets its classes here.** `buttonClass(variant, size, extra)` — variants `primary` (`bg-action`), `dark` (`bg-ink`), `soft` (`bg-cream`); sizes `sm`/`md`/`lg` = 44/48/56px, all 16px+ text. `INPUT_CLASS`, `SELECT_CLASS`, `TEXTAREA_CLASS` (16px, `border-field`), `LABEL_CLASS`, `FIELD_ERROR_CLASS`, `NOTICE_CLASS.{error,info,warning}`. Class strings rather than a `<Button>` because the same look renders as `<button>`, `<Link>` and `<SectionLink>`. States (Fase 3b): press scales to `--press-scale` and cancels the hover lift on the shorter `--duration-press`; only `translate, scale, background-color, color, opacity` transition; `disabled` dims to 60% and goes inert; a **loading** button is `disabled` + `aria-busy` + a `<Spinner />` first child, and `aria-busy:disabled:opacity-100` keeps it at full strength — it is working, not unavailable. Fields: border darkens on hover (`hover:border-muted`), the ground turns white on focus, `aria-invalid` turns the border `danger`, `disabled` dims with a not-allowed cursor. |
 | `field.tsx` | `label, hint?, description?, error?` | A `<label>` wrapped around one control: `LABEL_CLASS` title, muted `(hint)`, a `description` that stays readable while typing (placeholders vanish on the first keystroke), and `FIELD_ERROR_CLASS` under it. Used by `AuthCard` and `AddKosDialog`. Not for a control with a button inside it (the password field): the button's name would join the label's. |
 | `status-card.tsx` | `code?, title, children, actions` | The `<main>` of a page with nothing to show: one centred card, optional `code` ("404") in `text-action`, `h1` in `text-heading`, muted body, actions stacked on a phone and side by side from `sm`. No hooks, so both the 404 pages (server) and `error.tsx` (client) use it. |
+| `Reveal` | `as?: "div" \| "ul"`, `className`, `children` | **Client.** Wraps one block of a section and flips its `data-reveal` from `hidden` to `shown` the first time it scrolls into view; children style both states with `group-data-[reveal=…]/reveal:` classes (`REVEAL_*` in `how-it-works.tsx`). Renders without the attribute on the server, and hides only while still below the fold, so no-JS visitors and hash links always see the content. |
 | `criterion-icon.ts` *(not a component)* | — | `CRITERION_ICON[facilityKey]` → lucide icon. Shared by "Cara kerja" and the review form, so a facility looks the same where it is explained and where it is scored. |
 | `Spinner` | — | The mark inside a loading button: a 16px broken ring in `currentColor`, turning every 600ms (faster than Tailwind's 1s — reads as a quicker wait). `motion-safe:` only; under reduced motion it stands still. `aria-hidden` — the label and `aria-busy` carry the meaning. |
 | `SectionLink` | `Link` props, `href: "/#…"` | Link to a landing-page section. **Always root the hash at `/`** — the navbar also renders on `/kos/[id]`, where a bare `#login` only changes the URL. On `/` it scrolls to the element itself, because `Link` does nothing when the clicked hash is already in the URL. The one client component here. Also used for the CTA and sidebar "#browse" links and the map popup's "Masuk atau daftar". |
 
-All of them are Server Components — no `"use client"`, no hooks — except `SectionLink`, which needs `usePathname`.
+All of them are Server Components — no `"use client"`, no hooks — except `SectionLink`, which needs `usePathname`, and `Reveal`, which needs an effect.
 
 ## Decorative circles
 
@@ -307,6 +311,7 @@ unmount after `durationMs("--duration-fast")` (`lib/motion.ts`), never on
 | `MobileNav` panel | show where it came from | `origin-top-right` scale + fade, base | reverse on fast; `invisible` when closed (out of Tab order) |
 | Map toast | feedback after a save | rises `--enter-y` + fade, base | sinks + fade on fast, then unmounts; announced through an always-mounted `sr-only` `role="status"` |
 | `SavedCard` (review) | a 1,400px form becomes a small card | rises `--enter-y` + fade, slow; the check follows 75ms later from `--enter-scale` (the site's only stagger — a once-per-kos moment) | — |
+| "Cara kerja" (`Reveal`) | first look at the six criteria: explanation, once per visit | three blocks, each when it comes into view (`IntersectionObserver`, 15% above the bottom edge): headline lines rise from an `overflow-hidden` mask, the amber bar under "tidak" grows `scaleX` from the left, the paragraph rises; cards rise one `--stagger-step` apart and their icons grow from `--reveal-pop`; the panel rises, then its six icons slide in from the left. All `--duration-reveal`, `ease-out`, transitions (not keyframes). A block already on screen at load is never hidden; nothing moves under `reduce`, only the fades stay | — |
 | `AuthCard` tab pill | which way the switch went | one ink pill slides `translate-x`, base, `--ease-in-out` (on-screen movement); the tabs' text colour runs on the same curve and duration so a label turns white as the pill arrives; `motion-reduce:transition-none` on both | — |
 
 The map honours reduced motion too: `zoomAnimation`, `fadeAnimation`,
@@ -323,6 +328,10 @@ Rejected at the "should this animate" gate (Fase 6): kos cards appearing
 (a list read many times a day), page transitions to the detail page, the
 filter (a URL reload), the search dropdown (typing wants instant), a pulsing
 map skeleton.
+
+The design file also had a looping float on the amber dot and a 6px hover
+lift on the criterion cards: both dropped. The float is the decorative motion
+Fase 6 removed, and a lift on a card that is not a link promises a click.
 
 **Removed in Fase 6:** `.reveal` (a scroll-linked fade that could leave a
 section half transparent, and moved the sign-in form and the map) and
@@ -406,7 +415,9 @@ unfinished, so it was unified.
 
 ## One section, one screen (laptop and up)
 
-From `lg` (≥1024px) every landing section is **exactly one screen tall** —
+From `lg` (≥1024px) every landing section is **exactly one screen tall**
+(except "Cara kerja" since 26 Sep 2026: its card grid and score panel from the
+Claude Design file make it ~1,060px at 1280×800, by the user's choice) —
 `lg:flex lg:min-h-svh lg:flex-col lg:justify-center`, content centred, inner
 container `w-full`. The hero uses `lg:min-h-[calc(100svh-5.5rem)]` so hero +
 navbar make one screen. Below `lg` heights follow the content (`px-4 py-section`);
@@ -431,8 +442,7 @@ Measured to fit at 1440×900, 1280×800 and 1366×768. What made that possible:
   went from 423px to 444px tall at 1366×768 and to 576px at 1440×900.
 - **`short:`** — a custom variant in `globals.css`,
   `(width >= 64rem) and (height <= 860px)`. Registered after the breakpoints,
-  so it overrides `lg:`. Only the dense sections use it: `#cara-kerja`
-  (tighter list and grid gaps), `#browse` (140px card images).
+  so it overrides `lg:`. Only `#browse` uses it now (140px card images).
 
 Fase 4a added 1024×768 to the sizes checked; all five sections fit it too.
 

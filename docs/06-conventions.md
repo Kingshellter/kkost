@@ -100,6 +100,19 @@ tree as possible (see `MapFrame`).
   or `-slow` with `ease-out`, exit on `--duration-fast`; `--ease-in-out` only
   for something moving on screen. Anything that moves without the
   `--enter-*` / `--press-*` tokens needs its own reduced-motion rule.
+- **A section entrance goes through `Reveal`** (`components/ui/reveal.tsx`),
+  one per block, never one for a whole tall section (on a phone the lower
+  half would play off screen). Style both states on the children with
+  `group-data-[reveal=hidden]/reveal:` (start values, from `--reveal-*`
+  tokens) and put the transition and delay under
+  `group-data-[reveal=shown]/reveal:`, so hiding is instant and a later
+  hover never inherits the stagger delay. Order with `style={step(n)}`
+  (`--step` × `--stagger-step`). Only the outer block fades; icons inside it
+  only scale or slide. Marketing surfaces only, never a list read daily.
+- **Implementing a Claude Design file:** export it as a project archive into
+  `design/` (git-ignored). Map its colours, radii and durations to the
+  nearest tokens rather than copying hex values, keep lucide icons, and
+  record in the docs any part of the design deliberately left out.
 - **A live region must exist before its text changes.** A toast that mounts
   with its message is not reliably announced; keep an `sr-only`
   `role="status"` mounted and mark the visible toast `aria-hidden`.

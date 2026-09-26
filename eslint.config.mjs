@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Snapshot of the old UI — reference only, never compiled.
     "backup/**",
+    // Claude Design exports (HTML + its generated runtime) — reference only.
+    "design/**",
   ]),
 ]);
 

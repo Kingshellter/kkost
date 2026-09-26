@@ -58,15 +58,17 @@ enforced.
 ## What actually works today
 
 - ✅ Landing page at `/` — navbar, hero, **Cara kerja** (`#cara-kerja`:
-  one heading + one sentence of problem, the six criteria as icon + name +
-  short hint, one sentence on how the score is made), map (`#peta`),
+  a two-line heading with an amber highlight + one sentence of problem, the
+  six criteria as numbered cards, an amber panel with the stacked icons and
+  how the score is made, all with a once-per-visit entrance), map (`#peta`),
   browse (`#browse`), sign-in (`#login`), footer. Redesigned in UI-revamp
   Fase 4a (25 Sep 2026): the old `#dampak` and `#scoring` sections were merged
   so the kos list starts at ±4,500px on a phone instead of ±6,800px (page
   9,254px → ±6,750px); both old anchors still land, on the two halves.
   Distilled 26 Sep 2026: the three-item problem list and the long criterion
-  descriptions went, so the section is 948px on a phone (was 1,788px) and
-  `#browse` starts at ±3,170px
+  descriptions went. Rebuilt the same day from the Claude Design file
+  "Fasilitas Section v2" (source in `design/`, git-ignored): 1,341px on a
+  phone, 1,061px at 1280×800, so it is no longer one screen on a laptop
 - ✅ **Kos detail page at `/kos/[id]`** — header (name, location, price,
   score, a "Tulis review" / "Masuk untuk menulis" shortcut to the form),
   per-facility averages as bars, review list (six scores per review as a
@@ -182,8 +184,8 @@ enforced.
 - ✅ **Map respects the URL filter for kos added this session**, the toast
   timer restarts on a second save, and a `local-` kos is not a dead link
 - ✅ **`AddKosDialog` traps focus** and returns it to the map on close
-- ✅ **One section per screen on a laptop** — every landing section is one
-  screen tall from `lg` up (verified at 1440×900, 1280×800, 1366×768); the
+- ✅ **One section per screen on a laptop** — every landing section except
+  "Cara kerja" (taller since 26 Sep 2026, see above) is one screen tall from `lg` up (verified at 1440×900, 1280×800, 1366×768); the
   kos list is a swipeable carousel. Phones keep natural heights
 
 - ✅ **Live at <https://kkost.vercel.app>** — Vercel project `kkost` (team
