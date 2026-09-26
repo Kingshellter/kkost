@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
   // needs a nonce per request (every page dynamic), and a wrong one breaks
   // the map's OSM tiles, Nominatim and Supabase in ways that are hard to see.
   // XSS is kept out at the source instead: React escaping, no
-  // dangerouslySetInnerHTML, map text through React (docs/02-architecture).
+  // dangerouslySetInnerHTML, and map text rendered through React.
   async headers() {
     return [
       {

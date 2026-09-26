@@ -10,7 +10,8 @@ import type { CookieOptionsWithName } from "@supabase/ssr";
  *
  * Not `httpOnly`, and it cannot be: the browser client reads the session to
  * upload review photos and add a kos straight to Supabase. XSS is therefore
- * kept out at the source (see "Security" in docs/02-architecture.md).
+ * kept out at the source: React escaping, no dangerouslySetInnerHTML, and
+ * user text on the map rendered through React, never Leaflet HTML strings.
  * `sameSite: "lax"` and `path: "/"` stay the library defaults.
  */
 export const SUPABASE_COOKIE_OPTIONS: CookieOptionsWithName = {

@@ -41,7 +41,7 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 -- ─── reviews ───────────────────────────────────────────────────────────────
--- Enam kolom skor, satu per kriteria di docs/01-overview.md. Disimpan terpisah
+-- Enam kolom skor, satu per kriteria di CRITERIA (src/data/kos.ts). Disimpan terpisah
 -- (bukan JSON) supaya bisa di-query, di-index, dan dirata-rata di database.
 
 create table if not exists public.reviews (

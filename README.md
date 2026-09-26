@@ -214,16 +214,12 @@ npm run lint    # ESLint
 ## Struktur
 
 ```
-src/app/          rute — / dan /kos/[id]
+src/app/          rute — /, /kos/[id], /auth/confirm, /auth/reset-password
 src/components/   section halaman, peta, autentikasi, review, primitif UI
 src/lib/          repository, Server Actions, util
 src/data/         tipe domain dan konten statis
 supabase/         migrasi dan data awal
-docs/             dokumentasi teknis lengkap
 ```
-
-Dokumentasi arsitektur, model data, sistem desain, dan konvensi kode ada di
-[`docs/`](docs/) — mulai dari [`docs/README.md`](docs/README.md).
 
 ## Tim
 

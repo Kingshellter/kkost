@@ -43,3 +43,10 @@ next-env.d.ts
 
 # Claude Design exports, reference for UI work (not site code)
 /design
+
+# Local tooling and working notes, kept on disk but not pushed
+/.claude
+/.agent
+/.agents
+/docs
+/CLAUDE.md
