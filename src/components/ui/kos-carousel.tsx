@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Children, useEffect, useRef, useState } from "react";
+import { REVEAL_RISE, step } from "./reveal-classes";
 
 /**
  * One swipeable row of kos cards, so the browse section fits a single screen
@@ -14,6 +15,10 @@ import { Children, useEffect, useRef, useState } from "react";
  * a mouse, each moving one visible page. The buttons used to sit on the row's
  * edges, where they covered the outer cards. Tabbing through the cards
  * scrolls them into view on its own.
+ *
+ * Inside a `<Reveal>` (the browse section), the toolbar joins the entrance:
+ * the position text on beat 0, the arrows on beat 1, on wrappers so the
+ * buttons keep their own transitions. Outside one the classes do nothing.
  */
 export function KosCarousel({
   label,
@@ -77,10 +82,13 @@ export function KosCarousel({
         // `relative` so the list's shadow allowance (-my-6) below does not
         // cover these buttons.
         <div className="relative mb-3 flex items-center justify-between gap-4">
-          <p className="text-sm font-bold tabular-nums text-muted">
+          <p
+            style={step(0)}
+            className={`text-sm font-bold tabular-nums text-muted ${REVEAL_RISE}`}
+          >
             {end > start ? `${start}-${end}` : start} dari {count}
           </p>
-          <div className="hidden gap-2 sm:flex">
+          <div style={step(1)} className={`hidden gap-2 sm:flex ${REVEAL_RISE}`}>
             <ArrowButton direction={-1} disabled={atStart} onClick={() => page(-1)} />
             <ArrowButton direction={1} disabled={atEnd} onClick={() => page(1)} />
           </div>

@@ -155,13 +155,14 @@ export function Browse({ kos, total, cities, filter }: Props) {
         {kos.length > 0 ? (
           <Reveal className="mt-8 lg:mt-5 short:mt-3">
             <KosCarousel label={`${kos.length} kos`}>
-              {/* The first cards rise one beat apart; later ones are off
-                  screen in the row, so their delay is capped. `grid` lets
-                  the card fill the slide as it did without the wrapper. */}
+              {/* The first cards rise one beat apart, after the carousel's
+                  position text (beat 0); later ones are off screen in the
+                  row, so their delay is capped. `grid` lets the card fill
+                  the slide as it did without the wrapper. */}
               {kos.map((item, i) => (
                 <div
                   key={item.id}
-                  style={step(Math.min(i, 3))}
+                  style={step(Math.min(i, 3) + 1)}
                   className={`grid ${REVEAL_RISE}`}
                 >
                   <KosCard kos={item} />

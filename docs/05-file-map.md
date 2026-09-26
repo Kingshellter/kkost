@@ -58,7 +58,7 @@ map exists so you can read *only the right one*.
 | [`score-badge.tsx`](../src/components/ui/score-badge.tsx) | 42 | Circular score chip, 3 sizes, optional text label. Generic — knows nothing about kos |
 | [`kos-score-badge.tsx`](../src/components/ui/kos-score-badge.tsx) | 32 | `ScoreBadge` + the kos rule: `reviews === 0` renders a dark "Baru" chip instead of `0.0`. **Use this for any kos**, never `ScoreBadge` directly |
 | [`kos-card.tsx`](../src/components/ui/kos-card.tsx) | 60 | Kos card for the browse carousel; links to `/kos/[id]` |
-| [`kos-carousel.tsx`](../src/components/ui/kos-carousel.tsx) | 128 | **Client.** `KosCarousel` — one snap-scrolling row of server-rendered cards, with a toolbar above it: position ("1-3 dari 9") and ◀ ▶ page buttons (from `sm`), so `#browse` fits one screen |
+| [`kos-carousel.tsx`](../src/components/ui/kos-carousel.tsx) | 136 | **Client.** `KosCarousel` — one snap-scrolling row of server-rendered cards, with a toolbar above it: position ("1-3 dari 9") and ◀ ▶ page buttons (from `sm`), so `#browse` fits one screen Its toolbar joins the browse entrance (`REVEAL_RISE`, beats 0 and 1). |
 | [`kos-photo.tsx`](../src/components/ui/kos-photo.tsx) | 150 | `KosPhoto` — labelled SVG illustration per kos (4 scenes keyed by `photoAccent`). Kos have no photos; photos belong to reviews |
 | [`facility-bar.tsx`](../src/components/ui/facility-bar.tsx) | 23 | Labelled 0–5 progress bar |
 | [`logo.tsx`](../src/components/ui/logo.tsx) | 12 | Wordmark |
