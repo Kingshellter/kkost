@@ -187,7 +187,8 @@ enforced.
 - ✅ **Email confirmation** — "Confirm email" is on and custom SMTP (Gmail app
   password) sends the link, so an `.ac.id` badge now requires owning the
   inbox. The link lands on `/auth/confirm`, which signs the user in and shows a
-  `?konfirmasi=` notice on `/`. The account label is **"Mahasiswa"** or
+  `?konfirmasi=` toast on `/` (success leaves after 5s; the URL is cleaned so
+  a refresh does not repeat it). The account label is **"Mahasiswa"** or
   **"Publik"** (navbar, CTA card); review cards say "Mahasiswa terverifikasi".
   It proves a campus inbox, not tenancy. Tested end to end with a real inbox
   on 19 Sep 2026

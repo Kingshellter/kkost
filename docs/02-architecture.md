@@ -309,7 +309,10 @@ a `useActionState` form rendered by the CTA section.
   [`src/app/auth/confirm/route.ts`](../src/app/auth/confirm/route.ts) handles
   both link shapes (`?code=` from the default template, `?token_hash=&type=`
   from a custom one) and redirects to `/?konfirmasi=berhasil|masuk|gagal#login`,
-  which `ConfirmNotice` in `page.tsx` renders. A failed `code` exchange maps to
+  which `ConfirmNotice` in `page.tsx` renders as a `ConfirmToast`: a toast
+  under the navbar that strips `?konfirmasi=` from the URL on arrival (a
+  refresh does not repeat it). `berhasil` and `password-diubah` leave after
+  5s; `masuk`, `gagal`, `reset-gagal` stay until closed with ×. A failed `code` exchange maps to
   `masuk`, not `gagal`: Supabase confirms the address before redirecting, and
   the exchange only fails because the PKCE cookie is missing (link opened in
   another browser).

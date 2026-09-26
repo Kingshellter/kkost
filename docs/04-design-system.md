@@ -311,6 +311,7 @@ unmount after `durationMs("--duration-fast")` (`lib/motion.ts`), never on
 |---|---|---|---|
 | `AddKosDialog` | bridge the page ↔ modal jump | backdrop fade + panel `scale(--enter-scale)`→1, base, `ease-out`, centred origin. Only the backdrop fades: the panel is its child, and its own opacity would multiply with the backdrop's | reverse on fast; `inert` while leaving, first close wins |
 | `MobileNav` panel | show where it came from | `origin-top-right` scale + fade, base | reverse on fast; `invisible` when closed (out of Tab order) |
+| `ConfirmToast` (`?konfirmasi=`) | the result of an email link or a password change | drops `--enter-y` from above + fade, base; floats under the navbar (`fixed`), so leaving shifts nothing. Success leaves after 5s, the rest on × | rises back + fade on fast, then unmounts |
 | Map toast | feedback after a save | rises `--enter-y` + fade, base | sinks + fade on fast, then unmounts; announced through an always-mounted `sr-only` `role="status"` |
 | `SavedCard` (review) | a 1,400px form becomes a small card | rises `--enter-y` + fade, slow; the check follows 75ms later from `--enter-scale` (the site's only stagger — a once-per-kos moment) | — |
 | **Seam circles** (`BoundaryCircle`) | the move from one section to the next | both halves of the circle on a seam fade in and grow from `--reveal-pop` around their centre (which lies on the seam), when the seam reaches 85% of the screen. Each half hangs from a 1px `Reveal` strip on the seam line, so both fire at the same scroll position | — |

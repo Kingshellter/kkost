@@ -3,6 +3,7 @@ import { Cta } from "@/components/sections/cta";
 import { Footer } from "@/components/sections/footer";
 import { Hero } from "@/components/sections/hero";
 import { HowItWorks } from "@/components/sections/how-it-works";
+import { ConfirmToast } from "@/components/ui/confirm-toast";
 import { MapSection } from "@/components/sections/map-section";
 import { Navbar } from "@/components/sections/navbar";
 import { getSessionUser } from "@/lib/auth";
@@ -120,6 +121,12 @@ const CONFIRM_TEXT: Record<ConfirmOutcome, string> = {
 /** Outcomes that report a failure, drawn in the danger colour. */
 const CONFIRM_FAILED: ConfirmOutcome[] = ["gagal", "reset-gagal"];
 
+/**
+ * Plain news that needs nothing from the visitor, so the toast leaves by
+ * itself. Failures and "masuk" (sign in now) stay until closed.
+ */
+const CONFIRM_AUTO_HIDE: ConfirmOutcome[] = ["berhasil", "password-diubah"];
+
 /** `?konfirmasi=` as set by /auth/confirm or `updatePassword`; anything else is ignored. */
 function parseConfirmOutcome(
   value: string | string[] | undefined,
@@ -132,17 +139,10 @@ function parseConfirmOutcome(
 /** The result of clicking the link in a sign-up or password-reset email. */
 function ConfirmNotice({ outcome }: { outcome: ConfirmOutcome }) {
   return (
-    <div className="px-gutter pt-5">
-      <p
-        role="status"
-        className={`mx-auto max-w-page rounded-media px-5 py-3.5 text-sm font-bold ${
-          CONFIRM_FAILED.includes(outcome)
-            ? "bg-danger/10 text-danger"
-            : "bg-blue/10 text-blue"
-        }`}
-      >
-        {CONFIRM_TEXT[outcome]}
-      </p>
-    </div>
+    <ConfirmToast
+      message={CONFIRM_TEXT[outcome]}
+      tone={CONFIRM_FAILED.includes(outcome) ? "error" : "info"}
+      autoHide={CONFIRM_AUTO_HIDE.includes(outcome)}
+    />
   );
 }
