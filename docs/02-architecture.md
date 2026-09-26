@@ -313,6 +313,24 @@ a `useActionState` form rendered by the CTA section.
   `masuk`, not `gagal`: Supabase confirms the address before redirecting, and
   the exchange only fails because the PKCE cookie is missing (link opened in
   another browser).
+- **Password reset** (`requestPasswordReset`, `updatePassword`):
+  `resetPasswordForEmail(email, { redirectTo: <origin>/auth/confirm?next=/auth/reset-password })`,
+  answering the same way for registered and unknown addresses (only a rate
+  limit is reported). `/auth/confirm` treats `type=recovery` or that `next` as
+  a reset: on success it sets the httpOnly **`kkost-recovery`** cookie
+  (`RECOVERY_*` in `lib/auth.ts`: 15 minutes, path `/auth/reset-password`)
+  and redirects there; on failure `?konfirmasi=reset-gagal`, even for a failed
+  `code` exchange, because without a session nothing can be reset.
+  [`/auth/reset-password`](../src/app/auth/reset-password/page.tsx) shows
+  `NewPasswordForm` only with a session **and** the cookie, and
+  `updatePassword` checks both again. The cookie is what keeps an ordinary
+  signed-in session from changing the password without the old one. On
+  success it clears the cookie and redirects to
+  `/?konfirmasi=password-diubah#login`. `next` is only ever compared, never
+  redirected to; `safeNext` still rejects anything but a same-site path.
+  With the default email template the link is `?code=` (PKCE) and only works
+  in the browser that asked; the recommended template sends
+  `?token_hash=&type=recovery`, which works on any device.
 - A `"use server"` module may only export **async functions**. The
   `useActionState` initial objects therefore live in
   [`src/lib/action-state.ts`](../src/lib/action-state.ts), not next to the

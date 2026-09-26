@@ -1,17 +1,17 @@
 "use client";
 
-import { Eye, EyeOff } from "lucide-react";
-import { useActionState, useId, useRef, useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import { useActionState, useEffect, useId, useRef, useState } from "react";
 import {
   buttonClass,
   INPUT_CLASS,
-  LABEL_CLASS,
   NOTICE_CLASS,
 } from "@/components/ui/controls";
 import { Field } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import { AUTH_INITIAL, type AuthState } from "@/lib/action-state";
-import { signIn, signUp } from "@/lib/auth-actions";
+import { requestPasswordReset, signIn, signUp } from "@/lib/auth-actions";
+import { PasswordField } from "./password-field";
 
 type Mode = "signin" | "signup";
 
@@ -24,9 +24,14 @@ const TAB_LABEL: Record<Mode, string> = { signin: "Masuk", signup: "Daftar" };
  *
  * The tabs follow the ARIA tabs pattern: one tab in the Tab order at a time,
  * arrow keys / Home / End move between them, and the form is the tabpanel.
+ *
+ * "Lupa password?" under the sign-in password swaps the tabs for a one-field
+ * reset form (`ResetRequestForm`) in the same card, keeping the email typed
+ * so far; "Kembali ke Masuk" swaps back.
  */
 export function AuthCard() {
   const [mode, setMode] = useState<Mode>("signin");
+  const [resetting, setResetting] = useState(false);
   // Held here, above the keyed form, so switching modes keeps what was typed.
   // The password is deliberately not kept.
   const [email, setEmail] = useState("");
@@ -55,6 +60,23 @@ export function AuthCard() {
     e.preventDefault();
     setMode(next);
     tabs.current[next]?.focus();
+  }
+
+  if (resetting) {
+    return (
+      <div className="rounded-panel bg-white p-6 shadow-float sm:p-8">
+        <ResetRequestForm
+          email={email}
+          onEmail={setEmail}
+          onBack={() => {
+            setMode("signin");
+            setResetting(false);
+            // The tabs are back on the next render; focus "Masuk" there.
+            requestAnimationFrame(() => tabs.current.signin?.focus());
+          }}
+        />
+      </div>
+    );
   }
 
   return (
@@ -113,6 +135,7 @@ export function AuthCard() {
         onEmail={setEmail}
         displayName={displayName}
         onDisplayName={setDisplayName}
+        onForgot={() => setResetting(true)}
       />
     </div>
   );
@@ -126,6 +149,7 @@ function AuthForm({
   onEmail,
   displayName,
   onDisplayName,
+  onForgot,
 }: {
   mode: Mode;
   id: string;
@@ -134,12 +158,12 @@ function AuthForm({
   onEmail: (value: string) => void;
   displayName: string;
   onDisplayName: (value: string) => void;
+  onForgot: () => void;
 }) {
   const [state, formAction, pending] = useActionState<AuthState, FormData>(
     mode === "signin" ? signIn : signUp,
     AUTH_INITIAL,
   );
-  const [showPassword, setShowPassword] = useState(false);
 
   // React 19 resets a <form action> once the action settles, which would wipe
   // what the user typed on every wrong password. The fields are uncontrolled
@@ -183,47 +207,23 @@ function AuthForm({
           />
         </Field>
 
-        {/* Not a <Field>: the show/hide button must sit outside the label,
-            or its name would join the input's ("Password Lihat password"). */}
         <div>
-          <label htmlFor={`${id}-password`} className={LABEL_CLASS}>
-            Password
-          </label>
-          {mode === "signup" && (
-            <p id={`${id}-password-hint`} className="mt-1 text-sm font-medium text-muted">
-              Minimal 8 karakter.
-            </p>
+          <PasswordField
+            id={`${id}-password`}
+            autoComplete={mode === "signin" ? "current-password" : "new-password"}
+            hint={mode === "signup" ? "Minimal 8 karakter." : undefined}
+          />
+          {mode === "signin" && (
+            <div className="mt-1 flex justify-end">
+              <button
+                type="button"
+                onClick={onForgot}
+                className="min-h-11 text-sm font-bold text-action transition-colors duration-(--duration-fast) hover:text-ink active:text-ink"
+              >
+                Lupa password?
+              </button>
+            </div>
           )}
-          <div className="relative">
-            <input
-              id={`${id}-password`}
-              type={showPassword ? "text" : "password"}
-              name="password"
-              required
-              minLength={8}
-              aria-describedby={
-                mode === "signup" ? `${id}-password-hint` : undefined
-              }
-              autoComplete={
-                mode === "signin" ? "current-password" : "new-password"
-              }
-              className={`${INPUT_CLASS} pr-14!`}
-            />
-            {/* Centred on the input, which starts 0.5rem down (INPUT_CLASS mt-2). */}
-            <button
-              type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              aria-pressed={showPassword}
-              aria-label="Lihat password"
-              className="absolute right-1 top-[calc(50%+0.25rem)] grid size-11 -translate-y-1/2 place-items-center rounded-full text-muted transition-colors duration-(--duration-fast) hover:text-ink active:bg-cream"
-            >
-              {showPassword ? (
-                <EyeOff aria-hidden className="size-5" strokeWidth={2} />
-              ) : (
-                <Eye aria-hidden className="size-5" strokeWidth={2} />
-              )}
-            </button>
-          </div>
         </div>
       </div>
 
@@ -253,6 +253,97 @@ function AuthForm({
         Email apa pun bisa dipakai. Alamat berakhiran .ac.id menandai review
         kamu sebagai mahasiswa terverifikasi.
       </p>
+    </form>
+  );
+}
+
+/**
+ * "Lupa password?": one email field that asks Supabase for a reset link.
+ * The heading takes focus when the view opens, so a screen reader hears
+ * where it landed. Whatever the address, the answer reads the same (see
+ * `requestPasswordReset`).
+ */
+function ResetRequestForm({
+  email,
+  onEmail,
+  onBack,
+}: {
+  email: string;
+  onEmail: (value: string) => void;
+  onBack: () => void;
+}) {
+  const [state, formAction, pending] = useActionState<AuthState, FormData>(
+    requestPasswordReset,
+    AUTH_INITIAL,
+  );
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => heading.current?.focus(), []);
+
+  return (
+    <form
+      action={formAction}
+      className="transition-[opacity,translate] duration-(--duration-base) ease-out starting:translate-y-(--enter-y) starting:opacity-0"
+    >
+      <button
+        type="button"
+        onClick={onBack}
+        className="-ml-2 inline-flex min-h-11 items-center gap-2 rounded-full px-2 text-sm font-bold text-muted transition-colors duration-(--duration-fast) hover:text-ink active:text-ink"
+      >
+        <ArrowLeft aria-hidden className="size-4" strokeWidth={2.5} />
+        Kembali ke Masuk
+      </button>
+
+      <h3
+        ref={heading}
+        tabIndex={-1}
+        className="mt-3 text-2xl font-extrabold leading-tight text-ink focus-visible:outline-none"
+      >
+        Reset password
+      </h3>
+      <p className="mt-2 text-base leading-relaxed text-muted">
+        Masukkan email akun kkost kamu. Kami kirim link untuk mengatur password
+        baru.
+      </p>
+
+      <div className="mt-6">
+        <Field label="Email">
+          <input
+            type="email"
+            name="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            defaultValue={email}
+            onChange={(e) => onEmail(e.target.value)}
+            required
+            autoComplete="email"
+            placeholder="rina@email.com"
+            className={INPUT_CLASS}
+          />
+        </Field>
+      </div>
+
+      {state.error && (
+        <p role="alert" className={`mt-5 ${NOTICE_CLASS.error}`}>
+          {state.error}
+        </p>
+      )}
+
+      {state.notice && (
+        <p role="status" className={`mt-5 ${NOTICE_CLASS.info}`}>
+          {state.notice}
+        </p>
+      )}
+
+      <button
+        type="submit"
+        disabled={pending}
+        aria-busy={pending}
+        className={buttonClass("primary", "lg", "mt-7 w-full")}
+      >
+        {pending && <Spinner />}
+        {pending ? "Mengirim…" : "Kirim link reset"}
+      </button>
     </form>
   );
 }

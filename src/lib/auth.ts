@@ -43,6 +43,18 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   };
 }
 
+/**
+ * Password reset. The emailed link lands on /auth/confirm, which signs the
+ * user in and sets this httpOnly cookie; /auth/reset-password and its
+ * `updatePassword` action refuse to change a password without it. It is what
+ * stops any signed-in session from changing the password without knowing
+ * the old one: only a session that came from the reset link may.
+ */
+export const RECOVERY_COOKIE = "kkost-recovery";
+export const RECOVERY_PATH = "/auth/reset-password";
+/** 15 minutes to choose a new password after clicking the link. */
+export const RECOVERY_MAX_AGE = 15 * 60;
+
 /** Indonesian academic institutions all sit under .ac.id. */
 export function isCampusEmail(email: string) {
   return email.trim().toLowerCase().endsWith(".ac.id");

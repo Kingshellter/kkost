@@ -115,6 +115,13 @@ enforced.
 - ✅ **Auth** — email + password sign-up/sign-in via Supabase Auth, Server
   Actions, session in the navbar, sign-out. A `.ac.id` address flags the account
   as a verified student
+- ✅ **Forgotten password (26 Sep 2026)** — "Lupa password?" under the
+  sign-in password swaps the card for a one-field form; Supabase emails a
+  reset link (same answer whether or not the address is registered). The
+  link lands on `/auth/confirm`, which signs the user in and sets a 15-minute
+  recovery cookie, then `/auth/reset-password` takes the new password twice
+  and returns to `/` signed in. **Not yet tested end to end with a real
+  inbox**, and two dashboard steps are pending — see `08-roadmap.md`
 - ✅ **Reviews** — six facility scores 1–5 per reviewer, one review per kos per
   person, `kos.score` recomputed by a database trigger
 - ✅ Interactive map with score pins that **auto-fits to wherever the kos are**,

@@ -13,7 +13,8 @@ map exists so you can read *only the right one*.
 | [`src/app/kos/[id]/page.tsx`](../src/app/kos/[id]/page.tsx) | 300 | Route `/kos/[id]`. Two-column grid from `lg` (sticky aside right). Back link, header (`KosPhoto` banner, name, location, price, score, "Tulis review" + "Lihat lokasi" anchors), per-facility averages as `FacilityBar`s, aside (`ScoreProvenance`, `KosLocation`: OSM + `/?kota=…#peta` links), review list (`#ulasan`), and at `#tulis-review` either an inline `AuthCard` or `ReviewForm` (which itself shows "tersimpan" / "sudah menilai"). `Footer` |
 | [`src/app/globals.css`](../src/app/globals.css) | 342 | Tailwind v4 `@theme inline` tokens, `px-gutter` / `pb-safe` safe-area utilities, base `touch-action: manipulation` on controls, `eyebrow` utility, motion tokens (no scroll-driven effects since Fase 6), all Leaflet overrides |
 | [`src/app/error.tsx`](../src/app/error.tsx) | 64 | Client error boundary in Indonesian: `NavbarFrame` (no account slot), `StatusCard` with "Coba lagi" (`retry()`, the Next 16 prop name) and a home link, the error digest, `Footer`. Logs the error; React `<title>` "Gagal dimuat · kkost". Shown when `fetchKos` throws |
-| [`src/app/auth/confirm/route.ts`](../src/app/auth/confirm/route.ts) | 55 | `GET` handler for the sign-up confirmation link: `verifyOtp` (`token_hash`) or `exchangeCodeForSession` (`code`), then redirects to `/?konfirmasi=berhasil\|masuk\|gagal#login`. Exports the `ConfirmOutcome` type |
+| [`src/app/auth/confirm/route.ts`](../src/app/auth/confirm/route.ts) | 93 | `GET` handler for the links in kkost's emails (sign-up confirmation, password reset): `verifyOtp` (`token_hash`) or `exchangeCodeForSession` (`code`), then redirects to `/?konfirmasi=berhasil\|masuk\|gagal\|reset-gagal#login`, or for a reset sets the recovery cookie and goes to `/auth/reset-password`. `safeNext` accepts only same-site paths. Exports the `ConfirmOutcome` type |
+| [`src/app/auth/reset-password/page.tsx`](../src/app/auth/reset-password/page.tsx) | 61 | Choose a new password after a reset link: navbar, card with `NewPasswordForm`, footer. Without a session and the recovery cookie, a `StatusCard` "Link reset tidak valid" pointing back to `/#login`. `noindex` |
 | [`src/app/not-found.tsx`](../src/app/not-found.tsx) | 38 | 404 for URLs that match no route: navbar, `StatusCard` "Halaman tidak ditemukan" ("Cari kos", "Ke beranda"), footer. `metadata` sets the title |
 | [`src/app/kos/[id]/not-found.tsx`](../src/app/kos/[id]/not-found.tsx) | 38 | 404 for `notFound()` in the kos page: "Kos ini tidak ditemukan" ("Lihat semua kos", "Buka peta"), navbar, footer |
 | [`src/proxy.ts`](../src/proxy.ts) | 40 | Supabase session refresh; no-ops without env vars; matcher excludes static assets. Named `proxy`, not `middleware` — that convention is deprecated in Next 16 |
@@ -30,8 +31,8 @@ map exists so you can read *only the right one*.
 | [`src/lib/kos-browse.ts`](../src/lib/kos-browse.ts) | 115 | URL filter for the landing page: `SORTS`, `BUDGETS`, `KosFilter`, `parseKosFilter` (zod, never throws), `isNarrowed`, `hasFilter`, `matchesKosFilter`, `applyKosFilter`, `cityOptions`, `summarizeKos` (the hero's live numbers) |
 | [`src/lib/scores.ts`](../src/lib/scores.ts) | 17 | `averageFor(reviews, key)` — display-only per-facility mean, used by the hero card and the detail page |
 | [`src/lib/motion.ts`](../src/lib/motion.ts) | 17 | `durationMs("--duration-fast")` — a motion token's duration in ms, read from the CSS variable; exit timers use it so they never disagree with the transition |
-| [`src/lib/auth.ts`](../src/lib/auth.ts) | 50 | `getSessionUser()` — the only trusted source of the current user. `isCampusEmail` |
-| [`src/lib/auth-actions.ts`](../src/lib/auth-actions.ts) | 105 | `"use server"`: `signIn`, `signUp`, `signOut`, plus Indonesian error translation |
+| [`src/lib/auth.ts`](../src/lib/auth.ts) | 61 | `getSessionUser()` — the only trusted source of the current user. `isCampusEmail`. `RECOVERY_COOKIE` / `RECOVERY_PATH` / `RECOVERY_MAX_AGE` for the password reset |
+| [`src/lib/auth-actions.ts`](../src/lib/auth-actions.ts) | 197 | `"use server"`: `signIn`, `signUp`, `signOut`, `requestPasswordReset`, `updatePassword`, plus Indonesian error translation |
 | [`src/lib/review-actions.ts`](../src/lib/review-actions.ts) | 70 | `"use server"`: `submitReview` — reads the author from the session, validates, revalidates both routes, returns the new `reviewId` |
 | [`src/lib/action-state.ts`](../src/lib/action-state.ts) | 22 | `useActionState` initial values and state types. Separate because a `"use server"` file may only export async functions |
 | [`src/lib/format.ts`](../src/lib/format.ts) | 10 | `formatRupiah` (`Rp950.000`), `formatDistance` (`700 m` / `1,1 km`), `formatCampus` (`700 m ke UGM` / `Dekat UGM`), `formatNumber` — all `id-ID` |
@@ -91,7 +92,9 @@ map exists so you can read *only the right one*.
 
 | File | ~n | Owns |
 |---|---|---|
-| [`auth-card.tsx`](../src/components/auth/auth-card.tsx) | 240 | Client. Sign-in / sign-up as an ARIA tab list (roving tabindex, arrows/Home/End) over a `tabpanel` form. `AuthForm` is keyed by mode, so each mode has its own `useActionState` (no stale error); email and name live in `AuthCard` and survive the switch. Show/hide password button |
+| [`auth-card.tsx`](../src/components/auth/auth-card.tsx) | 349 | Client. Sign-in / sign-up as an ARIA tab list (roving tabindex, arrows/Home/End) over a `tabpanel` form. `AuthForm` is keyed by mode, so each mode has its own `useActionState` (no stale error); email and name live in `AuthCard` and survive the switch. "Lupa password?" (sign-in only) swaps the card for `ResetRequestForm` (email → `requestPasswordReset`, heading focused, "Kembali ke Masuk" refocuses the Masuk tab) |
+| [`password-field.tsx`](../src/components/auth/password-field.tsx) | 69 | Client. `PasswordField` — password input with the show/hide button, optional hint on `aria-describedby`. Used by `AuthCard` and `NewPasswordForm` |
+| [`new-password-form.tsx`](../src/components/auth/new-password-form.tsx) | 57 | Client. New password twice → `updatePassword`, which redirects on success; errors only |
 
 ## Reviews — `src/components/review/`
 

@@ -265,6 +265,13 @@ input is not lost. No `alert()`, no `console.error` as the user-facing path.
 
 ## Server Actions
 
+- **A redirect target from a URL is only ever a same-site path.** Anything
+  read from `?next=` (or similar) goes through `safeNext` in
+  `app/auth/confirm/route.ts` (starts with `/`, not `//` or `/\`), or better,
+  is only compared against a known path and never redirected to.
+- **Auth forms never say whether an email is registered** (password reset:
+  one answer for every address). Rate-limit errors are the exception.
+
 - Actions live in `src/lib/*-actions.ts` with `"use server"` at the top.
 - **A `"use server"` module may only export async functions.** State objects for
   `useActionState` therefore live in `src/lib/action-state.ts`. Exporting a

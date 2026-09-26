@@ -112,9 +112,15 @@ const CONFIRM_TEXT: Record<ConfirmOutcome, string> = {
     "Email sudah terkonfirmasi. Silakan masuk dengan email dan password kamu.",
   gagal:
     "Link konfirmasi tidak valid atau sudah kedaluwarsa. Coba masuk; jika belum bisa, daftar ulang untuk mendapat link baru.",
+  "reset-gagal":
+    "Link reset password tidak valid atau sudah kedaluwarsa. Pilih “Lupa password?” di bawah untuk meminta link baru.",
+  "password-diubah": "Password baru tersimpan, kamu sudah masuk.",
 };
 
-/** `?konfirmasi=` as set by /auth/confirm; anything else is ignored. */
+/** Outcomes that report a failure, drawn in the danger colour. */
+const CONFIRM_FAILED: ConfirmOutcome[] = ["gagal", "reset-gagal"];
+
+/** `?konfirmasi=` as set by /auth/confirm or `updatePassword`; anything else is ignored. */
 function parseConfirmOutcome(
   value: string | string[] | undefined,
 ): ConfirmOutcome | null {
@@ -123,14 +129,16 @@ function parseConfirmOutcome(
     : null;
 }
 
-/** The result of clicking the link in the sign-up confirmation email. */
+/** The result of clicking the link in a sign-up or password-reset email. */
 function ConfirmNotice({ outcome }: { outcome: ConfirmOutcome }) {
   return (
     <div className="px-gutter pt-5">
       <p
         role="status"
         className={`mx-auto max-w-page rounded-media px-5 py-3.5 text-sm font-bold ${
-          outcome === "gagal" ? "bg-danger/10 text-danger" : "bg-blue/10 text-blue"
+          CONFIRM_FAILED.includes(outcome)
+            ? "bg-danger/10 text-danger"
+            : "bg-blue/10 text-blue"
         }`}
       >
         {CONFIRM_TEXT[outcome]}

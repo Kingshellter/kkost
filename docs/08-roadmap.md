@@ -51,6 +51,18 @@ Butuh akses pemilik proyek Supabase. Menu **Authentication**:
 - [ ] **Setelah deploy**: tambahkan juga `https://<url-live>/**` ke Redirect
       URLs, dan ganti **Site URL** ke URL live. Tanpa ini tautan konfirmasi
       yang diterima juri mengarah ke localhost.
+- [ ] **Reset password — template email** (26 Sep 2026): Authentication →
+      Email Templates → **Reset Password**, ganti link menjadi
+      `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery`
+      (RedirectTo sudah berisi `?next=/auth/reset-password`). Dengan
+      template bawaan, link hanya jalan di browser yang sama dengan tempat
+      memintanya. Sekalian ubah subjek dan isinya ke bahasa Indonesia.
+- [ ] **Uji reset password ujung-ke-ujung**: "Lupa password?" → email masuk
+      → klik → atur password baru → masuk otomatis → keluar → masuk dengan
+      password baru. Ulangi dengan membuka link di HP, lalu dengan link yang
+      sudah dipakai (harus muncul pesan merah "Link reset password tidak
+      valid"). Setelah lolos, hapus "Not yet tested end to end" di
+      `01-overview.md`.
 - [x] Uji ujung-ke-ujung (lolos 19 Sep 2026): daftar dengan email sungguhan → surel dari
       "kkost" masuk → klik tautan → kembali ke situs dengan pesan "Email
       terkonfirmasi — kamu sudah masuk".
