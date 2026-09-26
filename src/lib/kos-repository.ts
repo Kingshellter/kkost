@@ -194,6 +194,10 @@ function explain(error: Postgrestish) {
   if (error.code === "PGRST204" || /column .* of 'kos'/.test(error.message)) {
     return "Kolom belum ada di tabel kos. Jalankan migrasi di supabase/migrations/ secara berurutan lewat SQL Editor.";
   }
+  // The 0011 trigger: this account added 10 kos in the last 24 hours.
+  if (error.message.includes("kos_rate_limit")) {
+    return "Batas menambah kos hari ini tercapai (10 kos). Coba lagi besok.";
+  }
   // A CHECK constraint from 0008 rejected a value the form should have caught
   // — someone bypassed it, or the two limits have drifted apart.
   if (error.code === "23514") {

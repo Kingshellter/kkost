@@ -305,7 +305,7 @@ Enabled on `kos`, `profiles`, `reviews`, and (after 0010) `review_photos`.
 
 | Table | Policy |
 |---|---|
-| `kos` | select: anyone. insert: **authenticated only**, and since 0008 `auth.uid() = created_by` (0004 replaced 0002's open policy) |
+| `kos` | select: anyone. insert: **authenticated only**, and since 0008 `auth.uid() = created_by` (0004 replaced 0002's open policy). Since 0011 a `BEFORE INSERT` trigger (`limit_kos_inserts`, `SECURITY DEFINER`, not callable over REST) refuses an account's 11th kos within 24 hours with `kos_rate_limit`, which `explain()` in `kos-repository.ts` turns into Indonesian |
 | `profiles` | select: anyone. update: own row only |
 | `reviews` | select: anyone. insert: authenticated, `auth.uid() = author_id`. update: own row **and** `created_at > now() - 30 days`. delete: own row only |
 
@@ -385,8 +385,11 @@ SQL Editor**, in order:
    superseded by 0010, which drops its table
 10. `supabase/migrations/0010_review_photos.sql` — applied live 19 Sep 2026.
     The app still runs without it: `fetchReviews` retries without the embed
-11. `supabase/seed.sql`
-12. `supabase/seed_demo_reviews.sql` — optional, but the demo is empty without it
+11. `supabase/migrations/0011_kos_insert_rate_limit.sql` — **written 26 Sep
+    2026, not yet applied live.** Ten new kos per account per 24h. Safe to run
+    twice
+12. `supabase/seed.sql`
+13. `supabase/seed_demo_reviews.sql` — optional, but the demo is empty without it
 
 An agent cannot do this — the Supabase connector is read-only. Write the
 migration, then ask the user to run it, then verify with `list_tables`.

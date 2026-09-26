@@ -282,7 +282,15 @@ input is not lost. No `alert()`, no `console.error` as the user-facing path.
   `next dev` will not catch it.
 - **Never trust the client for identity.** The form sends *which* kos and the
   user's own input; the author is re-read from the session inside the action
-  (`getSessionUser()`).
+  (`getSessionUser()`). On the server, identity comes from
+  `supabase.auth.getUser()` only, never `getSession()`: the cookie is readable
+  and editable in the browser, and only `getUser()` checks it with Supabase.
+- **Every Supabase client passes `SUPABASE_COOKIE_OPTIONS`**
+  (`utils/supabase/cookie-options.ts`), so the session cookie is `Secure` in
+  production wherever it is written.
+- **User text never reaches HTML strings.** Leaflet popups, tooltips and
+  `divIcon` take HTML; put user text in react-leaflet's JSX children instead.
+  The session cookie is not `HttpOnly`, so an XSS would hand it over.
 - Validate every action input with zod. `FormData` is untrusted.
 - Call `revalidatePath` for every route whose output changed — a review changes
   both `/kos/[id]` and `/`.

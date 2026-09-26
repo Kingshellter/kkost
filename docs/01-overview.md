@@ -196,8 +196,9 @@ enforced.
 - ✅ **Footer** on `/` — tagline, nav links, OpenStreetMap data credit
 - ✅ **Indonesian error and 404 pages** (`app/error.tsx`, `app/not-found.tsx`,
   and `app/kos/[id]/not-found.tsx` for a missing kos), each with the navbar
-  and footer (UI-revamp Fase 4, E-1), and basic security headers in
-  `next.config.ts`
+  and footer (UI-revamp Fase 4, E-1), and security headers in
+  `next.config.ts` (safe-subset CSP and Permissions-Policy since 26 Sep 2026;
+  see "Security" in `02-architecture.md`)
 - ✅ **Map respects the URL filter for kos added this session**, the toast
   timer restarts on a second save, and a `local-` kos is not a dead link
 - ✅ **`AddKosDialog` traps focus** and returns it to the map on close

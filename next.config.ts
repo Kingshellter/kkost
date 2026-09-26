@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
   // It never appears in a production build either way.
   devIndicators: false,
 
+  // No `X-Powered-By: Next.js`: it tells an attacker which exploits to try.
+  poweredByHeader: false,
+
   images: {
     // Review photos uploaded to the public `review-photos` bucket (0010). Only that
     // bucket's public path is allowed, not the whole Supabase domain.
@@ -23,9 +26,13 @@ const nextConfig: NextConfig = {
       : [],
   },
 
-  // Basic hardening only. A full Content-Security-Policy is deliberately left
-  // out: the map pulls tiles and Nominatim results from other origins, and a
-  // wrong CSP breaks the demo in ways that are hard to see.
+  // Hardening headers. The CSP is the safe subset: it forbids framing the
+  // site, plugins, a rewritten <base>, and forms posting off-site, but does
+  // not restrict scripts, styles, images or connections. A `script-src` CSP
+  // needs a nonce per request (every page dynamic), and a wrong one breaks
+  // the map's OSM tiles, Nominatim and Supabase in ways that are hard to see.
+  // XSS is kept out at the source instead: React escaping, no
+  // dangerouslySetInnerHTML, map text through React (docs/02-architecture).
   async headers() {
     return [
       {
@@ -34,6 +41,16 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-Frame-Options", value: "DENY" },
+          {
+            key: "Content-Security-Policy",
+            value:
+              "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'",
+          },
+          // The site uses none of these; nothing embedded may ask for them.
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), payment=()",
+          },
         ],
       },
     ];

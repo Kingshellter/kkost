@@ -287,6 +287,37 @@ pages keep rendering on a bare checkout. Its matcher excludes `_next/static`,
 > `middleware` convention and warns on every build. The exported function must
 > be named `proxy` (or be the default export).
 
+All three pass `cookieOptions: SUPABASE_COOKIE_OPTIONS`
+([`utils/supabase/cookie-options.ts`](../src/utils/supabase/cookie-options.ts)),
+so they write the same session cookie.
+
+## Security (audited 26 Sep 2026)
+
+- **Session cookie** `sb-<ref>-auth-token`: `SameSite=Lax`, `Secure` in
+  production, **not** `HttpOnly` — the browser client needs it to upload
+  review photos and add a kos straight to Supabase. Its content is a
+  Supabase-signed JWT, and the server only ever reads identity through
+  `supabase.auth.getUser()` (which asks the Auth server), never
+  `getSession()` (which would trust the cookie), so an edited or forged
+  cookie is rejected.
+- **XSS, the one way to steal that cookie, is kept out at the source**: no
+  `dangerouslySetInnerHTML`; user text on the map (kos names, place results)
+  renders through react-leaflet's React children, not Leaflet's HTML
+  strings; `divIcon` HTML holds only a score or fixed markup; the photo
+  bucket refuses SVG.
+- **Headers** (`next.config.ts`): HSTS (Vercel), `nosniff`, `X-Frame-Options:
+  DENY`, `Referrer-Policy`, `Permissions-Policy` (no camera, mic, geolocation,
+  payment), no `X-Powered-By`, and a **safe-subset CSP**
+  (`frame-ancestors 'none'; object-src 'none'; base-uri 'self';
+  form-action 'self'`). No `script-src`: that needs a nonce on every request
+  and a wrong one breaks the map's tiles, Nominatim and Supabase.
+- **CSRF**: `SameSite=Lax` plus Next's Origin check on Server Actions.
+- **Abuse**: one review per person per kos (unique), three photos per review
+  (trigger), ten new kos per account per 24h (0011).
+- **Password change**: the recovery cookie only guards the UI; the real guard
+  is Supabase's *Secure password change* setting (roadmap step 1).
+- Supabase security linter: only `auth_leaked_password_protection` (Pro plan).
+
 ## Auth
 
 Email + password through Supabase Auth, driven by **Server Actions** in

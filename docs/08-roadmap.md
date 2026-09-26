@@ -51,6 +51,11 @@ Butuh akses pemilik proyek Supabase. Menu **Authentication**:
 - [ ] **Setelah deploy**: tambahkan juga `https://<url-live>/**` ke Redirect
       URLs, dan ganti **Site URL** ke URL live. Tanpa ini tautan konfirmasi
       yang diterima juri mengarah ke localhost.
+- [ ] **Keamanan (26 Sep 2026)**: Authentication → Providers → Email →
+      **Secure password change: ON** (ganti password wajib login yang masih
+      baru; alur reset tetap jalan). Lalu jalankan
+      `supabase/migrations/0011_kos_insert_rate_limit.sql` di SQL Editor
+      (batas 10 kos per akun per 24 jam) dan jalankan linter Security lagi.
 - [ ] **Reset password — template email** (26 Sep 2026): Authentication →
       Email Templates → **Reset Password**, ganti link menjadi
       `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery`
