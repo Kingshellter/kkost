@@ -176,47 +176,42 @@ export const CRITERIA = [
     number: "01",
     key: "room" as FacilityKey,
     title: "Kamar & kasur",
-    description:
-      "Luas yang sebenarnya, cahaya matahari, kondisi kasur, dan tempat untuk menyimpan baju.",
+    description: "Luas, cahaya, dan kondisi kasur",
     accent: "amber" as Accent,
   },
   {
     number: "02",
     key: "bathroom" as FacilityKey,
     title: "Kamar mandi",
-    description:
-      "Seberapa bersih, seberapa panjang antrean pagi, dan apakah air panasnya benar-benar ada.",
+    description: "Kebersihan dan antrean pagi",
     accent: "rose" as Accent,
   },
   {
     number: "03",
     key: "water" as FacilityKey,
     title: "Air & listrik",
-    description:
-      "Seberapa sering mati, tekanan air di lantai atas, dan apakah token listrik dibagi adil.",
+    description: "Seberapa sering mati",
     accent: "blue" as Accent,
   },
   {
     number: "04",
     key: "wifi" as FacilityKey,
     title: "WiFi",
-    description: "Diukur di kamar jam sembilan malam, bukan di ruang tamu siang hari.",
+    description: "Diukur di kamar, malam hari",
     accent: "sky" as Accent,
   },
   {
     number: "05",
     key: "kitchen" as FacilityKey,
     title: "Dapur",
-    description:
-      "Apa saja isinya, siapa yang membersihkan, dan apakah memasak diperbolehkan.",
+    description: "Isi, kebersihan, boleh masak",
     accent: "ink" as Accent,
   },
   {
     number: "06",
     key: "parking" as FacilityKey,
     title: "Parkir",
-    description:
-      "Cukup untuk motor semua penghuni, beratap, dan ada gerbang di malam hari.",
+    description: "Cukup, beratap, bergerbang",
     accent: "amber" as Accent,
   },
 ];
@@ -231,25 +226,3 @@ export const NAV_LINKS = [
   { label: "Peta", href: "/#peta" },
   { label: "Cari kos", href: "/#browse" },
 ] as const;
-
-/**
- * The problem statement, left half of `#cara-kerja` (anchor `#dampak`). Qualitative on purpose: no
- * figure appears here that the project cannot source.
- */
-export const PROBLEMS = [
-  {
-    title: "Yang penting tidak terlihat di foto",
-    detail:
-      "Air yang mati tiap pagi, WiFi yang hanya kuat di ruang tamu, antrean kamar mandi. Semuanya baru ketahuan setelah sewa dibayar.",
-  },
-  {
-    title: "Ulasan tercecer dan bisa hilang",
-    detail:
-      "Pengalaman penghuni tersebar di grup chat dan kolom komentar: tanpa struktur, tidak bisa dibandingkan, dan bisa dihapus pengelolanya.",
-  },
-  {
-    title: "Mahasiswa baru memilih dari jauh",
-    detail:
-      "Banyak yang harus menyewa sebelum pernah melihat kotanya, justru saat informasi yang mereka punya paling sedikit.",
-  },
-];

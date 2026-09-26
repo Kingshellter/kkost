@@ -30,7 +30,7 @@ RootLayout (app/layout.tsx)  — html lang="id", Jakarta font, bg-cream
     ├── <Navbar/>                       server  ← sticky below lg
     ├── <main>
     │   ├── <Hero/>          #(top)     server  ← all kos: live stats, featured kos
-    │   ├── <HowItWorks/>    #cara-kerja server ← problem (#dampak) + six criteria (#scoring)
+    │   ├── <HowItWorks/>    #cara-kerja server ← heading + problem (#dampak) + six criteria (#scoring)
     │   ├── <MapSection/>    #peta      server  ← filtered kos; hosts the client island
     │   ├── <Browse/>        #browse    server  ← filtered kos + filter form
     │   └── <Cta/>           #login     server

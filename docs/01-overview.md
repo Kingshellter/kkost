@@ -58,11 +58,15 @@ enforced.
 ## What actually works today
 
 - ✅ Landing page at `/` — navbar, hero, **Cara kerja** (`#cara-kerja`:
-  the problem on the left, the six criteria on the right), map (`#peta`),
+  one heading + one sentence of problem, the six criteria as icon + name +
+  short hint, one sentence on how the score is made), map (`#peta`),
   browse (`#browse`), sign-in (`#login`), footer. Redesigned in UI-revamp
   Fase 4a (25 Sep 2026): the old `#dampak` and `#scoring` sections were merged
   so the kos list starts at ±4,500px on a phone instead of ±6,800px (page
-  9,254px → ±6,750px); both old anchors still land, on the two halves
+  9,254px → ±6,750px); both old anchors still land, on the two halves.
+  Distilled 26 Sep 2026: the three-item problem list and the long criterion
+  descriptions went, so the section is 948px on a phone (was 1,788px) and
+  `#browse` starts at ±3,170px
 - ✅ **Kos detail page at `/kos/[id]`** — header (name, location, price,
   score, a "Tulis review" / "Masuk untuk menulis" shortcut to the form),
   per-facility averages as bars, review list (six scores per review as a
