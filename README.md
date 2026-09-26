@@ -225,13 +225,11 @@ supabase/         migrasi dan data awal
 
 **Tim atom** — Universitas Sebelas Maret
 
-<!-- TODO: lengkapi nama tiga anggota sesuai identitas resmi (syarat C.2 panduan) -->
-
-| Peran | Nama |
-|---|---|
-| Ketua | — |
-| Anggota | — |
-| Anggota | — |
+| Peran | Nama | NIM |
+|---|---|---|
+| Ketua | Askhar Dwista Saputra | K3123015 |
+| Anggota | Muhammad Hafiz Dicky Putra | L0123096 |
+| Anggota | M. Maulana Gian Pranaja | L0123077 |
 
 Diajukan untuk **Web Development Competition, SwitchFest 2026** —
 HMJ Teknologi Informasi, UIN Walisongo Semarang.
